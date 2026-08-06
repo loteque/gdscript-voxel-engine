@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://dra0prj4ub44f"]
+
+[ext_resource type="Script" uid="uid://ca8ht6xlu7otj" path="res://PointFieldRuntimeUI.gd" id="1_runtime_ui"]
+[ext_resource type="Script" uid="uid://ckpebtaufl31t" path="res://PointFieldRuntimePanel.gd" id="2_runtime_panel"]
+
+[node name="PointFieldRuntimeUI" type="CanvasLayer" unique_id=146452323]
+script = ExtResource("1_runtime_ui")
+
+[node name="PointFieldRuntimePanel" type="PanelContainer" parent="." unique_id=1923858068]
+unique_name_in_owner = true
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 376.0
+offset_bottom = 704.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_runtime_panel")
