@@ -20,6 +20,8 @@ extends Node3D
 ## The Surface Nets mesh consumer displaying the active field.
 @export var surface_nets_display: SurfaceNetsMeshDisplay:
 	set(value):
+		if surface_nets_display == value:
+			return
 		surface_nets_display = value
 		_queue_initialization()
 
@@ -111,10 +113,12 @@ func _discover_children() -> void:
 		) as PointFieldVisualizer
 
 	if surface_nets_display == null:
-		surface_nets_display = _find_descendant_by_type(
+		var discovered_surface_nets_display := _find_descendant_by_type(
 			self,
 			SurfaceNetsMeshDisplay
 		) as SurfaceNetsMeshDisplay
+		if discovered_surface_nets_display != null:
+			surface_nets_display = discovered_surface_nets_display
 
 	if point_field_runtime_ui == null:
 		point_field_runtime_ui = _find_descendant_by_type(
