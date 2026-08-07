@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="PointFieldResource" format=3 uid="uid://ec4nu8icgyhv"]
 
-[ext_resource type="Script" uid="uid://dkw3ukx82qnqy" path="res://PointFieldResource.gd" id="1_sl274"]
+[ext_resource type="Script" uid="uid://dkw3ukx82qnqy" path="res://voxel/field/PointFieldResource.gd" id="1_sl274"]
 
 [resource]
 script = ExtResource("1_sl274")
