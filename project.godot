@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="smooth_voxel_tech_demo"
-config/version="0.1.2"
+config/version="0.1.3"
 run/main_scene="uid://dph66w3lyeo2k"
 config/features=PackedStringArray("4.7")
 config/icon="res://icon.svg"
