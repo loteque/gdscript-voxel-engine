@@ -3,7 +3,7 @@
 ; since the parameters that go here are not all obvious.
 ;
 ; Format:
-;   [section] ; section between []
+;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
 config_version=5
@@ -14,11 +14,10 @@ config/name="smooth_voxel_tech_demo"
 config/version="0.2.0"
 run/main_scene="uid://dph66w3lyeo2k"
 config/features=PackedStringArray("4.7")
-config/icon="res://icon.svg"
-boot_splash/image="res://assets/splash/voxel_terrain_splash.svg"
-boot_splash/fullsize=true
-boot_splash/use_filter=false
 boot_splash/bg_color=Color(0.00784314, 0.0352941, 0.0784314, 1)
+boot_splash/use_filter=false
+boot_splash/image="res://assets/splash/voxel_terrain_splash.svg"
+config/icon="res://icon.svg"
 
 [input]
 
