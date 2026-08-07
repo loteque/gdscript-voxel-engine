@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.1.2
+
+### Changed
+- Upgraded GitHub Pages actions to Node.js 24-compatible major versions: `actions/configure-pages@v6`, `actions/upload-pages-artifact@v5`, and `actions/deploy-pages@v5`.
+- Pull request web deployment validation now uses the same current Pages action majors as production deployment.
+
 ## 0.1.1
 
 ### Fixed
