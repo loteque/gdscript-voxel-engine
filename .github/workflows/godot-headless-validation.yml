@@ -1,0 +1,44 @@
+name: Godot Headless Validation
+
+on:
+  push:
+    branches:
+      - main
+      - agent/**
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate with Godot 4.7.1
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT_VERSION="4.7.1-stable"
+          GODOT_ARCHIVE="Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          GODOT_BINARY="Godot_v${GODOT_VERSION}_linux.x86_64"
+
+          curl --fail --location --silent --show-error \
+            --output "$GODOT_ARCHIVE" \
+            "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/${GODOT_ARCHIVE}"
+
+          unzip -q "$GODOT_ARCHIVE"
+          install -m 0755 "$GODOT_BINARY" /usr/local/bin/godot
+          godot --version
+
+      - name: Import project headlessly
+        run: godot --headless --path . --import
+
+      - name: Start main scene headlessly
+        run: godot --headless --path . --quit-after 2
