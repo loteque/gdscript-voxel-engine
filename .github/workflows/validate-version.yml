@@ -168,7 +168,7 @@ jobs:
               }})
               .catch(() => {{}});
             picker.addEventListener('change', () => {{
-              window.location.href = `../${{picker.value}}/`;
+              window.location.href = '../' + picker.value + '/';
             }});
           }})();
           </script>\n'''
