@@ -53,6 +53,77 @@ jobs:
             build/web/index.html
           touch build/web/.nojekyll
 
+      - name: Add version selector
+        shell: bash
+        env:
+          CURRENT_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          index_path = Path('build/web/index.html')
+          html = index_path.read_text(encoding='utf-8')
+          current_version = os.environ['CURRENT_VERSION']
+
+          selector = f'''
+          <style id="voxel-version-selector-style">
+            #voxel-version-selector {{
+              position: fixed;
+              top: 12px;
+              right: 12px;
+              z-index: 2147483647;
+              padding: 6px 8px;
+              border: 1px solid rgba(255, 255, 255, 0.22);
+              border-radius: 6px;
+              background: rgba(7, 21, 34, 0.86);
+              color: #f3f5f7;
+              font: 12px/1.2 monospace;
+              backdrop-filter: blur(4px);
+            }}
+          </style>
+          <select id="voxel-version-selector" aria-label="Select demo version">
+            <option value="{current_version}" selected>v{current_version}</option>
+          </select>
+          <script>
+            (() => {{
+              const currentVersion = {current_version!r};
+              const selector = document.getElementById('voxel-version-selector');
+
+              fetch('../versions.json', {{ cache: 'no-store' }})
+                .then(response => {{
+                  if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+                  return response.json();
+                }})
+                .then(data => {{
+                  const versions = Array.isArray(data.versions) ? data.versions : [];
+                  selector.replaceChildren();
+
+                  for (const version of versions) {{
+                    const option = document.createElement('option');
+                    option.value = version;
+                    option.textContent = `v${{version}}`;
+                    option.selected = version === currentVersion;
+                    selector.appendChild(option);
+                  }}
+                }})
+                .catch(error => console.warn('Unable to load demo versions:', error));
+
+              selector.addEventListener('change', () => {{
+                if (selector.value === currentVersion) return;
+                window.location.href = `../${{selector.value}}/`;
+              }});
+            }})();
+          </script>
+          '''
+
+          if '</body>' not in html:
+              raise SystemExit('Exported index.html does not contain </body>.')
+
+          html = html.replace('</body>', selector + '\n</body>', 1)
+          index_path.write_text(html, encoding='utf-8')
+          PY
+
       - name: Preserve exported build
         shell: bash
         run: |
