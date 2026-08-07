@@ -92,7 +92,7 @@ jobs:
 
               fetch('../versions.json', {{ cache: 'no-store' }})
                 .then(response => {{
-                  if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+                  if (!response.ok) throw new Error('HTTP ' + response.status);
                   return response.json();
                 }})
                 .then(data => {{
@@ -102,7 +102,7 @@ jobs:
                   for (const version of versions) {{
                     const option = document.createElement('option');
                     option.value = version;
-                    option.textContent = `v${{version}}`;
+                    option.textContent = 'v' + version;
                     option.selected = version === currentVersion;
                     selector.appendChild(option);
                   }}
@@ -111,7 +111,7 @@ jobs:
 
               selector.addEventListener('change', () => {{
                 if (selector.value === currentVersion) return;
-                window.location.href = `../${{selector.value}}/`;
+                window.location.href = '../' + selector.value + '/';
               }});
             }})();
           </script>
