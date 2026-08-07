@@ -70,7 +70,7 @@ jobs:
             git switch gh-pages
           else
             git switch --orphan gh-pages
-            git rm -rf .
+            git rm -rf . || true
           fi
 
           if [ -e "$VERSION" ]; then
