@@ -1,2 +1,5 @@
 # Godot 4+ specific ignores
 .godot/
+
+# Generated import metadata inside committed web exports
+export/*.import
