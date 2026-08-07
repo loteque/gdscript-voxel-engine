@@ -99,7 +99,7 @@ func _generate_cell_vertices(
 		for y in field.cell_dimensions.y:
 			for x in field.cell_dimensions.x:
 				var cell_coordinates := Vector3i(x, y, z)
-				var surface_vertex := _calculate_cell_surface_vertex(
+				var surface_vertex: Variant = _calculate_cell_surface_vertex(
 					field,
 					cell_coordinates,
 					iso_level
