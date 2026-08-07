@@ -130,30 +130,34 @@ jobs:
           mkdir -p "$RUNNER_TEMP/web-build"
           cp -a build/web/. "$RUNNER_TEMP/web-build/"
 
-      - name: Prepare version archive branch
+      - name: Prepare version archive worktree
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
+          ARCHIVE="$RUNNER_TEMP/pages-archive"
 
           if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
-            git fetch origin gh-pages:gh-pages
-            git switch gh-pages
+            git fetch origin gh-pages:refs/heads/gh-pages
+            git worktree add "$ARCHIVE" gh-pages
           else
-            git switch --orphan gh-pages
-            git rm -rf . || true
+            git worktree add -b gh-pages "$ARCHIVE"
+            git -C "$ARCHIVE" rm -rf .
           fi
 
-          if [ -e "$VERSION" ]; then
+          if [ -e "$ARCHIVE/$VERSION" ]; then
             echo "Version $VERSION is already published. Published versions are immutable."
             exit 1
           fi
 
-          mkdir -p "$VERSION"
-          cp -a "$RUNNER_TEMP/web-build/." "$VERSION/"
-          touch .nojekyll
+          # Remove legacy root build output accidentally committed by earlier deployments.
+          rm -rf "$ARCHIVE/build"
 
-          cat > index.html <<EOF
+          mkdir -p "$ARCHIVE/$VERSION"
+          cp -a "$RUNNER_TEMP/web-build/." "$ARCHIVE/$VERSION/"
+          touch "$ARCHIVE/.nojekyll"
+
+          cat > "$ARCHIVE/index.html" <<EOF
           <!doctype html>
           <html lang="en">
           <head>
@@ -168,30 +172,35 @@ jobs:
           </html>
           EOF
 
-          python - <<'PY'
+          python - "$ARCHIVE" <<'PY'
           import json
           import os
           import re
+          import sys
 
+          archive = sys.argv[1]
           pattern = re.compile(r"^\d+\.\d+\.\d+$")
-          versions = [name for name in os.listdir('.') if os.path.isdir(name) and pattern.fullmatch(name)]
+          versions = [
+              name for name in os.listdir(archive)
+              if os.path.isdir(os.path.join(archive, name)) and pattern.fullmatch(name)
+          ]
           versions.sort(key=lambda value: tuple(map(int, value.split('.'))), reverse=True)
-          with open('versions.json', 'w', encoding='utf-8') as handle:
+          with open(os.path.join(archive, 'versions.json'), 'w', encoding='utf-8') as handle:
               json.dump({'latest': versions[0], 'versions': versions}, handle, indent=2)
               handle.write('\n')
           PY
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Publish web demo $VERSION"
-          git push origin gh-pages
+          git -C "$ARCHIVE" config user.name "github-actions[bot]"
+          git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$ARCHIVE" add -A
+          git -C "$ARCHIVE" commit -m "Publish web demo $VERSION"
+          git -C "$ARCHIVE" push origin gh-pages
 
       - name: Package Pages site
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/pages-site"
-          git archive HEAD | tar -x -C "$RUNNER_TEMP/pages-site"
+          git -C "$RUNNER_TEMP/pages-archive" archive HEAD | tar -x -C "$RUNNER_TEMP/pages-site"
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
