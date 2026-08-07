@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.1.1
+
+### Fixed
+- GitHub Actions workflow parsing for JavaScript inside the version selector injection.
+- Versioned web deployment validation now avoids `${...}` JavaScript template expressions that GitHub Actions can misinterpret as workflow expressions.
+
 ## 0.1.0
 
 ### Added
