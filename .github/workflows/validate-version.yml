@@ -1,0 +1,243 @@
+name: Validate Versioned Release
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-versioned-release-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7-stable
+
+jobs:
+  validate-version:
+    name: Validate version and changelog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "VERSION must use MAJOR.MINOR.PATCH semantic versioning."
+            exit 1
+          fi
+
+          git fetch origin "${{ github.base_ref }}"
+          BASE="origin/${{ github.base_ref }}"
+          CHANGED="$(git diff --name-only "$BASE"...HEAD)"
+
+          for FILE in VERSION CHANGELOG.md project.godot assets/splash/voxel_terrain_splash.svg; do
+            if ! grep -Fxq "$FILE" <<< "$CHANGED"; then
+              echo "$FILE must be updated in every versioned PR."
+              exit 1
+            fi
+          done
+
+          BASE_VERSION=""
+          if git cat-file -e "$BASE:VERSION" 2>/dev/null; then
+            BASE_VERSION="$(git show "$BASE:VERSION" | tr -d '[:space:]')"
+          fi
+
+          python - "$BASE_VERSION" "$VERSION" <<'PY'
+          import sys
+
+          old, new = sys.argv[1:]
+          if old:
+              old_tuple = tuple(map(int, old.split('.')))
+              new_tuple = tuple(map(int, new.split('.')))
+              if new_tuple <= old_tuple:
+                  raise SystemExit(f"VERSION must increase: {old} -> {new}")
+          PY
+
+          grep -Fq "config/version=\"$VERSION\"" project.godot || {
+            echo "project.godot application config/version must match VERSION."
+            exit 1
+          }
+
+          grep -Fq ">v$VERSION</text>" assets/splash/voxel_terrain_splash.svg || {
+            echo "Splash screen version must match VERSION."
+            exit 1
+          }
+
+          grep -Fq "## $VERSION" CHANGELOG.md || {
+            echo "CHANGELOG.md must contain a section for $VERSION."
+            exit 1
+          }
+
+          echo "Validated release version $VERSION."
+
+  validate-web-deploy:
+    name: Validate versioned web build and deploy
+    needs: validate-version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Godot
+        uses: solarlabyrinth/action-setup-godot@v3
+        with:
+          version: ${{ env.GODOT_VERSION }}
+          export-templates: true
+
+      - name: Export Web build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/web
+          godot \
+            --headless \
+            --path . \
+            --export-release "Web" \
+            build/web/index.html
+          touch build/web/.nojekyll
+
+      - name: Add version selector
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          python - "$VERSION" build/web/index.html <<'PY'
+          import pathlib
+          import sys
+
+          version, filename = sys.argv[1:]
+          path = pathlib.Path(filename)
+          html = path.read_text(encoding='utf-8')
+          marker = '</body>'
+          if marker not in html:
+              raise SystemExit('Godot Web export does not contain </body>.')
+
+          selector = f'''\n<style>
+          #voxel-version-picker {{
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 2147483647;
+            padding: 5px 8px;
+            border: 1px solid rgba(255,255,255,.22);
+            border-radius: 5px;
+            background: rgba(7,21,34,.82);
+            color: #f3f5f7;
+            font: 12px monospace;
+            backdrop-filter: blur(5px);
+          }}
+          </style>
+          <select id="voxel-version-picker" aria-label="Demo version">
+            <option value="{version}" selected>{version}</option>
+          </select>
+          <script>
+          (() => {{
+            const current = {version!r};
+            const picker = document.getElementById('voxel-version-picker');
+            fetch('../versions.json', {{cache: 'no-store'}})
+              .then(response => response.ok ? response.json() : Promise.reject(response.status))
+              .then(data => {{
+                picker.replaceChildren();
+                for (const version of data.versions || [current]) {{
+                  const option = document.createElement('option');
+                  option.value = version;
+                  option.textContent = version;
+                  option.selected = version === current;
+                  picker.appendChild(option);
+                }}
+              }})
+              .catch(() => {{}});
+            picker.addEventListener('change', () => {{
+              window.location.href = `../${{picker.value}}/`;
+            }});
+          }})();
+          </script>\n'''
+          path.write_text(html.replace(marker, selector + marker, 1), encoding='utf-8')
+          PY
+
+      - name: Assemble versioned Pages payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          SITE="$RUNNER_TEMP/pages-preview"
+
+          mkdir -p "$SITE/$VERSION"
+          cp -a build/web/. "$SITE/$VERSION/"
+          touch "$SITE/.nojekyll"
+
+          cat > "$SITE/index.html" <<EOF
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=./$VERSION/">
+            <link rel="canonical" href="./$VERSION/">
+            <title>GDScript Voxel Terrain $VERSION</title>
+          </head>
+          <body>
+            <p>Opening <a href="./$VERSION/">GDScript Voxel Terrain $VERSION</a>…</p>
+          </body>
+          </html>
+          EOF
+
+          python - "$SITE/versions.json" "$VERSION" <<'PY'
+          import json
+          import sys
+
+          filename, version = sys.argv[1:]
+          with open(filename, 'w', encoding='utf-8') as handle:
+              json.dump({'latest': version, 'versions': [version]}, handle, indent=2)
+              handle.write('\n')
+          PY
+
+      - name: Smoke test staged deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          SITE="$RUNNER_TEMP/pages-preview"
+
+          python -m http.server 4173 --directory "$SITE" > "$RUNNER_TEMP/pages-preview.log" 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+
+          for attempt in {1..20}; do
+            if curl --fail --silent "http://127.0.0.1:4173/$VERSION/" > "$RUNNER_TEMP/version-page.html"; then
+              break
+            fi
+            sleep 0.25
+          done
+
+          curl --fail --silent "http://127.0.0.1:4173/versions.json" > "$RUNNER_TEMP/versions.json"
+          grep -Fq 'voxel-version-picker' "$RUNNER_TEMP/version-page.html"
+          grep -Fq "\"latest\": \"$VERSION\"" "$RUNNER_TEMP/versions.json"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload validated Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: pr-${{ github.event.pull_request.number }}-versioned-web
+          path: ${{ runner.temp }}/pages-preview
