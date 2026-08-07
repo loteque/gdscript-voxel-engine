@@ -90,6 +90,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Read version
         id: version
@@ -175,18 +177,35 @@ jobs:
           path.write_text(html.replace(marker, selector + marker, 1), encoding='utf-8')
           PY
 
-      - name: Assemble versioned Pages payload
+      - name: Preserve exported build
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/web-build"
+          cp -a build/web/. "$RUNNER_TEMP/web-build/"
+
+      - name: Validate archive worktree assembly
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
-          SITE="$RUNNER_TEMP/pages-preview"
+          ARCHIVE="$RUNNER_TEMP/pages-archive"
 
-          mkdir -p "$SITE/$VERSION"
-          cp -a build/web/. "$SITE/$VERSION/"
-          touch "$SITE/.nojekyll"
+          git fetch origin gh-pages:refs/heads/gh-pages
+          git worktree add "$ARCHIVE" gh-pages
 
-          cat > "$SITE/index.html" <<EOF
+          if [ -e "$ARCHIVE/$VERSION" ]; then
+            echo "Version $VERSION is already published."
+            exit 1
+          fi
+
+          # Production removes this legacy path before publishing.
+          rm -rf "$ARCHIVE/build"
+
+          mkdir -p "$ARCHIVE/$VERSION"
+          cp -a "$RUNNER_TEMP/web-build/." "$ARCHIVE/$VERSION/"
+          touch "$ARCHIVE/.nojekyll"
+
+          cat > "$ARCHIVE/index.html" <<EOF
           <!doctype html>
           <html lang="en">
           <head>
@@ -201,15 +220,34 @@ jobs:
           </html>
           EOF
 
-          python - "$SITE/versions.json" "$VERSION" <<'PY'
+          python - "$ARCHIVE" <<'PY'
           import json
+          import os
+          import re
           import sys
 
-          filename, version = sys.argv[1:]
-          with open(filename, 'w', encoding='utf-8') as handle:
-              json.dump({'latest': version, 'versions': [version]}, handle, indent=2)
+          archive = sys.argv[1]
+          pattern = re.compile(r"^\d+\.\d+\.\d+$")
+          versions = [
+              name for name in os.listdir(archive)
+              if os.path.isdir(os.path.join(archive, name)) and pattern.fullmatch(name)
+          ]
+          versions.sort(key=lambda value: tuple(map(int, value.split('.'))), reverse=True)
+          with open(os.path.join(archive, 'versions.json'), 'w', encoding='utf-8') as handle:
+              json.dump({'latest': versions[0], 'versions': versions}, handle, indent=2)
               handle.write('\n')
           PY
+
+          git -C "$ARCHIVE" config user.name "github-actions[bot]"
+          git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$ARCHIVE" add -A
+          git -C "$ARCHIVE" commit -m "Validate web demo $VERSION"
+
+          test ! -e "$ARCHIVE/build/web/index.html"
+
+          SITE="$RUNNER_TEMP/pages-preview"
+          mkdir -p "$SITE"
+          git -C "$ARCHIVE" archive HEAD | tar -x -C "$SITE"
 
       - name: Smoke test staged deployment
         shell: bash

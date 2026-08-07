@@ -2,6 +2,13 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.1.3
+
+### Fixed
+- Isolated `gh-pages` archive assembly in a separate Git worktree so generated `build/web` files cannot block switching to the archive branch.
+- Removed legacy root-level `build/` output from the Pages archive during publishing.
+- Pull request web validation now exercises the archive worktree assembly path and verifies root build output is not present.
+
 ## 0.1.2
 
 ### Changed
