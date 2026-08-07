@@ -2,6 +2,15 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.2.0
+
+### Added
+- Added `SurfaceNetsMesher` as a stateless consumer of `PointFieldResource` for generating terrain `ArrayMesh` geometry.
+- Generates one averaged iso-surface intersection vertex per active field cell and stitches neighboring cells into indexed surface topology.
+- Generates smooth area-weighted vertex normals for Surface Nets meshes.
+- Added `SurfaceNetsMeshDisplay` as an independent mesh consumer that rebuilds from point-field changes only while visible.
+- Added a `Surface Nets Mesh` checkbox to the existing runtime visualization controls and synchronized its iso level with the point-field density viewer.
+
 ## 0.1.3
 
 ### Fixed
