@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - agent/**
+      - nf/**
   pull_request:
     branches:
       - main
