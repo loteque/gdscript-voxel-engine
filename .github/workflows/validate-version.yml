@@ -1,0 +1,76 @@
+name: Validate Versioned Release
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate-version:
+    name: Validate version and changelog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "VERSION must use MAJOR.MINOR.PATCH semantic versioning."
+            exit 1
+          fi
+
+          git fetch origin "${{ github.base_ref }}"
+          BASE="origin/${{ github.base_ref }}"
+          CHANGED="$(git diff --name-only "$BASE"...HEAD)"
+
+          for FILE in VERSION CHANGELOG.md project.godot assets/splash/voxel_terrain_splash.svg; do
+            if ! grep -Fxq "$FILE" <<< "$CHANGED"; then
+              echo "$FILE must be updated in every versioned PR."
+              exit 1
+            fi
+          done
+
+          BASE_VERSION=""
+          if git cat-file -e "$BASE:VERSION" 2>/dev/null; then
+            BASE_VERSION="$(git show "$BASE:VERSION" | tr -d '[:space:]')"
+          fi
+
+          python - "$BASE_VERSION" "$VERSION" <<'PY'
+          import sys
+
+          old, new = sys.argv[1:]
+          if old:
+              old_tuple = tuple(map(int, old.split('.')))
+              new_tuple = tuple(map(int, new.split('.')))
+              if new_tuple <= old_tuple:
+                  raise SystemExit(f"VERSION must increase: {old} -> {new}")
+          PY
+
+          grep -Fq "config/version=\"$VERSION\"" project.godot || {
+            echo "project.godot application config/version must match VERSION."
+            exit 1
+          }
+
+          grep -Fq ">v$VERSION</text>" assets/splash/voxel_terrain_splash.svg || {
+            echo "Splash screen version must match VERSION."
+            exit 1
+          }
+
+          grep -Fq "## $VERSION" CHANGELOG.md || {
+            echo "CHANGELOG.md must contain a section for $VERSION."
+            exit 1
+          }
+
+          echo "Validated release version $VERSION."
