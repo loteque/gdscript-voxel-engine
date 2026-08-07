@@ -3,10 +3,10 @@ extends Node3D
 
 ## Initializes and coordinates the primary nodes in the voxel terrain scene.
 ##
-## This node discovers its child [PointFieldVisualizer], [PointFieldRuntimeUI],
-## and [NoClipCameraController] instances. It assigns shared references without
-## taking ownership of field generation, rendering, camera movement, or runtime
-## interface behavior.
+## This node discovers its child [PointFieldVisualizer], [SurfaceNetsMeshDisplay],
+## [PointFieldRuntimeUI], and [NoClipCameraController] instances. It assigns
+## shared references without taking ownership of field generation, rendering,
+## camera movement, or runtime interface behavior.
 
 
 # [b]Scene References[/b] Identifies the child systems coordinated by this node.
@@ -17,7 +17,13 @@ extends Node3D
 		point_field_visualizer = value
 		_queue_initialization()
 
-## The runtime interface used to edit the active visualizer.
+## The Surface Nets mesh consumer displaying the active field.
+@export var surface_nets_display: SurfaceNetsMeshDisplay:
+	set(value):
+		surface_nets_display = value
+		_queue_initialization()
+
+## The runtime interface used to edit the active visualizer and mesh display.
 @export var point_field_runtime_ui: PointFieldRuntimeUI:
 	set(value):
 		point_field_runtime_ui = value
@@ -42,6 +48,12 @@ extends Node3D
 @export var create_missing_field: bool = true:
 	set(value):
 		create_missing_field = value
+		_queue_initialization()
+
+## Creates the Surface Nets mesh display at runtime when the scene lacks one.
+@export var create_missing_surface_nets_display: bool = true:
+	set(value):
+		create_missing_surface_nets_display = value
 		_queue_initialization()
 
 ## Regenerates the field when its generated channels are invalid.
@@ -76,6 +88,7 @@ func initialize_children() -> void:
 		_discover_children()
 
 	_initialize_visualizer()
+	_initialize_surface_nets_display()
 	_initialize_runtime_ui()
 	_initialize_camera_controller()
 
@@ -96,6 +109,12 @@ func _discover_children() -> void:
 			self,
 			PointFieldVisualizer
 		) as PointFieldVisualizer
+
+	if surface_nets_display == null:
+		surface_nets_display = _find_descendant_by_type(
+			self,
+			SurfaceNetsMeshDisplay
+		) as SurfaceNetsMeshDisplay
 
 	if point_field_runtime_ui == null:
 		point_field_runtime_ui = _find_descendant_by_type(
@@ -140,13 +159,33 @@ func _initialize_visualizer() -> void:
 		field.regenerate()
 
 
-# [b]Runtime UI Initialization[/b] Forwards the active visualizer to the interface.
+# [b]Surface Nets Initialization[/b] Creates and configures the independent mesh consumer.
+
+func _initialize_surface_nets_display() -> void:
+	if (
+		surface_nets_display == null
+		and create_missing_surface_nets_display
+		and not Engine.is_editor_hint()
+	):
+		surface_nets_display = SurfaceNetsMeshDisplay.new()
+		surface_nets_display.name = "SurfaceNetsMeshDisplay"
+		add_child(surface_nets_display)
+
+	if surface_nets_display == null or point_field_visualizer == null:
+		return
+
+	surface_nets_display.field = point_field_visualizer.field
+	surface_nets_display.iso_level = point_field_visualizer.iso_level
+
+
+# [b]Runtime UI Initialization[/b] Forwards active rendering targets to the interface.
 
 func _initialize_runtime_ui() -> void:
 	if point_field_runtime_ui == null:
 		return
 
 	point_field_runtime_ui.set_visualizer(point_field_visualizer)
+	point_field_runtime_ui.set_surface_nets_display(surface_nets_display)
 
 
 # [b]Camera Initialization[/b] Activates the configured inspection camera.
