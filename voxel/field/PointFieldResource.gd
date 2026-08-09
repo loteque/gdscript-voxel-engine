@@ -8,6 +8,16 @@ extends Resource
 ## generation, and topology queries. Visualization and meshing systems consume
 ## this resource without owning or duplicating its field data.
 ##
+## Density convention:
+## - values greater than the iso-level represent solid material,
+## - values lower than the iso-level represent empty space,
+## - values equal to the iso-level lie on the surface.
+##
+## Default density generation produces height-field terrain. Noise varies the
+## terrain height over X/Z while Y determines whether a sample is below or above
+## that surface. This keeps +Y as world up while leaving consumers free to
+## provide arbitrary scalar fields for caves, spheres, or other volumes.
+##
 ## A field with [member cell_dimensions] cells contains one additional sample
 ## along each axis. Therefore, [member sample_dimensions] is always equal to
 ## [code]cell_dimensions + Vector3i.ONE[/code].
@@ -76,7 +86,7 @@ var sample_spacing: float = 1.0:
 		sample_spacing = sanitized_value
 		_invalidate_geometry()
 
-## The noise resource used to generate sample densities.
+## The noise resource used to vary terrain height over the X/Z plane.
 @export var noise: FastNoiseLite:
 	set(value):
 		if noise == value:
@@ -86,7 +96,7 @@ var sample_spacing: float = 1.0:
 		_connect_noise()
 		_invalidate_densities()
 
-## Scales sample positions before they are evaluated by [member noise].
+## Scales X/Z sample coordinates before they are evaluated by [member noise].
 @export_range(0.0001, 1000.0, 0.0001, "or_greater")
 var density_scale: float = 1.0:
 	set(value):
@@ -94,6 +104,25 @@ var density_scale: float = 1.0:
 		if is_equal_approx(density_scale, sanitized_value):
 			return
 		density_scale = sanitized_value
+		_invalidate_densities()
+
+## World-space Y height of flat terrain before noise displacement is applied.
+@export_range(-10000.0, 10000.0, 0.01, "or_greater", "or_less")
+var terrain_base_height: float = 0.0:
+	set(value):
+		if is_equal_approx(terrain_base_height, value):
+			return
+		terrain_base_height = value
+		_invalidate_densities()
+
+## Maximum world-space height displacement contributed by the noise sample.
+@export_range(0.0, 10000.0, 0.01, "or_greater")
+var terrain_height_scale: float = 4.0:
+	set(value):
+		var sanitized_value := maxf(value, 0.0)
+		if is_equal_approx(terrain_height_scale, sanitized_value):
+			return
+		terrain_height_scale = sanitized_value
 		_invalidate_densities()
 
 
@@ -176,22 +205,30 @@ func generate_positions() -> void:
 	emit_changed()
 
 
-## Generates one density value for every sample position.
+## Generates height-field terrain density for every sample position.
 ##
-## When no noise resource is assigned, the density channel is filled with
-## zeroes so it remains structurally valid.
+## Density is calculated as [code]terrain_height - sample_y[/code], so samples
+## below the terrain surface are positive (solid) and samples above it are
+## negative (empty). When no noise resource is assigned, terrain is a flat
+## plane at [member terrain_base_height].
 func generate_density_field() -> void:
 	if positions.size() != sample_count:
 		generate_positions()
 
 	densities.resize(sample_count)
 
-	if noise == null:
-		densities.fill(0.0)
-	else:
-		for index in sample_count:
-			var position := positions[index] * density_scale
-			densities[index] = noise.get_noise_3dv(position)
+	for index in sample_count:
+		var position := positions[index]
+		var terrain_height := terrain_base_height
+
+		if noise != null:
+			var noise_value := noise.get_noise_2d(
+				position.x * density_scale,
+				position.z * density_scale
+			)
+			terrain_height += noise_value * terrain_height_scale
+
+		densities[index] = terrain_height - position.y
 
 	densities_changed.emit()
 	emit_changed()
