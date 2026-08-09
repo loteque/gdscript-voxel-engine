@@ -9,6 +9,8 @@ var _failed: bool = false
 func _initialize() -> void:
 	_test_height_field_density_convention()
 	_test_flat_ground_normals_point_up()
+	_test_x_plane_normals_point_right()
+	_test_z_plane_normals_point_back()
 	_test_sphere_normals_point_outward()
 
 	if _failed:
@@ -46,31 +48,33 @@ func _test_flat_ground_normals_point_up() -> void:
 	field.terrain_height_scale = 0.0
 	field.regenerate()
 
-	var mesher := SURFACE_NETS_MESHER.new()
-	var mesh: ArrayMesh = mesher.generate_mesh(field, 0.0)
-	_assert_true(mesh.get_surface_count() == 1, "Flat ground must generate a mesh surface.")
-	if mesh.get_surface_count() == 0:
-		return
+	_assert_mesh_normals_face(field, Vector3.UP, "Flat ground normals must point upward.")
 
-	var arrays: Array = mesh.surface_get_arrays(0)
-	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-	_assert_true(not normals.is_empty(), "Flat ground must generate normals.")
 
-	for normal in normals:
-		_assert_true(
-			normal.dot(Vector3.UP) > 0.99,
-			"Flat ground normals must point upward. Got %s" % normal
-		)
+func _test_x_plane_normals_point_right() -> void:
+	var field := _make_manual_field(Vector3i(4, 4, 4))
+	for index in field.sample_count:
+		var position := field.positions[index]
+		field.densities[index] = 0.25 - position.x
+
+	_assert_mesh_normals_face(field, Vector3.RIGHT, "X-plane normals must point toward +X.")
+
+
+func _test_z_plane_normals_point_back() -> void:
+	var field := _make_manual_field(Vector3i(4, 4, 4))
+	for index in field.sample_count:
+		var position := field.positions[index]
+		field.densities[index] = 0.25 - position.z
+
+	_assert_mesh_normals_face(field, Vector3.BACK, "Z-plane normals must point toward +Z.")
 
 
 func _test_sphere_normals_point_outward() -> void:
-	var field := POINT_FIELD_RESOURCE.new()
-	field.cell_dimensions = Vector3i(6, 6, 6)
-	field.sample_spacing = 1.0
-	field.generate_positions()
-	field.densities.resize(field.sample_count)
+	var field := _make_manual_field(Vector3i(6, 6, 6))
 
-	var radius := 2.0
+	# Keep the iso-surface away from exact lattice samples. Exact endpoint hits are
+	# a separate Surface Nets degeneracy case and should not muddy orientation.
+	var radius := 2.25
 	for index in field.sample_count:
 		var position := field.positions[index]
 		field.densities[index] = radius - position.length()
@@ -92,6 +96,37 @@ func _test_sphere_normals_point_outward() -> void:
 		_assert_true(
 			normals[index].dot(outward) > 0.5,
 			"Closed-volume normals must point out of solid material."
+		)
+
+
+func _make_manual_field(dimensions: Vector3i) -> PointFieldResource:
+	var field := POINT_FIELD_RESOURCE.new()
+	field.cell_dimensions = dimensions
+	field.sample_spacing = 1.0
+	field.generate_positions()
+	field.densities.resize(field.sample_count)
+	return field
+
+
+func _assert_mesh_normals_face(
+	field: PointFieldResource,
+	expected_direction: Vector3,
+	message: String
+) -> void:
+	var mesher := SURFACE_NETS_MESHER.new()
+	var mesh: ArrayMesh = mesher.generate_mesh(field, 0.0)
+	_assert_true(mesh.get_surface_count() == 1, "%s Mesh surface was not generated." % message)
+	if mesh.get_surface_count() == 0:
+		return
+
+	var arrays: Array = mesh.surface_get_arrays(0)
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	_assert_true(not normals.is_empty(), "%s Normals were not generated." % message)
+
+	for normal in normals:
+		_assert_true(
+			normal.dot(expected_direction) > 0.99,
+			"%s Got %s" % [message, normal]
 		)
 
 
