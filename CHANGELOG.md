@@ -2,6 +2,18 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.3.0
+
+### Added
+- Added explicit terrain density semantics: density above the iso-level is solid, density below it is empty, and the iso-level itself is the surface.
+- Added `terrain_base_height` and `terrain_height_scale` controls to `PointFieldResource` and the runtime point-field panel.
+- Added deterministic headless tests for flat-ground orientation and outward-facing closed-volume normals.
+
+### Changed
+- Default density generation now produces height-field terrain from X/Z noise with +Y as world up instead of sampling unconstrained 3D noise volumes.
+- `SurfaceNetsMesher` winding and generated normals now point from solid material toward empty space.
+- Headless validation now runs surface-orientation regression tests before starting the demo scene.
+
 ## 0.2.0
 
 ### Added
