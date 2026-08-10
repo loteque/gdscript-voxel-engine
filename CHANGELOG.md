@@ -2,6 +2,20 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.6.0
+
+### Added
+- Added editor/runtime chunk visualization for planned chunk bounds, loaded chunk bounds, chunk centers, and full-resolution editor wireframe terrain previews.
+- Added `ChunkValidationDemo` as a discoverable validation harness with top-level terrain controls, an explicit Regenerate Terrain action, immediate startup preview, and budgeted runtime chunk generation.
+- Added headless validation for chunk visualization and the complete chunk validation scene startup/generation path.
+- Added a second versioned web demo for `ChunkValidationDemo` at `/<version>/chunks/`.
+- Added a grouped demo/version catalog generated from the immutable GitHub Pages archive.
+
+### Changed
+- Runtime validation generation now uses a configurable per-frame time budget instead of yielding after every chunk.
+- Explicit chunk regeneration suppresses duplicate automatic mesh rebuild scheduling so each generation pass builds each mesh once.
+- The deployed web selector is now a wider grouped demo/version dropdown while preserving existing version-root terrain demo URLs.
+
 ## 0.5.0
 
 ### Added
