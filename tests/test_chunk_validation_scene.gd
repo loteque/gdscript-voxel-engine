@@ -28,12 +28,14 @@ func _run() -> void:
 	_assert_true(visualizer != null, "Validation scene must contain its ChunkVisualizer.")
 	_assert_true(camera != null and camera.current, "Validation scene must contain an active camera.")
 	_assert_true(mobile_controls != null, "Validation scene must contain the shared mobile touch controls.")
-
-	await process_frame
 	if mobile_controls != null:
 		_assert_true(
-			mobile_controls.size.x > 0.0 and mobile_controls.size.y > 0.0,
-			"Chunk mobile controls must resolve to a non-zero viewport-sized rect."
+			is_equal_approx(mobile_controls.anchor_right, 1.0) and is_equal_approx(mobile_controls.anchor_bottom, 1.0),
+			"Chunk mobile controls must be anchored to fill their canvas viewport."
+		)
+		_assert_true(
+			mobile_controls.get_parent() is CanvasLayer,
+			"Chunk mobile controls must be hosted by a dedicated CanvasLayer."
 		)
 
 	if manager != null:
