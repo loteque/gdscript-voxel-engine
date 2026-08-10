@@ -42,9 +42,29 @@ var iso_level: float = 0.0:
 		_update_surface_material()
 
 
+# [b]Editor Preview[/b]
+
+## Uses the real generated Surface Nets mesh with a cheap wireframe material in
+## the editor. Runtime continues to use [member surface_material].
+@export var editor_wireframe_preview: bool = true:
+	set(value):
+		if editor_wireframe_preview == value:
+			return
+		editor_wireframe_preview = value
+		_editor_wireframe_material = null
+		_update_surface_material()
+
+@export var editor_wireframe_color: Color = Color(0.3, 0.9, 1.0, 1.0):
+	set(value):
+		editor_wireframe_color = value
+		_editor_wireframe_material = null
+		_update_surface_material()
+
+
 # [b]Display Storage[/b]
 
 var _displays: Dictionary[Vector3i, SurfaceNetsMeshDisplay] = {}
+var _editor_wireframe_material: StandardMaterial3D
 
 
 # [b]Lifecycle[/b]
@@ -126,7 +146,7 @@ func _create_display_for_chunk(chunk: TerrainChunk) -> SurfaceNetsMeshDisplay:
 	display.name = "SurfaceNetsMesh"
 	display.field = chunk.point_field
 	display.iso_level = iso_level
-	display.surface_material = surface_material
+	display.surface_material = _get_active_surface_material()
 	display.display_surface_nets_mesh = display_meshes
 	chunk.add_child(display)
 	_displays[chunk.chunk_coordinate] = display
@@ -158,7 +178,21 @@ func _update_iso_level() -> void:
 
 
 func _update_surface_material() -> void:
+	var active_material := _get_active_surface_material()
 	for coordinate in _displays:
 		var display := _displays[coordinate]
 		if display != null:
-			display.surface_material = surface_material
+			display.surface_material = active_material
+
+
+func _get_active_surface_material() -> Material:
+	if not Engine.is_editor_hint() or not editor_wireframe_preview:
+		return surface_material
+
+	if _editor_wireframe_material == null:
+		_editor_wireframe_material = StandardMaterial3D.new()
+		_editor_wireframe_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_editor_wireframe_material.polygon_mode = BaseMaterial3D.POLYGON_LINE
+		_editor_wireframe_material.albedo_color = editor_wireframe_color
+
+	return _editor_wireframe_material
