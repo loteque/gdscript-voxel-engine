@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - nf/integration
       - nf/**
   pull_request:
     branches:
