@@ -2,6 +2,19 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.4.0
+
+### Added
+- Added explicit `positions_dirty` and `densities_dirty` state tracking to `PointFieldResource` so generated channel freshness is no longer inferred from array sizes.
+- Added `data_state_changed` and `is_data_current()` for consumers to observe field freshness directly.
+- Added headless state-transition and integration regression tests for point-field regeneration and Surface Nets synchronization.
+
+### Changed
+- Point-field configuration changes now preserve stale generated arrays while marking the affected channels dirty.
+- Position regeneration explicitly marks dependent density data dirty until densities are regenerated.
+- Re-enabling automatic regeneration now synchronizes already-dirty field state.
+- `SurfaceNetsMeshDisplay` preserves its current mesh while source field data is dirty and rebuilds only when the field becomes current.
+
 ## 0.3.0
 
 ### Added
