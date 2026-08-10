@@ -31,18 +31,17 @@ var _visualizer: PointFieldVisualizer
 var _surface_nets_display: SurfaceNetsMeshDisplay
 var _visualizer_loading: bool = false
 var _surface_nets_loading: bool = false
-
-var _loading_panel: PanelContainer
-var _loading_label: Label
-var _loading_timer: Timer
 var _loading_frame: int = 0
 var _loading_started_at_msec: int = 0
 var _loading_hide_generation: int = 0
 
 @onready var _runtime_panel: SurfaceNetsRuntimePanel = %PointFieldRuntimePanel
+@onready var _loading_panel: PanelContainer = %LoadingPanel
+@onready var _loading_label: Label = %LoadingLabel
+@onready var _loading_timer: Timer = %LoadingTimer
 
 func _ready() -> void:
-	_build_loading_indicator()
+	_loading_timer.timeout.connect(_advance_loading_animation)
 	_connect_loading_targets()
 	_apply_targets()
 	_update_loading_indicator()
@@ -124,34 +123,7 @@ func _on_surface_nets_loading_state_changed(is_loading: bool) -> void:
 	_surface_nets_loading = is_loading
 	_update_loading_indicator()
 
-func _build_loading_indicator() -> void:
-	_loading_panel = PanelContainer.new()
-	_loading_panel.anchor_left = 0.5
-	_loading_panel.anchor_right = 0.5
-	_loading_panel.anchor_top = 1.0
-	_loading_panel.anchor_bottom = 1.0
-	_loading_panel.offset_left = -72.0
-	_loading_panel.offset_right = 72.0
-	_loading_panel.offset_top = -54.0
-	_loading_panel.offset_bottom = -18.0
-	_loading_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_loading_panel.visible = false
-	add_child(_loading_panel)
-
-	_loading_label = Label.new()
-	_loading_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_loading_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_loading_label.text = LOADING_LABELS[0]
-	_loading_panel.add_child(_loading_label)
-
-	_loading_timer = Timer.new()
-	_loading_timer.wait_time = 0.35
-	_loading_timer.timeout.connect(_advance_loading_animation)
-	add_child(_loading_timer)
-
 func _update_loading_indicator() -> void:
-	if _loading_panel == null:
-		return
 	if _visualizer_loading or _surface_nets_loading:
 		_show_loading_indicator()
 	else:
@@ -189,7 +161,5 @@ func _hide_loading_indicator_after_minimum_time(request_generation: int) -> void
 	_loading_label.text = LOADING_LABELS[0]
 
 func _advance_loading_animation() -> void:
-	if _loading_label == null:
-		return
 	_loading_frame = (_loading_frame + 1) % LOADING_LABELS.size()
 	_loading_label.text = LOADING_LABELS[_loading_frame]
