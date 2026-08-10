@@ -8,9 +8,9 @@ var _failed: bool = false
 
 func _initialize() -> void:
 	_test_height_field_density_convention()
-	_test_flat_ground_normals_point_up()
-	_test_x_plane_normals_point_right()
-	_test_z_plane_normals_point_back()
+	_test_flat_ground_faces_up()
+	_test_x_plane_faces_right()
+	_test_z_plane_faces_back()
 	_test_sphere_normals_point_outward()
 
 	if _failed:
@@ -39,7 +39,7 @@ func _test_height_field_density_convention() -> void:
 	)
 
 
-func _test_flat_ground_normals_point_up() -> void:
+func _test_flat_ground_faces_up() -> void:
 	var field := POINT_FIELD_RESOURCE.new()
 	field.cell_dimensions = Vector3i(4, 4, 4)
 	field.sample_spacing = 1.0
@@ -48,25 +48,37 @@ func _test_flat_ground_normals_point_up() -> void:
 	field.terrain_height_scale = 0.0
 	field.regenerate()
 
-	_assert_mesh_normals_face(field, Vector3.UP, "Flat ground normals must point upward.")
+	_assert_mesh_front_faces_direction(
+		field,
+		Vector3.UP,
+		"Flat ground front faces must point upward."
+	)
 
 
-func _test_x_plane_normals_point_right() -> void:
+func _test_x_plane_faces_right() -> void:
 	var field := _make_manual_field(Vector3i(4, 4, 4))
 	for index in field.sample_count:
 		var position := field.positions[index]
 		field.densities[index] = 0.25 - position.x
 
-	_assert_mesh_normals_face(field, Vector3.RIGHT, "X-plane normals must point toward +X.")
+	_assert_mesh_front_faces_direction(
+		field,
+		Vector3.RIGHT,
+		"X-plane front faces must point toward +X."
+	)
 
 
-func _test_z_plane_normals_point_back() -> void:
+func _test_z_plane_faces_back() -> void:
 	var field := _make_manual_field(Vector3i(4, 4, 4))
 	for index in field.sample_count:
 		var position := field.positions[index]
 		field.densities[index] = 0.25 - position.z
 
-	_assert_mesh_normals_face(field, Vector3.BACK, "Z-plane normals must point toward +Z.")
+	_assert_mesh_front_faces_direction(
+		field,
+		Vector3.BACK,
+		"Z-plane front faces must point toward +Z."
+	)
 
 
 func _test_sphere_normals_point_outward() -> void:
@@ -108,7 +120,12 @@ func _make_manual_field(dimensions: Vector3i) -> PointFieldResource:
 	return field
 
 
-func _assert_mesh_normals_face(
+## Verifies the side Godot renders as the triangle front face.
+##
+## Godot considers clockwise triangle winding to be front-facing. The ordinary
+## AB x AC cross product points toward the counter-clockwise side, so the
+## renderer-facing direction is AC x AB.
+func _assert_mesh_front_faces_direction(
 	field: PointFieldResource,
 	expected_direction: Vector3,
 	message: String
@@ -120,13 +137,25 @@ func _assert_mesh_normals_face(
 		return
 
 	var arrays: Array = mesh.surface_get_arrays(0)
-	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-	_assert_true(not normals.is_empty(), "%s Normals were not generated." % message)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	_assert_true(not indices.is_empty(), "%s Indices were not generated." % message)
 
-	for normal in normals:
+	for triangle_start in range(0, indices.size(), 3):
+		var vertex_a := vertices[indices[triangle_start]]
+		var vertex_b := vertices[indices[triangle_start + 1]]
+		var vertex_c := vertices[indices[triangle_start + 2]]
+		var edge_ab := vertex_b - vertex_a
+		var edge_ac := vertex_c - vertex_a
+		var front_direction := edge_ac.cross(edge_ab)
+
+		if front_direction.is_zero_approx():
+			continue
+
+		front_direction = front_direction.normalized()
 		_assert_true(
-			normal.dot(expected_direction) > 0.99,
-			"%s Got %s" % [message, normal]
+			front_direction.dot(expected_direction) > 0.99,
+			"%s Got %s" % [message, front_direction]
 		)
 
 
