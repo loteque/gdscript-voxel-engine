@@ -44,6 +44,13 @@ var _yaw: float = 0.0
 # [b]Lifecycle[/b] Initializes the controller from the camera's current rotation.
 
 func _ready() -> void:
+	sync_rotation_from_transform()
+
+
+# [b]Public API[/b]
+
+## Synchronizes mouse-look state after another system changes camera orientation.
+func sync_rotation_from_transform() -> void:
 	_pitch = rotation.x
 	_yaw = rotation.y
 
