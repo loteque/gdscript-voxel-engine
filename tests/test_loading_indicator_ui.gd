@@ -26,6 +26,7 @@ func _test_loading_indicator_tracks_visualizer_work() -> void:
 	var field := POINT_FIELD_RESOURCE.new()
 	field.cell_dimensions = Vector3i(4, 4, 4)
 	field.noise = FastNoiseLite.new()
+	field.regenerate()
 
 	var visualizer := POINT_FIELD_VISUALIZER.new()
 	visualizer.field = field
