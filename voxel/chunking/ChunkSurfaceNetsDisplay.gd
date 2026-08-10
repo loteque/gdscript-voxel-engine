@@ -44,7 +44,7 @@ var iso_level: float = 0.0:
 
 # [b]Editor Preview[/b]
 
-## Uses the real generated Surface Nets mesh with a cheap wireframe material in
+## Uses the real generated Surface Nets mesh with a cheap wireframe shader in
 ## the editor. Runtime continues to use [member surface_material].
 @export var editor_wireframe_preview: bool = true:
 	set(value):
@@ -64,7 +64,7 @@ var iso_level: float = 0.0:
 # [b]Display Storage[/b]
 
 var _displays: Dictionary[Vector3i, SurfaceNetsMeshDisplay] = {}
-var _editor_wireframe_material: StandardMaterial3D
+var _editor_wireframe_material: ShaderMaterial
 
 
 # [b]Lifecycle[/b]
@@ -190,9 +190,21 @@ func _get_active_surface_material() -> Material:
 		return surface_material
 
 	if _editor_wireframe_material == null:
-		_editor_wireframe_material = StandardMaterial3D.new()
-		_editor_wireframe_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		_editor_wireframe_material.polygon_mode = BaseMaterial3D.POLYGON_LINE
-		_editor_wireframe_material.albedo_color = editor_wireframe_color
+		# Wireframe is a spatial shader render mode rather than a
+		# StandardMaterial3D polygon property in Godot 4.7.
+		RenderingServer.set_debug_generate_wireframes(true)
+		var shader := Shader.new()
+		shader.code = """
+shader_type spatial;
+render_mode unshaded, wireframe, cull_disabled;
+uniform vec4 wire_color : source_color = vec4(0.3, 0.9, 1.0, 1.0);
+void fragment() {
+	ALBEDO = wire_color.rgb;
+	ALPHA = wire_color.a;
+}
+"""
+		_editor_wireframe_material = ShaderMaterial.new()
+		_editor_wireframe_material.shader = shader
+		_editor_wireframe_material.set_shader_parameter("wire_color", editor_wireframe_color)
 
 	return _editor_wireframe_material
