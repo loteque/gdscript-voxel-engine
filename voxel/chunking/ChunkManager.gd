@@ -145,6 +145,42 @@ func create_chunk(coordinate: Vector3i) -> TerrainChunk:
 	return chunk
 
 
+## Creates a deterministic grid centered as closely as possible around zero.
+##
+## Odd dimensions are symmetric around coordinate zero. Even dimensions extend
+## one chunk farther in the positive direction, for example size 2 -> [-1, 0].
+func create_centered_grid(dimensions: Vector3i) -> Array[TerrainChunk]:
+	var sanitized_dimensions := Vector3i(
+		maxi(dimensions.x, 1),
+		maxi(dimensions.y, 1),
+		maxi(dimensions.z, 1)
+	)
+	var minimum := Vector3i(
+		-floori(float(sanitized_dimensions.x) * 0.5),
+		-floori(float(sanitized_dimensions.y) * 0.5),
+		-floori(float(sanitized_dimensions.z) * 0.5)
+	)
+	var created: Array[TerrainChunk] = []
+
+	for z in sanitized_dimensions.z:
+		for y in sanitized_dimensions.y:
+			for x in sanitized_dimensions.x:
+				created.append(create_chunk(minimum + Vector3i(x, y, z)))
+
+	return created
+
+
+## Regenerates every managed point field synchronously.
+##
+## Kept as an explicit batch operation so a future scheduler can replace the
+## synchronous loop without changing chunk ownership or meshing APIs.
+func regenerate_all_chunks() -> void:
+	for coordinate in _chunks:
+		var chunk := _chunks[coordinate]
+		if chunk != null:
+			chunk.regenerate_field()
+
+
 ## Removes one managed chunk from the scene tree.
 func remove_chunk(coordinate: Vector3i) -> bool:
 	var chunk := get_chunk(coordinate)
