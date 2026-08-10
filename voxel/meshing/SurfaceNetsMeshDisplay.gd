@@ -70,11 +70,18 @@ func rebuild_mesh() -> void:
 	if not display_surface_nets_mesh:
 		return
 
-	_mesh_dirty = false
-	if field == null or not field.validate_data():
+	if field == null:
+		_mesh_dirty = false
 		mesh = null
 		return
 
+	# Preserve the last current mesh while generation settings are ahead of the
+	# stored sample channels. data_state_changed will schedule replacement once
+	# the field becomes current again.
+	if not field.is_data_current():
+		return
+
+	_mesh_dirty = false
 	mesh = _mesher.generate_mesh(field, iso_level)
 
 
@@ -83,14 +90,14 @@ func invalidate_mesh() -> void:
 	_mark_mesh_dirty()
 
 
-# [b]Field Synchronization[/b] Observes only changes that can affect extracted topology.
+# [b]Field Synchronization[/b] Observes field freshness and regenerated channels.
 
 func _connect_field() -> void:
 	if field == null:
 		return
 
-	if not field.geometry_configuration_changed.is_connected(_on_field_changed):
-		field.geometry_configuration_changed.connect(_on_field_changed)
+	if not field.data_state_changed.is_connected(_on_field_changed):
+		field.data_state_changed.connect(_on_field_changed)
 
 	if not field.positions_changed.is_connected(_on_field_changed):
 		field.positions_changed.connect(_on_field_changed)
@@ -103,8 +110,8 @@ func _disconnect_field() -> void:
 	if field == null:
 		return
 
-	if field.geometry_configuration_changed.is_connected(_on_field_changed):
-		field.geometry_configuration_changed.disconnect(_on_field_changed)
+	if field.data_state_changed.is_connected(_on_field_changed):
+		field.data_state_changed.disconnect(_on_field_changed)
 
 	if field.positions_changed.is_connected(_on_field_changed):
 		field.positions_changed.disconnect(_on_field_changed)
@@ -121,12 +128,19 @@ func _on_field_changed() -> void:
 
 func _mark_mesh_dirty() -> void:
 	_mesh_dirty = true
-	if display_surface_nets_mesh:
+	if (
+		display_surface_nets_mesh
+		and field != null
+		and field.is_data_current()
+	):
 		_queue_mesh_rebuild()
 
 
 func _queue_mesh_rebuild() -> void:
 	if not is_inside_tree() or _mesh_rebuild_queued or not _mesh_dirty:
+		return
+
+	if field != null and not field.is_data_current():
 		return
 
 	_mesh_rebuild_queued = true
