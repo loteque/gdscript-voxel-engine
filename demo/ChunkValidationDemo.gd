@@ -7,8 +7,8 @@ extends Node3D
 ## Editor mode builds the real chunk fields and Surface Nets geometry at the
 ## configured chunk resolution, using the display layer's cheap wireframe
 ## material. Runtime first presents the lightweight instructions and planned
-## chunk grid, then stages the expensive field generation and meshing work
-## across later frames.
+## chunk grid, then processes expensive field generation and meshing within a
+## configurable per-frame time budget.
 
 signal startup_preview_ready
 signal generation_completed
@@ -38,6 +38,12 @@ signal generation_completed
 
 @export var regenerate_on_ready: bool = true
 @export var frame_camera_on_ready: bool = true
+
+## Maximum wall-clock time spent generating/meshing chunks before yielding the
+## main thread back to the engine. Individual chunks remain atomic, so a single
+## expensive chunk may exceed this budget before the next yield.
+@export_range(0.5, 33.0, 0.5, "or_greater")
+var runtime_generation_budget_ms: float = 6.0
 
 
 # [b]Editor Preview[/b]
@@ -75,10 +81,6 @@ func _run_runtime_validation() -> void:
 		push_error("ChunkValidationDemo requires a ChunkManager.")
 		return
 
-	# Phase 1 is intentionally lightweight. Configure the presentation-only
-	# consumers and frame the camera while the manager still owns zero chunks.
-	# ChunkVisualizer can draw the planned grid from layout information alone,
-	# so no point fields, densities, or terrain meshes are required yet.
 	_configure_consumers()
 
 	if frame_camera_on_ready:
@@ -90,21 +92,20 @@ func _run_runtime_validation() -> void:
 	startup_preview_presented = true
 	startup_preview_ready.emit()
 
-	# Do not allocate/generate chunk data until the initial UI + preview frame has
-	# actually been presented by the engine.
+	# Guarantee at least one presentation frame before any chunk allocation,
+	# density generation, or Surface Nets work begins.
 	var tree := get_tree()
 	if tree == null:
 		return
 	await tree.process_frame
 
-	# Phase 2 begins only after the first presentation frame.
 	chunk_manager.create_centered_grid(grid_dimensions)
 
 	if chunk_visualizer != null:
 		chunk_visualizer.rebuild()
 
 	if regenerate_on_ready:
-		await _regenerate_and_mesh_chunks_staged()
+		await _regenerate_and_mesh_chunks_budgeted()
 
 	generation_complete = true
 	generation_completed.emit()
@@ -133,23 +134,13 @@ func _refresh_editor_preview() -> void:
 			chunk_visualizer.rebuild()
 		return
 
-	# Preview uses the real configured chunk dimensions by default. This keeps
-	# seam/topology inspection representative of runtime rather than substituting
-	# a cheaper but structurally different mesh.
 	chunk_manager.clear_chunks()
 	chunk_manager.create_centered_grid(grid_dimensions)
 
 	var coordinates := chunk_manager.get_chunk_coordinates()
 	coordinates.sort()
 	for coordinate in coordinates:
-		var chunk := chunk_manager.get_chunk(coordinate)
-		if chunk == null:
-			continue
-		chunk.regenerate_field()
-		if chunk_surface_display != null:
-			var display := chunk_surface_display.get_display(coordinate)
-			if display != null:
-				display.rebuild_mesh()
+		_generate_and_mesh_chunk(coordinate)
 
 	if chunk_visualizer != null:
 		chunk_visualizer.rebuild()
@@ -164,33 +155,54 @@ func _configure_consumers() -> void:
 		chunk_visualizer.preview_grid_dimensions = grid_dimensions
 
 
-# [b]Staged Generation[/b]
+# [b]Budgeted Generation[/b]
 
-## Regenerates and meshes one chunk at a time, yielding a frame between chunks.
+## Processes as many complete chunks as fit within the current frame budget.
 ##
-## This is intentionally demo-level orchestration. ChunkManager remains free of
-## frame scheduling so a future terrain work queue can replace this harness.
-func _regenerate_and_mesh_chunks_staged() -> void:
+## Chunk generation remains atomic for now. This is deliberately demo-level
+## scheduling and does not move scheduling responsibility into ChunkManager.
+func _regenerate_and_mesh_chunks_budgeted() -> void:
 	var coordinates := chunk_manager.get_chunk_coordinates()
 	coordinates.sort()
+	var budget_usec := int(maxf(runtime_generation_budget_ms, 0.5) * 1000.0)
+	var frame_started_usec := Time.get_ticks_usec()
 
-	for coordinate in coordinates:
-		var chunk := chunk_manager.get_chunk(coordinate)
-		if chunk == null:
+	for index in coordinates.size():
+		_generate_and_mesh_chunk(coordinates[index])
+
+		var has_more_work := index < coordinates.size() - 1
+		if not has_more_work:
 			continue
 
-		chunk.regenerate_field()
+		if Time.get_ticks_usec() - frame_started_usec < budget_usec:
+			continue
 
-		if chunk_surface_display != null:
-			var display := chunk_surface_display.get_display(coordinate)
-			if display != null:
-				display.rebuild_mesh()
-
-		# Present progress and give the renderer/event loop time between chunks.
 		var tree := get_tree()
 		if tree == null:
 			return
 		await tree.process_frame
+		frame_started_usec = Time.get_ticks_usec()
+
+
+func _generate_and_mesh_chunk(coordinate: Vector3i) -> void:
+	var chunk := chunk_manager.get_chunk(coordinate)
+	if chunk == null:
+		return
+
+	var display: SurfaceNetsMeshDisplay = null
+	if chunk_surface_display != null:
+		display = chunk_surface_display.get_display(coordinate)
+
+	# This pass explicitly owns the rebuild. Suppress field-signal-driven rebuild
+	# scheduling so each chunk produces exactly one mesh for this generation pass.
+	if display != null:
+		display.automatic_rebuild_enabled = false
+
+	chunk.regenerate_field()
+
+	if display != null:
+		display.rebuild_mesh()
+		display.automatic_rebuild_enabled = true
 
 
 # [b]Camera Framing[/b]
@@ -211,7 +223,6 @@ func get_grid_center() -> Vector3:
 
 
 func _frame_camera() -> void:
-	# Camera control is runtime-only even though this scene script is a tool.
 	if Engine.is_editor_hint() or camera_controller == null:
 		return
 
