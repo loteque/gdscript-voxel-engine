@@ -40,11 +40,14 @@ func _run_test() -> void:
 			"SurfaceNetsRuntimePanel must control the same SurfaceNetsMeshDisplay observed by PointFieldRuntimeUI."
 		)
 
+		await _wait_for_main_scene_idle(runtime_ui, surface_nets_display)
+
 		if surface_nets_display.display_surface_nets_mesh:
 			runtime_panel._on_display_surface_nets_mesh_toggled(false)
 			await process_frame
 
 		surface_nets_display.invalidate_mesh()
+		await create_timer(0.3).timeout
 		_assert_true(not loading_panel.visible, "Loading indicator must be hidden before enabling a dirty Surface Nets mesh.")
 
 		runtime_panel._on_display_surface_nets_mesh_toggled(true)
@@ -59,6 +62,25 @@ func _run_test() -> void:
 	else:
 		print("Main scene loading wiring test passed.")
 		quit(0)
+
+
+func _wait_for_main_scene_idle(
+	runtime_ui: PointFieldRuntimeUI,
+	surface_nets_display: SurfaceNetsMeshDisplay
+) -> void:
+	var frames := 0
+	while frames < 120:
+		var visualizer_busy := runtime_ui.visualizer != null and runtime_ui.visualizer.is_loading
+		var mesh_busy := surface_nets_display.is_loading
+		var field_current := (
+			surface_nets_display.field != null
+			and surface_nets_display.field.is_data_current()
+		)
+		if not visualizer_busy and not mesh_busy and field_current:
+			break
+		await process_frame
+		frames += 1
+	await create_timer(0.3).timeout
 
 
 func _find_runtime_ui(node: Node) -> PointFieldRuntimeUI:
