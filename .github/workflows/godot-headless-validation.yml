@@ -49,5 +49,8 @@ jobs:
       - name: Run point field integration tests
         run: godot --headless --path . --script tests/test_point_field_integration.gd
 
+      - name: Run loading indicator UI tests
+        run: godot --headless --path . --script tests/test_loading_indicator_ui.gd
+
       - name: Start main scene headlessly
         run: godot --headless --path . --quit-after 2
