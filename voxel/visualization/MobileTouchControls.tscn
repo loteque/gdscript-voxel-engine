@@ -32,12 +32,13 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -368.0
-offset_top = -200.0
-offset_right = -304.0
-offset_bottom = -136.0
+offset_left = -528.0
+offset_top = -256.0
+offset_right = -416.0
+offset_bottom = -144.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_font_sizes/font_size = 30
 text = "▲"
 
 [node name="BackwardButton" type="Button" parent="."]
@@ -48,12 +49,13 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -368.0
-offset_top = -128.0
-offset_right = -304.0
-offset_bottom = -64.0
+offset_left = -528.0
+offset_top = -136.0
+offset_right = -416.0
+offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_font_sizes/font_size = 30
 text = "▼"
 
 [node name="LeftButton" type="Button" parent="."]
@@ -64,12 +66,13 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -440.0
-offset_top = -128.0
-offset_right = -376.0
-offset_bottom = -64.0
+offset_left = -648.0
+offset_top = -136.0
+offset_right = -536.0
+offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_font_sizes/font_size = 30
 text = "◀"
 
 [node name="RightButton" type="Button" parent="."]
@@ -80,12 +83,13 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -296.0
-offset_top = -128.0
-offset_right = -232.0
-offset_bottom = -64.0
+offset_left = -408.0
+offset_top = -136.0
+offset_right = -296.0
+offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_font_sizes/font_size = 30
 text = "▶"
 
 [node name="UpButton" type="Button" parent="."]
@@ -96,12 +100,13 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -224.0
-offset_top = -200.0
-offset_right = -152.0
-offset_bottom = -136.0
+offset_left = -288.0
+offset_top = -256.0
+offset_right = -176.0
+offset_bottom = -144.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_font_sizes/font_size = 26
 text = "UP"
 
 [node name="DownButton" type="Button" parent="."]
@@ -112,12 +117,13 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -224.0
-offset_top = -128.0
-offset_right = -152.0
-offset_bottom = -64.0
+offset_left = -288.0
+offset_top = -136.0
+offset_right = -176.0
+offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_font_sizes/font_size = 24
 text = "DOWN"
 
 [node name="FastButton" type="Button" parent="."]
@@ -128,10 +134,11 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -144.0
-offset_top = -128.0
+offset_left = -168.0
+offset_top = -136.0
 offset_right = -16.0
-offset_bottom = -64.0
+offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_override_font_sizes/font_size = 24
 text = "FAST"
