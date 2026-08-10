@@ -36,6 +36,16 @@ const DEFAULT_DEMO_SURFACE: Material = preload("res://voxel/meshing/DemoTerrainS
 		else:
 			_set_loading(false)
 
+## Allows consumers that own an explicit generation pass to suppress deferred
+## rebuild requests while a field is changing, then rebuild exactly once.
+@export var automatic_rebuild_enabled: bool = true:
+	set(value):
+		if automatic_rebuild_enabled == value:
+			return
+		automatic_rebuild_enabled = value
+		if value:
+			_queue_mesh_rebuild()
+
 @export_range(-2.0, 2.0, 0.01, "or_greater", "or_less")
 var iso_level: float = 0.0:
 	set(value):
@@ -69,6 +79,7 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	_disconnect_field()
+	_mesh_rebuild_queued = false
 	_set_loading(false)
 
 
@@ -134,11 +145,13 @@ func _on_field_changed() -> void:
 
 func _mark_mesh_dirty() -> void:
 	_mesh_dirty = true
-	if display_surface_nets_mesh and field != null and field.is_data_current():
+	if automatic_rebuild_enabled and display_surface_nets_mesh and field != null and field.is_data_current():
 		_queue_mesh_rebuild()
 
 
 func _queue_mesh_rebuild() -> void:
+	if not automatic_rebuild_enabled:
+		return
 	if not is_inside_tree() or _mesh_rebuild_queued or not _mesh_dirty:
 		return
 	if field != null and not field.is_data_current():
@@ -150,7 +163,20 @@ func _queue_mesh_rebuild() -> void:
 
 
 func _rebuild_mesh_after_frame() -> void:
-	await get_tree().process_frame
+	if not is_inside_tree():
+		_mesh_rebuild_queued = false
+		_set_loading(false)
+		return
+	var tree := get_tree()
+	if tree == null:
+		_mesh_rebuild_queued = false
+		_set_loading(false)
+		return
+	await tree.process_frame
+	if not is_inside_tree():
+		_mesh_rebuild_queued = false
+		_set_loading(false)
+		return
 	rebuild_mesh()
 
 

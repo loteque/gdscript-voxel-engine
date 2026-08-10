@@ -72,6 +72,9 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	_disconnect_field()
+	_field_regeneration_queued = false
+	_position_regeneration_queued = false
+	_density_regeneration_queued = false
 	_set_loading(false)
 
 func _ensure_field() -> void:
@@ -99,6 +102,8 @@ func _disconnect_field() -> void:
 		field.densities_changed.disconnect(_on_densities_changed)
 
 func _synchronize_with_field() -> void:
+	if not is_inside_tree():
+		return
 	_ensure_field()
 	_ensure_visualizer()
 	if auto_regenerate_field:
@@ -121,21 +126,21 @@ func request_density_regeneration() -> void:
 	_queue_density_regeneration()
 
 func _queue_field_regeneration() -> void:
-	if field == null or _field_regeneration_queued:
+	if field == null or _field_regeneration_queued or not is_inside_tree():
 		return
 	_field_regeneration_queued = true
 	_set_loading(true)
 	call_deferred("_regenerate_field_after_frame")
 
 func _queue_position_regeneration() -> void:
-	if field == null or _position_regeneration_queued:
+	if field == null or _position_regeneration_queued or not is_inside_tree():
 		return
 	_position_regeneration_queued = true
 	_set_loading(true)
 	call_deferred("_regenerate_positions_after_frame")
 
 func _queue_density_regeneration() -> void:
-	if field == null or _density_regeneration_queued:
+	if field == null or _density_regeneration_queued or not is_inside_tree():
 		return
 	if field.positions_dirty or field.positions.size() != field.sample_count:
 		_queue_field_regeneration()
@@ -145,22 +150,47 @@ func _queue_density_regeneration() -> void:
 	call_deferred("_regenerate_densities_after_frame")
 
 func _regenerate_field_after_frame() -> void:
-	await get_tree().process_frame
+	var tree := get_tree()
+	if tree == null:
+		_field_regeneration_queued = false
+		_finish_loading_if_idle()
+		return
+	await tree.process_frame
+	if not is_inside_tree():
+		_field_regeneration_queued = false
+		_finish_loading_if_idle()
+		return
 	if field != null and (field.positions_dirty or field.densities_dirty or not field.validate_data()):
 		field.regenerate()
 	_field_regeneration_queued = false
 	_finish_loading_if_idle()
 
 func _regenerate_positions_after_frame() -> void:
-	await get_tree().process_frame
+	var tree := get_tree()
+	if tree == null:
+		_position_regeneration_queued = false
+		_finish_loading_if_idle()
+		return
+	await tree.process_frame
 	_position_regeneration_queued = false
+	if not is_inside_tree():
+		_finish_loading_if_idle()
+		return
 	if field != null:
 		field.generate_positions()
 	_finish_loading_if_idle()
 
 func _regenerate_densities_after_frame() -> void:
-	await get_tree().process_frame
+	var tree := get_tree()
+	if tree == null:
+		_density_regeneration_queued = false
+		_finish_loading_if_idle()
+		return
+	await tree.process_frame
 	_density_regeneration_queued = false
+	if not is_inside_tree():
+		_finish_loading_if_idle()
+		return
 	if field != null and not field.positions_dirty and field.positions.size() == field.sample_count:
 		field.generate_density_field()
 	_finish_loading_if_idle()
@@ -174,10 +204,12 @@ func _on_data_state_changed() -> void:
 		_queue_density_regeneration()
 
 func _on_positions_changed() -> void:
-	call_deferred("_rebuild_from_positions")
+	if is_inside_tree():
+		call_deferred("_rebuild_from_positions")
 
 func _on_densities_changed() -> void:
-	call_deferred("_update_point_colors")
+	if is_inside_tree():
+		call_deferred("_update_point_colors")
 
 func _finish_loading_if_idle() -> void:
 	if _field_regeneration_queued or _position_regeneration_queued or _density_regeneration_queued:
@@ -191,6 +223,8 @@ func _set_loading(value: bool) -> void:
 	loading_state_changed.emit(is_loading)
 
 func _ensure_visualizer() -> void:
+	if not is_inside_tree():
+		return
 	if is_instance_valid(_point_mesh):
 		return
 	_point_mesh = get_node_or_null("PointFieldDisplay") as MultiMeshInstance3D
@@ -214,8 +248,10 @@ func _ensure_visualizer() -> void:
 	_point_mesh.multimesh = multimesh
 
 func _rebuild_from_positions() -> void:
+	if not is_inside_tree():
+		return
 	_ensure_visualizer()
-	if field == null or _point_mesh.multimesh == null:
+	if field == null or _point_mesh == null or _point_mesh.multimesh == null:
 		return
 	var multimesh := _point_mesh.multimesh
 	multimesh.instance_count = field.positions.size()
@@ -226,16 +262,20 @@ func _rebuild_from_positions() -> void:
 	_update_point_colors()
 
 func _update_point_size() -> void:
+	if not is_inside_tree():
+		return
 	_ensure_visualizer()
-	if _point_mesh.multimesh == null:
+	if _point_mesh == null or _point_mesh.multimesh == null:
 		return
 	var quad := _point_mesh.multimesh.mesh as QuadMesh
 	if quad != null:
 		quad.size = Vector2.ONE * point_size
 
 func _update_point_colors() -> void:
+	if not is_inside_tree():
+		return
 	_ensure_visualizer()
-	if field == null or _point_mesh.multimesh == null:
+	if field == null or _point_mesh == null or _point_mesh.multimesh == null:
 		return
 	var multimesh := _point_mesh.multimesh
 	if not visualize_density:
