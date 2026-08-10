@@ -137,6 +137,19 @@
           "path": "0.6.0/chunks/"
         }
       ]
+    },
+    {
+      "key": "streaming",
+      "name": "Chunk Streaming Demo",
+      "releases": [
+        {
+          "id": "integration",
+          "label": "Integration Preview",
+          "version": "Integration Preview",
+          "type": "preview",
+          "path": "preview/integration/streaming/"
+        }
+      ]
     }
   ]
 }
