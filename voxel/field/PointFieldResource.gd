@@ -172,6 +172,7 @@ func generate_positions() -> void:
 		emit_changed()
 		return
 
+	_set_densities_dirty(true)
 	positions.resize(sample_count)
 	var half_size := size * 0.5
 
