@@ -52,5 +52,8 @@ jobs:
       - name: Run loading indicator UI tests
         run: godot --headless --path . --script tests/test_loading_indicator_ui.gd
 
+      - name: Run main scene loading wiring test
+        run: godot --headless --path . --script tests/test_main_scene_loading_wiring.gd
+
       - name: Start main scene headlessly
         run: godot --headless --path . --quit-after 2
