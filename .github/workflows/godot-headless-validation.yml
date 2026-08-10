@@ -49,6 +49,12 @@ jobs:
       - name: Run point field integration tests
         run: godot --headless --path . --script tests/test_point_field_integration.gd
 
+      - name: Run chunk foundation tests
+        run: godot --headless --path . --script tests/test_chunk_foundation.gd
+
+      - name: Run chunk Surface Nets grid tests
+        run: godot --headless --path . --script tests/test_chunk_surface_nets_grid.gd
+
       - name: Run loading indicator UI tests
         run: godot --headless --path . --script tests/test_loading_indicator_ui.gd
 
