@@ -3,6 +3,7 @@ extends SceneTree
 const RUNTIME_UI_SCENE := preload("res://voxel/visualization/PointFieldRuntimeUI.tscn")
 const POINT_FIELD_VISUALIZER := preload("res://voxel/visualization/PointFieldVisualizer.gd")
 const POINT_FIELD_RESOURCE := preload("res://voxel/field/PointFieldResource.gd")
+const SURFACE_NETS_DISPLAY := preload("res://voxel/meshing/SurfaceNetsMeshDisplay.gd")
 
 var _failed: bool = false
 
@@ -14,6 +15,7 @@ func _initialize() -> void:
 func _run_tests() -> void:
 	await _test_loading_indicator_tracks_visualizer_work()
 	await _test_runtime_controls_report_automatic_regeneration()
+	await _test_surface_nets_checkbox_reports_mesh_loading()
 
 	if _failed:
 		quit(1)
@@ -93,6 +95,47 @@ func _test_runtime_controls_report_automatic_regeneration() -> void:
 	await _wait_for_loading_to_finish(visualizer)
 
 	runtime_ui.queue_free()
+	visualizer.queue_free()
+	await process_frame
+
+
+func _test_surface_nets_checkbox_reports_mesh_loading() -> void:
+	var field := POINT_FIELD_RESOURCE.new()
+	field.cell_dimensions = Vector3i(4, 4, 4)
+	field.noise = FastNoiseLite.new()
+	field.regenerate()
+
+	var visualizer := POINT_FIELD_VISUALIZER.new()
+	visualizer.field = field
+	root.add_child(visualizer)
+
+	var surface_nets_display := SURFACE_NETS_DISPLAY.new()
+	surface_nets_display.field = field
+	root.add_child(surface_nets_display)
+
+	var runtime_ui := RUNTIME_UI_SCENE.instantiate()
+	runtime_ui.visualizer = visualizer
+	runtime_ui.surface_nets_display = surface_nets_display
+	root.add_child(runtime_ui)
+	await process_frame
+
+	var runtime_panel = runtime_ui.get_node("%PointFieldRuntimePanel")
+	var loading_panel := runtime_ui.get_node("%LoadingPanel") as PanelContainer
+
+	_assert_true(not loading_panel.visible, "Loading indicator must start hidden before Surface Nets is enabled.")
+
+	runtime_panel._on_display_surface_nets_mesh_toggled(true)
+	_assert_true(surface_nets_display.is_loading, "Enabling Surface Nets with a dirty mesh must report mesh loading.")
+	_assert_true(loading_panel.visible, "Enabling Surface Nets must show the loading indicator while the mesh rebuild is queued.")
+
+	await process_frame
+	_assert_true(loading_panel.visible, "Surface Nets loading indicator must remain visible long enough to render.")
+	await create_timer(0.3).timeout
+	_assert_true(not surface_nets_display.is_loading, "Surface Nets display must finish mesh generation.")
+	_assert_true(not loading_panel.visible, "Surface Nets loading indicator must hide after mesh generation finishes.")
+
+	runtime_ui.queue_free()
+	surface_nets_display.queue_free()
 	visualizer.queue_free()
 	await process_frame
 
