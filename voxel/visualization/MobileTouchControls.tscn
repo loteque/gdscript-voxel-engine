@@ -39,7 +39,7 @@ offset_bottom = -144.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_font_sizes/font_size = 30
-text = "▲"
+text = "^"
 
 [node name="BackwardButton" type="Button" parent="."]
 unique_name_in_owner = true
@@ -56,7 +56,7 @@ offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_font_sizes/font_size = 30
-text = "▼"
+text = "v"
 
 [node name="LeftButton" type="Button" parent="."]
 unique_name_in_owner = true
@@ -73,7 +73,7 @@ offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_font_sizes/font_size = 30
-text = "◀"
+text = "<"
 
 [node name="RightButton" type="Button" parent="."]
 unique_name_in_owner = true
@@ -90,7 +90,7 @@ offset_bottom = -24.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_font_sizes/font_size = 30
-text = "▶"
+text = ">"
 
 [node name="UpButton" type="Button" parent="."]
 unique_name_in_owner = true
