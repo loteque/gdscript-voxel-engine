@@ -19,7 +19,13 @@ extends Node3D
 		_connect_field()
 		call_deferred("_synchronize_with_field")
 
-@export var auto_regenerate_field: bool = true
+@export var auto_regenerate_field: bool = true:
+	set(value):
+		if auto_regenerate_field == value:
+			return
+		auto_regenerate_field = value
+		if value and is_inside_tree():
+			call_deferred("_synchronize_with_field")
 
 @export var visualize_density: bool = false:
 	set(value):
