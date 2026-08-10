@@ -16,6 +16,7 @@ func _run_tests() -> void:
 	await _test_loading_indicator_tracks_visualizer_work()
 	await _test_runtime_controls_report_automatic_regeneration()
 	await _test_surface_nets_checkbox_reports_mesh_loading()
+	await _test_numeric_text_edits_commit_on_submit()
 
 	if _failed:
 		quit(1)
@@ -136,6 +137,50 @@ func _test_surface_nets_checkbox_reports_mesh_loading() -> void:
 
 	runtime_ui.queue_free()
 	surface_nets_display.queue_free()
+	visualizer.queue_free()
+	await process_frame
+
+
+func _test_numeric_text_edits_commit_on_submit() -> void:
+	var field := POINT_FIELD_RESOURCE.new()
+	field.cell_dimensions = Vector3i(4, 4, 4)
+	field.noise = FastNoiseLite.new()
+	field.regenerate()
+
+	var visualizer := POINT_FIELD_VISUALIZER.new()
+	visualizer.field = field
+	root.add_child(visualizer)
+
+	var runtime_ui := RUNTIME_UI_SCENE.instantiate()
+	runtime_ui.visualizer = visualizer
+	root.add_child(runtime_ui)
+	await process_frame
+
+	var runtime_panel = runtime_ui.get_node("%PointFieldRuntimePanel")
+	var spin_box: SpinBox = runtime_panel._terrain_height_scale
+	var line_edit := spin_box.get_line_edit()
+	var original_value := field.terrain_height_scale
+	var edited_value := original_value + 2.0
+
+	_assert_true(not spin_box.update_on_text_changed, "Numeric text edits must not update terrain values while the user is typing.")
+	_assert_true(line_edit.focus_exited.is_connected(spin_box.apply), "Numeric text edits must commit when the input loses focus.")
+
+	line_edit.text = str(edited_value)
+	_assert_true(is_equal_approx(field.terrain_height_scale, original_value), "Typing into a numeric input must not commit the terrain value before submission.")
+	_assert_true(not visualizer.is_loading, "Typing an uncommitted numeric value must not start terrain regeneration.")
+
+	spin_box.apply()
+	_assert_true(is_equal_approx(field.terrain_height_scale, edited_value), "Submitting a numeric input must commit the terrain value.")
+	_assert_true(visualizer.is_loading, "Submitting a generation-affecting numeric value must start regeneration.")
+	await _wait_for_loading_to_finish(visualizer)
+
+	var arrow_value := edited_value + spin_box.step
+	spin_box.value = arrow_value
+	_assert_true(is_equal_approx(field.terrain_height_scale, arrow_value), "Spinner arrow-style value changes must remain immediate.")
+	_assert_true(visualizer.is_loading, "Immediate spinner changes must still report regeneration as loading.")
+	await _wait_for_loading_to_finish(visualizer)
+
+	runtime_ui.queue_free()
 	visualizer.queue_free()
 	await process_frame
 
