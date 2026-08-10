@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+      - chunked-terrain
 
 permissions:
   contents: read
@@ -60,6 +61,9 @@ jobs:
 
       - name: Run chunk validation scene test
         run: godot --headless --path . --script tests/test_chunk_validation_scene.gd
+
+      - name: Start chunk validation scene headlessly
+        run: godot --headless --path . demo/ChunkValidationDemo.tscn --quit-after 8
 
       - name: Run loading indicator UI tests
         run: godot --headless --path . --script tests/test_loading_indicator_ui.gd
