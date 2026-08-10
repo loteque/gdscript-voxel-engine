@@ -17,6 +17,7 @@ func _run() -> void:
 	var surface_display := scene.get_node("ChunkSurfaceNetsDisplay") as ChunkSurfaceNetsDisplay
 	var visualizer := scene.get_node("ChunkVisualizer") as ChunkVisualizer
 	var camera := scene.get_node("Camera") as Camera3D
+	var mobile_controls := scene.get_node("Instructions/MobileTouchControls") as MobileTouchControls
 
 	# _ready() reaches the first process-frame await before add_child() returns.
 	# At that boundary the lightweight startup presentation must already exist,
@@ -26,6 +27,7 @@ func _run() -> void:
 	_assert_true(surface_display != null, "Validation scene must contain its chunk Surface Nets display.")
 	_assert_true(visualizer != null, "Validation scene must contain its ChunkVisualizer.")
 	_assert_true(camera != null and camera.current, "Validation scene must contain an active camera.")
+	_assert_true(mobile_controls != null, "Validation scene must contain the shared mobile touch controls.")
 
 	if manager != null:
 		_assert_equal(manager.get_chunk_count(), 0, "Startup preview must not allocate chunks before the first presented frame.")
