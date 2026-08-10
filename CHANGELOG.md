@@ -2,6 +2,15 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.4.2
+
+### Added
+- Added a reusable lit demo terrain surface for Surface Nets mesh presentation.
+- Added a directional light to the terrain demo so generated Surface Nets geometry is visibly shaded.
+
+### Changed
+- `SurfaceNetsMeshDisplay` now applies an exported presentation material by default while keeping `SurfaceNetsMesher` responsible only for geometry generation.
+
 ## 0.4.1
 
 ### Added
