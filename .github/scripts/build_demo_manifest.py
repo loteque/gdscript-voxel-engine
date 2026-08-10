@@ -5,10 +5,32 @@ from pathlib import Path
 
 
 VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
+PREVIEW_ID = "integration"
+PREVIEW_LABEL = "Integration Preview"
+PREVIEW_ROOT = Path("preview") / PREVIEW_ID
 
 
 def version_key(value: str) -> tuple[int, int, int]:
     return tuple(map(int, value.split(".")))
+
+
+def release_entry(version: str, path: str) -> dict[str, str]:
+    return {
+        "id": version,
+        "label": f"v{version}",
+        "version": version,
+        "type": "release",
+        "path": path,
+    }
+
+
+def preview_entry(path: str) -> dict[str, str]:
+    return {
+        "id": PREVIEW_ID,
+        "label": PREVIEW_LABEL,
+        "type": "preview",
+        "path": path,
+    }
 
 
 def main() -> None:
@@ -28,12 +50,18 @@ def main() -> None:
     terrain_releases = []
     chunk_releases = []
 
+    preview_dir = archive / PREVIEW_ROOT
+    if (preview_dir / "index.html").is_file():
+        terrain_releases.append(preview_entry(f"{PREVIEW_ROOT.as_posix()}/"))
+    if (preview_dir / "chunks" / "index.html").is_file():
+        chunk_releases.append(preview_entry(f"{PREVIEW_ROOT.as_posix()}/chunks/"))
+
     for version in versions:
         version_dir = archive / version
         if (version_dir / "index.html").is_file():
-            terrain_releases.append({"version": version, "path": f"{version}/"})
+            terrain_releases.append(release_entry(version, f"{version}/"))
         if (version_dir / "chunks" / "index.html").is_file():
-            chunk_releases.append({"version": version, "path": f"{version}/chunks/"})
+            chunk_releases.append(release_entry(version, f"{version}/chunks/"))
 
     demos = [
         {
