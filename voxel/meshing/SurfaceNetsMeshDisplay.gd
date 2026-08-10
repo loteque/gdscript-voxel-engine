@@ -12,7 +12,9 @@ extends MeshInstance3D
 signal loading_state_changed(is_loading: bool)
 
 
-# [b]Display Configuration[/b] Controls the field and iso-surface shown by this node.
+# [b]Display Configuration[/b] Controls the field, material, and iso-surface shown by this node.
+
+const DEFAULT_DEMO_SURFACE: Material = preload("res://voxel/meshing/DemoTerrainSurface.tres")
 
 @export var field: PointFieldResource:
 	set(value):
@@ -22,6 +24,11 @@ signal loading_state_changed(is_loading: bool)
 		field = value
 		_connect_field()
 		_mark_mesh_dirty()
+
+@export var surface_material: Material = DEFAULT_DEMO_SURFACE:
+	set(value):
+		surface_material = value
+		material_override = value
 
 @export var display_surface_nets_mesh: bool = false:
 	set(value):
@@ -54,6 +61,7 @@ var _mesh_rebuild_queued: bool = false
 # [b]Lifecycle[/b]
 
 func _enter_tree() -> void:
+	material_override = surface_material
 	visible = display_surface_nets_mesh
 	_connect_field()
 	_mark_mesh_dirty()
