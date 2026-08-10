@@ -5,11 +5,9 @@ on:
     branches:
       - main
       - nf/**
-      - chunk-visualizer
   pull_request:
     branches:
       - main
-      - chunked-terrain
 
 permissions:
   contents: read
