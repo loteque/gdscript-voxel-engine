@@ -9,6 +9,7 @@ on:
   pull_request:
     branches:
       - main
+      - nf/integration
       - chunked-terrain
 
 permissions:
@@ -59,6 +60,9 @@ jobs:
 
       - name: Run chunk Surface Nets grid tests
         run: godot --headless --path . --script tests/test_chunk_surface_nets_grid.gd
+
+      - name: Run chunk streaming tests
+        run: godot --headless --path . --script tests/test_chunk_streaming.gd
 
       - name: Run chunk visualizer tests
         run: godot --headless --path . --script tests/test_chunk_visualizer.gd
