@@ -7,6 +7,16 @@ extends RefCounted
 ## every cell crossed by the iso-surface, then stitches those cell vertices
 ## around sign-changing sample edges.
 ##
+## Density convention:
+## - values greater than the iso-level represent solid material,
+## - values lower than the iso-level represent empty space,
+## - values equal to the iso-level lie on the surface and are classified on the
+##   solid side for topology decisions.
+##
+## Triangle winding and generated normals point from solid material toward empty
+## space. This makes ordinary height-field terrain face upward while preserving
+## correct outward orientation for walls, overhangs, caves, and closed volumes.
+##
 ## Boundary faces require a layer of cells on both sides of a sign-changing
 ## sample edge. Fields intended to close at their outer boundary should include
 ## suitable padding samples/cells around the meshed region.
@@ -34,8 +44,8 @@ const CELL_EDGES: Array[Vector2i] = [
 
 ## Generates a new mesh for [param field] at [param iso_level].
 ##
-## Surface normals point from densities below the iso-level toward densities
-## at or above the iso-level.
+## Surface normals point from densities at or above the iso-level toward
+## densities below the iso-level.
 func generate_mesh(
 	field: PointFieldResource,
 	iso_level: float = 0.0
@@ -124,15 +134,15 @@ func _calculate_cell_surface_vertex(
 	var positions := field.get_cell_positions(cell_coordinates)
 	var densities := field.get_cell_densities(cell_coordinates)
 
-	var has_inside := false
-	var has_outside := false
+	var has_solid := false
+	var has_empty := false
 	for density in densities:
 		if density < iso_level:
-			has_inside = true
+			has_empty = true
 		else:
-			has_outside = true
+			has_solid = true
 
-	if not has_inside or not has_outside:
+	if not has_solid or not has_empty:
 		return null
 
 	var intersection_sum := Vector3.ZERO
@@ -304,7 +314,7 @@ func _append_edge_quad(
 		)
 
 
-# [b]Normals[/b] Builds smooth area-weighted normals from the generated triangle topology.
+# [b]Normals[/b] Builds smooth area-weighted normals matching Godot's clockwise front faces.
 
 func _generate_vertex_normals(
 	vertices: PackedVector3Array,
@@ -320,7 +330,7 @@ func _generate_vertex_normals(
 		var index_c := indices[triangle_start + 2]
 		var edge_ab := vertices[index_b] - vertices[index_a]
 		var edge_ac := vertices[index_c] - vertices[index_a]
-		var face_normal := edge_ab.cross(edge_ac)
+		var face_normal := edge_ac.cross(edge_ab)
 
 		if face_normal.is_zero_approx():
 			continue

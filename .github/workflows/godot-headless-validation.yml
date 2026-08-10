@@ -40,5 +40,8 @@ jobs:
       - name: Import project headlessly
         run: godot --headless --path . --import
 
+      - name: Run surface orientation tests
+        run: godot --headless --path . --script tests/test_surface_orientation.gd
+
       - name: Start main scene headlessly
         run: godot --headless --path . --quit-after 2

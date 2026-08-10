@@ -36,6 +36,8 @@ var _cell_y: SpinBox
 var _cell_z: SpinBox
 var _sample_spacing: SpinBox
 var _density_scale: SpinBox
+var _terrain_base_height: SpinBox
+var _terrain_height_scale: SpinBox
 var _noise_type: OptionButton
 var _noise_seed: SpinBox
 var _noise_frequency: SpinBox
@@ -156,6 +158,8 @@ func _build_density_section(parent: VBoxContainer) -> void:
 	parent.add_child(grid)
 
 	_density_scale = _create_spin_box(0.0001, 1000.0, 0.01)
+	_terrain_base_height = _create_spin_box(-10000.0, 10000.0, 0.01)
+	_terrain_height_scale = _create_spin_box(0.0, 10000.0, 0.01)
 	_noise_type = OptionButton.new()
 	_noise_type.add_item("Simplex", FastNoiseLite.TYPE_SIMPLEX)
 	_noise_type.add_item("Simplex Smooth", FastNoiseLite.TYPE_SIMPLEX_SMOOTH)
@@ -169,7 +173,9 @@ func _build_density_section(parent: VBoxContainer) -> void:
 	_noise_seed = _create_spin_box(-2147483648.0, 2147483647.0, 1.0, true)
 	_noise_frequency = _create_spin_box(0.0001, 10.0, 0.001)
 
-	_add_property_row(grid, "Density Scale", _density_scale)
+	_add_property_row(grid, "Noise Coordinate Scale", _density_scale)
+	_add_property_row(grid, "Terrain Base Height", _terrain_base_height)
+	_add_property_row(grid, "Terrain Height Scale", _terrain_height_scale)
 	_add_property_row(grid, "Noise Type", _noise_type)
 	_add_property_row(grid, "Noise Offset X", _noise_offset_x)
 	_add_property_row(grid, "Noise Offset Y", _noise_offset_y)
@@ -178,6 +184,8 @@ func _build_density_section(parent: VBoxContainer) -> void:
 	_add_property_row(grid, "Noise Frequency", _noise_frequency)
 
 	_density_scale.value_changed.connect(_on_density_scale_changed)
+	_terrain_base_height.value_changed.connect(_on_terrain_base_height_changed)
+	_terrain_height_scale.value_changed.connect(_on_terrain_height_scale_changed)
 	_noise_type.item_selected.connect(_on_noise_type_selected)
 	_noise_offset_x.value_changed.connect(_on_noise_offset_changed)
 	_noise_offset_y.value_changed.connect(_on_noise_offset_changed)
@@ -423,6 +431,8 @@ func _synchronize_controls() -> void:
 	_cell_z.value = field.cell_dimensions.z
 	_sample_spacing.value = field.sample_spacing
 	_density_scale.value = field.density_scale
+	_terrain_base_height.value = field.terrain_base_height
+	_terrain_height_scale.value = field.terrain_height_scale
 
 	var noise := _ensure_noise()
 	if noise != null:
@@ -450,6 +460,8 @@ func _set_controls_enabled(is_enabled: bool) -> void:
 		_cell_z,
 		_sample_spacing,
 		_density_scale,
+		_terrain_base_height,
+		_terrain_height_scale,
 		_noise_seed,
 		_noise_frequency,
 		_point_size,
@@ -535,6 +547,26 @@ func _on_density_scale_changed(value: float) -> void:
 	var field := _get_field()
 	if field != null:
 		field.density_scale = value
+		_update_status()
+
+
+func _on_terrain_base_height_changed(value: float) -> void:
+	if _is_synchronizing:
+		return
+
+	var field := _get_field()
+	if field != null:
+		field.terrain_base_height = value
+		_update_status()
+
+
+func _on_terrain_height_scale_changed(value: float) -> void:
+	if _is_synchronizing:
+		return
+
+	var field := _get_field()
+	if field != null:
+		field.terrain_height_scale = value
 		_update_status()
 
 
