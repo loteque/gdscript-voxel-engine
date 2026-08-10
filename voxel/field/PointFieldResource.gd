@@ -328,6 +328,7 @@ func set_density(coordinates: Vector3i, value: float) -> void:
 
 
 # [b]Indexing[/b]
+# Converts between field coordinates and compact x-fastest array indices.
 
 func flatten_index(coordinates: Vector3i) -> int:
 	if not is_sample_in_bounds(coordinates):
@@ -347,6 +348,31 @@ func coordinates_from_index(index: int) -> Vector3i:
 	var remainder := index % layer_size
 	var y := remainder / sample_dimensions.x
 	var x := remainder % sample_dimensions.x
+	return Vector3i(x, y, z)
+
+
+## Returns the x-fastest flat index for [param coordinates], or -1 when the
+## cell coordinates are outside the field.
+func flatten_cell_index(coordinates: Vector3i) -> int:
+	if not is_cell_in_bounds(coordinates):
+		return -1
+	return (
+		coordinates.x
+		+ coordinates.y * cell_dimensions.x
+		+ coordinates.z * cell_dimensions.x * cell_dimensions.y
+	)
+
+
+## Returns the cell coordinates represented by [param index].
+## Returns (-1, -1, -1) when [param index] is invalid.
+func cell_coordinates_from_index(index: int) -> Vector3i:
+	if index < 0 or index >= cell_count:
+		return Vector3i(-1, -1, -1)
+	var layer_size := cell_dimensions.x * cell_dimensions.y
+	var z := index / layer_size
+	var remainder := index % layer_size
+	var y := remainder / cell_dimensions.x
+	var x := remainder % cell_dimensions.x
 	return Vector3i(x, y, z)
 
 
