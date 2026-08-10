@@ -17,6 +17,7 @@ extends Node3D
 
 signal chunk_added(chunk: TerrainChunk)
 signal chunk_removed(coordinate: Vector3i)
+signal chunk_layout_changed
 
 
 # [b]Chunk Configuration[/b]
@@ -33,6 +34,7 @@ signal chunk_removed(coordinate: Vector3i)
 			return
 		chunk_cell_dimensions = sanitized_value
 		_reconfigure_chunks()
+		chunk_layout_changed.emit()
 
 ## Distance between adjacent field samples.
 @export_range(0.001, 1000.0, 0.001, "or_greater")
@@ -43,6 +45,7 @@ var sample_spacing: float = 1.0:
 			return
 		sample_spacing = sanitized_value
 		_reconfigure_chunks()
+		chunk_layout_changed.emit()
 
 ## Optional density-generation settings copied into newly created chunks.
 ##
