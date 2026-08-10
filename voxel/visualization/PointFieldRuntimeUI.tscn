@@ -15,3 +15,27 @@ offset_bottom = 704.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_runtime_panel")
+
+[node name="LoadingPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -72.0
+offset_top = -54.0
+offset_right = 72.0
+offset_bottom = -18.0
+mouse_filter = 2
+
+[node name="LoadingLabel" type="Label" parent="LoadingPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "loading."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LoadingTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.35
