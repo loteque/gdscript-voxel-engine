@@ -13,6 +13,7 @@ func _initialize() -> void:
 
 func _run_tests() -> void:
 	await _test_loading_indicator_tracks_visualizer_work()
+	await _test_runtime_controls_report_automatic_regeneration()
 
 	if _failed:
 		quit(1)
@@ -54,6 +55,53 @@ func _test_loading_indicator_tracks_visualizer_work() -> void:
 	runtime_ui.queue_free()
 	visualizer.queue_free()
 	await process_frame
+
+
+func _test_runtime_controls_report_automatic_regeneration() -> void:
+	var field := POINT_FIELD_RESOURCE.new()
+	field.cell_dimensions = Vector3i(4, 4, 4)
+	field.noise = FastNoiseLite.new()
+	field.regenerate()
+
+	var visualizer := POINT_FIELD_VISUALIZER.new()
+	visualizer.field = field
+	root.add_child(visualizer)
+
+	var runtime_ui := RUNTIME_UI_SCENE.instantiate()
+	runtime_ui.visualizer = visualizer
+	root.add_child(runtime_ui)
+	await process_frame
+
+	var runtime_panel = runtime_ui.get_node("%PointFieldRuntimePanel")
+	var loading_panel := runtime_ui.get_node("%LoadingPanel") as PanelContainer
+
+	runtime_panel._on_terrain_height_scale_changed(field.terrain_height_scale + 1.0)
+	_assert_true(visualizer.is_loading, "Terrain Height Scale edits must report automatic regeneration as loading.")
+	_assert_true(loading_panel.visible, "Terrain Height Scale edits must show the loading indicator.")
+	await _wait_for_loading_to_finish(visualizer)
+
+	runtime_panel._on_noise_frequency_changed(field.noise.frequency + 0.01)
+	_assert_true(visualizer.is_loading, "Noise Frequency edits must report automatic regeneration as loading.")
+	_assert_true(loading_panel.visible, "Noise Frequency edits must show the loading indicator.")
+	await _wait_for_loading_to_finish(visualizer)
+
+	runtime_panel._cell_x.value = field.cell_dimensions.x + 1
+	runtime_panel._on_cell_dimensions_changed(runtime_panel._cell_x.value)
+	_assert_true(visualizer.is_loading, "Cell dimension edits must report automatic regeneration as loading.")
+	_assert_true(loading_panel.visible, "Cell dimension edits must show the loading indicator.")
+	await _wait_for_loading_to_finish(visualizer)
+
+	runtime_ui.queue_free()
+	visualizer.queue_free()
+	await process_frame
+
+
+func _wait_for_loading_to_finish(visualizer: Node) -> void:
+	var frames := 0
+	while visualizer.is_loading and frames < 30:
+		await process_frame
+		frames += 1
+	await create_timer(0.3).timeout
 
 
 func _assert_true(condition: bool, message: String) -> void:
