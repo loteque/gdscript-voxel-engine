@@ -56,6 +56,11 @@ func sync_rotation_from_transform() -> void:
 	_yaw = rotation.y
 
 
+## Applies relative look motion using the same sensitivity and pitch limits as mouse look.
+func apply_look_delta(relative_motion: Vector2) -> void:
+	_update_look(relative_motion)
+
+
 # [b]Input Handling[/b] Captures the mouse and applies camera rotation.
 
 func _unhandled_input(event: InputEvent) -> void:
