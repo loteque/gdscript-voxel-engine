@@ -46,5 +46,8 @@ jobs:
       - name: Run point field state tests
         run: godot --headless --path . --script tests/test_point_field_state.gd
 
+      - name: Run point field integration tests
+        run: godot --headless --path . --script tests/test_point_field_integration.gd
+
       - name: Start main scene headlessly
         run: godot --headless --path . --quit-after 2
