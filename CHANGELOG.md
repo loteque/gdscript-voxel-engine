@@ -6,7 +6,8 @@ All notable changes to this project are recorded here by project version.
 
 ### Added
 - Added a bottom-center animated loading indicator for point-field regeneration and Surface Nets mesh rebuilding.
-- Added headless UI smoke coverage for loading-state behavior, automatic terrain edits, Surface Nets enablement, and committed numeric editing.
+- Added a reusable lit demo terrain surface material and default Surface Nets display material assignment.
+- Added headless UI smoke coverage for loading-state behavior, automatic terrain edits, Surface Nets enablement, committed numeric editing, and default terrain material configuration.
 
 ### Changed
 - Runtime generation controls now enter the same observable regeneration path as explicit generation actions so loading state is reported consistently.
@@ -52,7 +53,7 @@ All notable changes to this project are recorded here by project version.
 ### Fixed
 - Isolated `gh-pages` archive assembly in a separate Git worktree so generated `build/web` files cannot block switching to the archive branch.
 - Removed legacy root-level `build/` output from the Pages archive during publishing.
-- Pull request web validation now exercises the archive worktree assembly path and verifies root build output is not present.
+- Pull request web deployment validation now exercises the archive worktree assembly path and verifies root build output is not present.
 
 ## 0.1.2
 
