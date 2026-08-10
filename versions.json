@@ -1,6 +1,7 @@
 {
-  "latest": "0.6.1",
+  "latest": "0.7.0",
   "versions": [
+    "0.7.0",
     "0.6.1",
     "0.6.0",
     "0.5.0",
@@ -17,6 +18,10 @@
       "key": "terrain",
       "name": "Terrain / Surface Nets Demo",
       "releases": [
+        {
+          "version": "0.7.0",
+          "path": "0.7.0/"
+        },
         {
           "version": "0.6.1",
           "path": "0.6.1/"
@@ -63,6 +68,10 @@
       "key": "chunks",
       "name": "Chunk Validation Demo",
       "releases": [
+        {
+          "version": "0.7.0",
+          "path": "0.7.0/chunks/"
+        },
         {
           "version": "0.6.1",
           "path": "0.6.1/chunks/"
