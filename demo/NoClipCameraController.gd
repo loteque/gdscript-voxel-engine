@@ -1,3 +1,4 @@
+@tool
 class_name NoClipCameraController
 extends Camera3D
 
@@ -58,6 +59,9 @@ func sync_rotation_from_transform() -> void:
 # [b]Input Handling[/b] Captures the mouse and applies camera rotation.
 
 func _unhandled_input(event: InputEvent) -> void:
+	if Engine.is_editor_hint():
+		return
+
 	if (
 		event is InputEventMouseButton
 		and event.button_index == MOUSE_BUTTON_RIGHT
@@ -74,6 +78,9 @@ func _unhandled_input(event: InputEvent) -> void:
 # [b]Movement[/b] Moves the camera along its local basis axes.
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
+
 	var direction := _get_movement_direction()
 
 	if direction.is_zero_approx():
