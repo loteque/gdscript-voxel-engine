@@ -9,6 +9,8 @@ extends MeshInstance3D
 ## extraction algorithm. Mesh generation is deferred while the display is
 ## hidden so field edits do not spend time rebuilding invisible geometry.
 
+signal loading_state_changed(is_loading: bool)
+
 
 # [b]Display Configuration[/b] Controls the field and iso-surface shown by this node.
 
@@ -31,6 +33,8 @@ extends MeshInstance3D
 		visible = value
 		if value:
 			_queue_mesh_rebuild()
+		else:
+			_set_loading(false)
 
 ## Density value extracted as the Surface Nets iso-surface.
 @export_range(-2.0, 2.0, 0.01, "or_greater", "or_less")
@@ -44,6 +48,7 @@ var iso_level: float = 0.0:
 
 # [b]Meshing State[/b] Keeps algorithm state transient and avoids duplicate rebuild requests.
 
+var is_loading: bool = false
 var _mesher := SurfaceNetsMesher.new()
 var _mesh_dirty: bool = true
 var _mesh_rebuild_queued: bool = false
@@ -59,6 +64,7 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	_disconnect_field()
+	_set_loading(false)
 
 
 # [b]Public API[/b] Rebuilds or invalidates the transient ArrayMesh.
@@ -68,14 +74,17 @@ func rebuild_mesh() -> void:
 	_mesh_rebuild_queued = false
 
 	if not display_surface_nets_mesh:
+		_set_loading(false)
 		return
 
 	_mesh_dirty = false
 	if field == null or not field.validate_data():
 		mesh = null
+		_set_loading(false)
 		return
 
 	mesh = _mesher.generate_mesh(field, iso_level)
+	_set_loading(false)
 
 
 ## Marks the generated mesh stale and schedules a rebuild when visible.
@@ -130,4 +139,13 @@ func _queue_mesh_rebuild() -> void:
 		return
 
 	_mesh_rebuild_queued = true
+	_set_loading(true)
 	call_deferred("rebuild_mesh")
+
+
+func _set_loading(value: bool) -> void:
+	if is_loading == value:
+		return
+
+	is_loading = value
+	loading_state_changed.emit(is_loading)
