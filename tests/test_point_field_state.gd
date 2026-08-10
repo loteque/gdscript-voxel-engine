@@ -10,6 +10,7 @@ func _initialize() -> void:
 	_test_density_configuration_marks_only_densities_dirty()
 	_test_geometry_configuration_marks_both_channels_dirty()
 	_test_generation_clears_channel_flags_incrementally()
+	_test_direct_position_generation_dirties_densities()
 	_test_noise_change_preserves_stale_density_data()
 
 	if _failed:
@@ -67,6 +68,20 @@ func _test_generation_clears_channel_flags_incrementally() -> void:
 	field.generate_density_field()
 	_assert_true(not field.densities_dirty, "Generating densities must clear densities_dirty.")
 	_assert_true(field.is_data_current(), "Both regenerated channels must report current.")
+
+
+func _test_direct_position_generation_dirties_densities() -> void:
+	var field := _make_generated_field()
+	_assert_true(field.is_data_current(), "Test field must start current.")
+
+	field.generate_positions()
+
+	_assert_true(not field.positions_dirty, "Explicitly generated positions must be current.")
+	_assert_true(
+		field.densities_dirty,
+		"Generating positions on a current field must dirty dependent densities."
+	)
+	_assert_true(not field.is_data_current(), "Field must not report current until densities regenerate.")
 
 
 func _test_noise_change_preserves_stale_density_data() -> void:
