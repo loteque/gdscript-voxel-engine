@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ca8ht6xlu7otj" path="res://voxel/visualization/PointFieldRuntimeUI.gd" id="1_runtime_ui"]
 [ext_resource type="Script" path="res://voxel/visualization/SurfaceNetsRuntimePanel.gd" id="2_runtime_panel"]
+[ext_resource type="PackedScene" path="res://voxel/visualization/MobileTouchControls.tscn" id="3_touch_controls"]
 
 [node name="PointFieldRuntimeUI" type="CanvasLayer" unique_id=146452323]
 script = ExtResource("1_runtime_ui")
@@ -15,6 +16,8 @@ offset_bottom = 704.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_runtime_panel")
+
+[node name="MobileTouchControls" parent="." instance=ExtResource("3_touch_controls")]
 
 [node name="LoadingPanel" type="PanelContainer" parent="."]
 unique_name_in_owner = true
