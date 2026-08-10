@@ -2,6 +2,18 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.5.0
+
+### Added
+- Added `TerrainChunk` as the runtime owner for one integer chunk coordinate and its independent `PointFieldResource` sample storage.
+- Added `ChunkManager` for deterministic chunk lifecycle, chunk-coordinate mapping, negative-coordinate handling, and terrain-local placement.
+- Added `PointFieldResource.sampling_origin` so chunk-local sample geometry can evaluate one continuous terrain density space.
+- Added headless chunk-foundation tests covering coordinate mapping, cells-versus-samples dimensions, field ownership, shared generation configuration, and adjacent-boundary continuity.
+
+### Changed
+- Chunk fields now copy terrain-generation settings explicitly instead of duplicating an entire `PointFieldResource`, keeping generated sample storage independent while intentionally sharing generator resources such as `FastNoiseLite`.
+- Density generation now evaluates local sample positions through `sampling_origin`, allowing adjacent chunks to produce identical density values at shared sample coordinates.
+
 ## 0.4.2
 
 ### Added
