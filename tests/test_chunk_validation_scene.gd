@@ -10,12 +10,11 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	var scene := VALIDATION_SCENE.instantiate()
+	var scene := VALIDATION_SCENE.instantiate() as ChunkValidationDemo
 	root.add_child(scene)
 
-	await process_frame
-	await process_frame
-	await process_frame
+	if not scene.generation_complete:
+		await scene.generation_completed
 
 	var manager := scene.get_node("ChunkManager") as ChunkManager
 	var surface_display := scene.get_node("ChunkSurfaceNetsDisplay") as ChunkSurfaceNetsDisplay
@@ -26,6 +25,7 @@ func _run() -> void:
 	_assert_true(surface_display != null, "Validation scene must contain its chunk Surface Nets display.")
 	_assert_true(visualizer != null, "Validation scene must contain its ChunkVisualizer.")
 	_assert_true(camera != null and camera.current, "Validation scene must contain an active camera.")
+	_assert_true(scene.generation_complete, "Validation scene must complete staged generation.")
 
 	if manager != null:
 		_assert_equal(manager.get_chunk_count(), 9, "Validation scene must create a 3x1x3 chunk grid.")
@@ -65,7 +65,7 @@ func _run() -> void:
 			"Validation scene must visualize the planned 3x1x3 grid."
 		)
 
-	if camera != null and scene is ChunkValidationDemo:
+	if camera != null:
 		var target: Vector3 = scene.get_grid_center()
 		var direction_to_target: Vector3 = camera.global_position.direction_to(target)
 		var camera_forward: Vector3 = -camera.global_basis.z.normalized()
