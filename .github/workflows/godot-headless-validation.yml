@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - nf/**
+      - chunk-visualizer
   pull_request:
     branches:
       - main
@@ -57,6 +58,9 @@ jobs:
 
       - name: Run chunk visualizer tests
         run: godot --headless --path . --script tests/test_chunk_visualizer.gd
+
+      - name: Run chunk validation scene test
+        run: godot --headless --path . --script tests/test_chunk_validation_scene.gd
 
       - name: Run loading indicator UI tests
         run: godot --headless --path . --script tests/test_loading_indicator_ui.gd
