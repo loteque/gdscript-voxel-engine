@@ -65,7 +65,7 @@ func _is_touch_input_available() -> bool:
 	# Some mobile browsers do not surface Godot's touchscreen capability during
 	# startup even though the browser itself reports touch input. Use the browser
 	# as a Web-only fallback so desktop/native behavior remains unchanged.
-	var browser_touch := JavaScriptBridge.eval(
+	var browser_touch: Variant = JavaScriptBridge.eval(
 		"navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches"
 	)
 	return browser_touch is bool and browser_touch
