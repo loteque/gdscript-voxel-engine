@@ -53,12 +53,15 @@ def main() -> None:
 
     terrain_releases = []
     chunk_releases = []
+    streaming_releases = []
 
     preview_dir = archive / PREVIEW_ROOT
     if (preview_dir / "index.html").is_file():
         terrain_releases.append(preview_entry(f"{PREVIEW_ROOT.as_posix()}/"))
     if (preview_dir / "chunks" / "index.html").is_file():
         chunk_releases.append(preview_entry(f"{PREVIEW_ROOT.as_posix()}/chunks/"))
+    if (preview_dir / "streaming" / "index.html").is_file():
+        streaming_releases.append(preview_entry(f"{PREVIEW_ROOT.as_posix()}/streaming/"))
 
     for version in versions:
         version_dir = archive / version
@@ -66,6 +69,8 @@ def main() -> None:
             terrain_releases.append(release_entry(version, f"{version}/"))
         if (version_dir / "chunks" / "index.html").is_file():
             chunk_releases.append(release_entry(version, f"{version}/chunks/"))
+        if (version_dir / "streaming" / "index.html").is_file():
+            streaming_releases.append(release_entry(version, f"{version}/streaming/"))
 
     demos = [
         {
@@ -77,6 +82,11 @@ def main() -> None:
             "key": "chunks",
             "name": "Chunk Validation Demo",
             "releases": chunk_releases,
+        },
+        {
+            "key": "streaming",
+            "name": "Chunk Streaming Demo",
+            "releases": streaming_releases,
         },
     ]
 
