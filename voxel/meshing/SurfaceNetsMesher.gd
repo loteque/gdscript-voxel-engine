@@ -118,10 +118,7 @@ func _generate_cell_vertices(
 				if surface_vertex == null:
 					continue
 
-				var cell_index := _flatten_cell_index(
-					cell_coordinates,
-					field.cell_dimensions
-				)
+				var cell_index := field.flatten_cell_index(cell_coordinates)
 				cell_vertex_indices[cell_index] = vertices.size()
 				vertices.append(surface_vertex)
 
@@ -289,10 +286,7 @@ func _append_edge_quad(
 	quad.resize(4)
 
 	for corner in 4:
-		var cell_index := _flatten_cell_index(
-			cell_coordinates[corner],
-			field.cell_dimensions
-		)
+		var cell_index := field.flatten_cell_index(cell_coordinates[corner])
 		var vertex_index := cell_vertex_indices[cell_index]
 		if vertex_index < 0:
 			return
@@ -373,16 +367,3 @@ func _interpolate_edge_intersection(
 		1.0
 	)
 	return position_a.lerp(position_b, weight)
-
-
-# [b]Cell Indexing[/b] Maintains a compact x-fastest lookup for generated cell vertices.
-
-func _flatten_cell_index(
-	coordinates: Vector3i,
-	dimensions: Vector3i
-) -> int:
-	return (
-		coordinates.x
-		+ coordinates.y * dimensions.x
-		+ coordinates.z * dimensions.x * dimensions.y
-	)

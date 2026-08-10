@@ -2,6 +2,14 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.6.1
+
+### Added
+- Added authoritative x-fastest cell indexing helpers to `PointFieldResource`, including inverse cell-coordinate lookup.
+
+### Changed
+- `SurfaceNetsMesher` now consumes the resource-owned cell indexing contract instead of maintaining a duplicate private mapping.
+
 ## 0.6.0
 
 ### Added
