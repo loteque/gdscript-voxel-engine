@@ -8,6 +8,12 @@ extends Resource
 ## generation, and explicit channel freshness state. Configuration changes mark
 ## generated channels dirty without destroying the previous sample data.
 ##
+## Positions are stored in field-local space centered around the field origin.
+## Density generation can offset those positions into a continuous sampling
+## space through [member sampling_origin]. This lets independently generated
+## chunks share identical boundary samples without placing mesh vertices in
+## global coordinates.
+##
 ## Density convention:
 ## - values greater than the iso-level represent solid material,
 ## - values lower than the iso-level represent empty space,
@@ -74,6 +80,15 @@ var sample_spacing: float = 1.0:
 			return
 		sample_spacing = sanitized_value
 		_mark_geometry_dirty()
+
+## Offset from field-local coordinates into the continuous space sampled by
+## density generation. Changing this does not affect local mesh geometry.
+@export var sampling_origin: Vector3 = Vector3.ZERO:
+	set(value):
+		if sampling_origin.is_equal_approx(value):
+			return
+		sampling_origin = value
+		_mark_densities_dirty()
 
 @export var noise: FastNoiseLite:
 	set(value):
@@ -197,14 +212,14 @@ func generate_density_field() -> void:
 
 	densities.resize(sample_count)
 	for index in sample_count:
-		var position := positions[index]
+		var sampling_position := sampling_origin + positions[index]
 		var terrain_height := terrain_base_height
 		if noise != null:
 			terrain_height += noise.get_noise_2d(
-				position.x * density_scale,
-				position.z * density_scale
+				sampling_position.x * density_scale,
+				sampling_position.z * density_scale
 			) * terrain_height_scale
-		densities[index] = terrain_height - position.y
+		densities[index] = terrain_height - sampling_position.y
 
 	_set_densities_dirty(false)
 	densities_changed.emit()
@@ -283,6 +298,11 @@ func get_position(coordinates: Vector3i) -> Vector3:
 		push_error("PointFieldResource positions have not been generated.")
 		return Vector3.ZERO
 	return positions[index]
+
+
+## Returns a generated sample position in the continuous density-sampling space.
+func get_sampling_position(coordinates: Vector3i) -> Vector3:
+	return sampling_origin + get_position(coordinates)
 
 
 func get_density(coordinates: Vector3i) -> float:
