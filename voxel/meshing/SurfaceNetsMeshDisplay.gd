@@ -138,7 +138,12 @@ func _queue_mesh_rebuild() -> void:
 
 	_mesh_rebuild_queued = true
 	_set_loading(true)
-	call_deferred("rebuild_mesh")
+	call_deferred("_rebuild_mesh_after_frame")
+
+
+func _rebuild_mesh_after_frame() -> void:
+	await get_tree().process_frame
+	rebuild_mesh()
 
 
 func _set_loading(value: bool) -> void:
