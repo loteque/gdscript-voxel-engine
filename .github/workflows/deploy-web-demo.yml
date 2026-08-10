@@ -20,7 +20,7 @@ env:
 
 jobs:
   build:
-    name: Export and archive web build
+    name: Export and archive web demos
     runs-on: ubuntu-latest
 
     steps:
@@ -43,92 +43,77 @@ jobs:
           version: ${{ env.GODOT_VERSION }}
           export-templates: true
 
-      - name: Export Web build
+      - name: Export terrain demo
+        shell: bash
         run: |
-          mkdir -p build/web
+          mkdir -p build/web/terrain
           godot \
             --headless \
             --path . \
             --export-release "Web" \
-            build/web/index.html
-          touch build/web/.nojekyll
+            build/web/terrain/index.html
 
-      - name: Add version selector
+      - name: Export chunk validation demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp project.godot "$RUNNER_TEMP/project.godot.original"
+          trap 'cp "$RUNNER_TEMP/project.godot.original" project.godot' EXIT
+
+          python - <<'PY'
+          from pathlib import Path
+
+          project_path = Path('project.godot')
+          text = project_path.read_text(encoding='utf-8')
+          prefix = 'run/main_scene='
+          lines = text.splitlines()
+          replaced = False
+
+          for index, line in enumerate(lines):
+              if line.startswith(prefix):
+                  lines[index] = 'run/main_scene="res://demo/ChunkValidationDemo.tscn"'
+                  replaced = True
+                  break
+
+          if not replaced:
+              raise SystemExit('project.godot does not define run/main_scene.')
+
+          project_path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+
+          mkdir -p build/web/chunks
+          godot \
+            --headless \
+            --path . \
+            --export-release "Web" \
+            build/web/chunks/index.html
+
+      - name: Add grouped demo selectors
         shell: bash
         env:
           CURRENT_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          python - <<'PY'
-          import os
-          from pathlib import Path
+          python .github/scripts/inject_demo_selector.py \
+            build/web/terrain/index.html \
+            "$CURRENT_VERSION" \
+            terrain \
+            "Terrain / Surface Nets Demo" \
+            ../versions.json
 
-          index_path = Path('build/web/index.html')
-          html = index_path.read_text(encoding='utf-8')
-          current_version = os.environ['CURRENT_VERSION']
+          python .github/scripts/inject_demo_selector.py \
+            build/web/chunks/index.html \
+            "$CURRENT_VERSION" \
+            chunks \
+            "Chunk Validation Demo" \
+            ../../versions.json
 
-          selector = f'''
-          <style id="voxel-version-selector-style">
-            #voxel-version-selector {{
-              position: fixed;
-              top: 12px;
-              right: 12px;
-              z-index: 2147483647;
-              padding: 6px 8px;
-              border: 1px solid rgba(255, 255, 255, 0.22);
-              border-radius: 6px;
-              background: rgba(7, 21, 34, 0.86);
-              color: #f3f5f7;
-              font: 12px/1.2 monospace;
-              backdrop-filter: blur(4px);
-            }}
-          </style>
-          <select id="voxel-version-selector" aria-label="Select demo version">
-            <option value="{current_version}" selected>v{current_version}</option>
-          </select>
-          <script>
-            (() => {{
-              const currentVersion = {current_version!r};
-              const selector = document.getElementById('voxel-version-selector');
-
-              fetch('../versions.json', {{ cache: 'no-store' }})
-                .then(response => {{
-                  if (!response.ok) throw new Error('HTTP ' + response.status);
-                  return response.json();
-                }})
-                .then(data => {{
-                  const versions = Array.isArray(data.versions) ? data.versions : [];
-                  selector.replaceChildren();
-
-                  for (const version of versions) {{
-                    const option = document.createElement('option');
-                    option.value = version;
-                    option.textContent = 'v' + version;
-                    option.selected = version === currentVersion;
-                    selector.appendChild(option);
-                  }}
-                }})
-                .catch(error => console.warn('Unable to load demo versions:', error));
-
-              selector.addEventListener('change', () => {{
-                if (selector.value === currentVersion) return;
-                window.location.href = '../' + selector.value + '/';
-              }});
-            }})();
-          </script>
-          '''
-
-          if '</body>' not in html:
-              raise SystemExit('Exported index.html does not contain </body>.')
-
-          html = html.replace('</body>', selector + '\n</body>', 1)
-          index_path.write_text(html, encoding='utf-8')
-          PY
-
-      - name: Preserve exported build
+      - name: Preserve exported builds
         shell: bash
         run: |
-          mkdir -p "$RUNNER_TEMP/web-build"
-          cp -a build/web/. "$RUNNER_TEMP/web-build/"
+          mkdir -p "$RUNNER_TEMP/web-build/terrain"
+          mkdir -p "$RUNNER_TEMP/web-build/chunks"
+          cp -a build/web/terrain/. "$RUNNER_TEMP/web-build/terrain/"
+          cp -a build/web/chunks/. "$RUNNER_TEMP/web-build/chunks/"
 
       - name: Prepare version archive worktree
         shell: bash
@@ -153,8 +138,13 @@ jobs:
           # Remove legacy root build output accidentally committed by earlier deployments.
           rm -rf "$ARCHIVE/build"
 
+          # Preserve the historical version-root URL as the primary terrain demo.
           mkdir -p "$ARCHIVE/$VERSION"
-          cp -a "$RUNNER_TEMP/web-build/." "$ARCHIVE/$VERSION/"
+          cp -a "$RUNNER_TEMP/web-build/terrain/." "$ARCHIVE/$VERSION/"
+
+          # Additional demos live below the same immutable version directory.
+          mkdir -p "$ARCHIVE/$VERSION/chunks"
+          cp -a "$RUNNER_TEMP/web-build/chunks/." "$ARCHIVE/$VERSION/chunks/"
           touch "$ARCHIVE/.nojekyll"
 
           cat > "$ARCHIVE/index.html" <<EOF
@@ -172,28 +162,12 @@ jobs:
           </html>
           EOF
 
-          python - "$ARCHIVE" <<'PY'
-          import json
-          import os
-          import re
-          import sys
-
-          archive = sys.argv[1]
-          pattern = re.compile(r"^\d+\.\d+\.\d+$")
-          versions = [
-              name for name in os.listdir(archive)
-              if os.path.isdir(os.path.join(archive, name)) and pattern.fullmatch(name)
-          ]
-          versions.sort(key=lambda value: tuple(map(int, value.split('.'))), reverse=True)
-          with open(os.path.join(archive, 'versions.json'), 'w', encoding='utf-8') as handle:
-              json.dump({'latest': versions[0], 'versions': versions}, handle, indent=2)
-              handle.write('\n')
-          PY
+          python .github/scripts/build_demo_manifest.py "$ARCHIVE"
 
           git -C "$ARCHIVE" config user.name "github-actions[bot]"
           git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C "$ARCHIVE" add -A
-          git -C "$ARCHIVE" commit -m "Publish web demo $VERSION"
+          git -C "$ARCHIVE" commit -m "Publish web demos $VERSION"
           git -C "$ARCHIVE" push origin gh-pages
 
       - name: Package Pages site
