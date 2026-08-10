@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - nf/**
+      - chunk-visualizer
   pull_request:
     branches:
       - main
@@ -54,6 +55,9 @@ jobs:
 
       - name: Run chunk Surface Nets grid tests
         run: godot --headless --path . --script tests/test_chunk_surface_nets_grid.gd
+
+      - name: Run chunk visualizer tests
+        run: godot --headless --path . --script tests/test_chunk_visualizer.gd
 
       - name: Run loading indicator UI tests
         run: godot --headless --path . --script tests/test_loading_indicator_ui.gd
