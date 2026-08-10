@@ -114,4 +114,7 @@ theme_override_constants/margin_bottom = 10
 [node name="Label" type="Label" parent="Instructions/Panel/Margin"]
 text = "Chunk Validation Scene\n\nCyan: loaded chunk bounds + centers\nMuted bounds: planned 3 x 1 x 3 grid\nTerrain: one Surface Nets mesh per chunk\n\nRight mouse: look   WASD: move   E/Q: up/down   Shift: fast\nInspect shared chunk edges for boundary cracks."
 
-[node name="MobileTouchControls" parent="Instructions" instance=ExtResource("8_touch_controls")]
+[node name="MobileControlsLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="MobileTouchControls" parent="MobileControlsLayer" instance=ExtResource("8_touch_controls")]
