@@ -2,6 +2,17 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.4.1
+
+### Added
+- Added a bottom-center animated loading indicator for point-field regeneration and Surface Nets mesh rebuilding.
+- Added headless UI smoke coverage for loading-state behavior, automatic terrain edits, Surface Nets enablement, and committed numeric editing.
+
+### Changed
+- Runtime generation controls now enter the same observable regeneration path as explicit generation actions so loading state is reported consistently.
+- Surface Nets mesh rebuilding yields a rendered frame after entering loading state so the indicator is visible before synchronous meshing begins.
+- Numeric text edits now commit on Enter or focus loss instead of regenerating terrain for every typed character; spinner adjustments remain immediate.
+
 ## 0.4.0
 
 ### Added
