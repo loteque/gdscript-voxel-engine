@@ -43,6 +43,9 @@ jobs:
       - name: Run surface orientation tests
         run: godot --headless --path . --script tests/test_surface_orientation.gd
 
+      - name: Run surface material tests
+        run: godot --headless --path . --script tests/test_surface_material.gd
+
       - name: Run point field state tests
         run: godot --headless --path . --script tests/test_point_field_state.gd
 
