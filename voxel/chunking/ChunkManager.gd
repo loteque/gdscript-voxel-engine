@@ -44,11 +44,11 @@ var sample_spacing: float = 1.0:
 		sample_spacing = sanitized_value
 		_reconfigure_chunks()
 
-## Optional field settings copied into newly created chunks.
+## Optional density-generation settings copied into newly created chunks.
 ##
-## Generated sample arrays are cleared on the copy. Subresources such as a
-## FastNoiseLite instance remain shared so one terrain-generation configuration
-## can drive all chunks consistently.
+## Each chunk receives an independent PointFieldResource for generated sample
+## storage. Shareable generator resources such as FastNoiseLite are assigned
+## explicitly so every chunk evaluates one consistent terrain configuration.
 @export var field_template: PointFieldResource
 
 
@@ -166,17 +166,27 @@ func clear_chunks() -> void:
 
 # [b]Field Construction[/b]
 
+## Builds independent chunk storage from explicit shared generation settings.
 func _create_chunk_field() -> PointFieldResource:
-	var field: PointFieldResource
-	if field_template != null:
-		field = field_template.duplicate(false) as PointFieldResource
-	else:
-		field = PointFieldResource.new()
+	var field := PointFieldResource.new()
 
-	field.clear()
+	if field_template != null:
+		_copy_field_generation_settings(field_template, field)
+
 	field.cell_dimensions = chunk_cell_dimensions
 	field.sample_spacing = sample_spacing
 	return field
+
+
+## Copies only terrain-generation policy, never generated field data or state.
+func _copy_field_generation_settings(
+	source: PointFieldResource,
+	target: PointFieldResource
+) -> void:
+	target.noise = source.noise
+	target.density_scale = source.density_scale
+	target.terrain_base_height = source.terrain_base_height
+	target.terrain_height_scale = source.terrain_height_scale
 
 
 # [b]Reconfiguration[/b]
