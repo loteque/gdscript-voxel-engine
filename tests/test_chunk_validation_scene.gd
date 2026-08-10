@@ -66,9 +66,9 @@ func _run() -> void:
 		)
 
 	if camera != null and scene is ChunkValidationDemo:
-		var target := scene.get_grid_center()
-		var direction_to_target := camera.global_position.direction_to(target)
-		var camera_forward := -camera.global_basis.z.normalized()
+		var target: Vector3 = scene.get_grid_center()
+		var direction_to_target: Vector3 = camera.global_position.direction_to(target)
+		var camera_forward: Vector3 = -camera.global_basis.z.normalized()
 		_assert_true(
 			camera_forward.dot(direction_to_target) > 0.99,
 			"Validation camera must face the generated chunk grid."
