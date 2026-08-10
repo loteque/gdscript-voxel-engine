@@ -212,7 +212,7 @@ func _generate_x_edge_quads(
 						Vector3i(x, y, z),
 						Vector3i(x, y - 1, z),
 					],
-					density_a < iso_level
+					density_a >= iso_level
 				)
 
 
@@ -243,7 +243,7 @@ func _generate_y_edge_quads(
 						Vector3i(x, y, z),
 						Vector3i(x, y, z - 1),
 					],
-					density_a < iso_level
+					density_a >= iso_level
 				)
 
 
@@ -274,7 +274,7 @@ func _generate_z_edge_quads(
 						Vector3i(x, y, z),
 						Vector3i(x - 1, y, z),
 					],
-					density_a < iso_level
+					density_a >= iso_level
 				)
 
 
@@ -314,7 +314,7 @@ func _append_edge_quad(
 		)
 
 
-# [b]Normals[/b] Builds smooth area-weighted normals from the generated triangle topology.
+# [b]Normals[/b] Builds smooth area-weighted normals matching Godot's clockwise front faces.
 
 func _generate_vertex_normals(
 	vertices: PackedVector3Array,
@@ -330,7 +330,7 @@ func _generate_vertex_normals(
 		var index_c := indices[triangle_start + 2]
 		var edge_ab := vertices[index_b] - vertices[index_a]
 		var edge_ac := vertices[index_c] - vertices[index_a]
-		var face_normal := edge_ab.cross(edge_ac)
+		var face_normal := edge_ac.cross(edge_ab)
 
 		if face_normal.is_zero_approx():
 			continue
