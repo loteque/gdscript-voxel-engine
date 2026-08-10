@@ -13,6 +13,21 @@ extends PointFieldRuntimePanel
 
 var _display_surface_nets_mesh: CheckBox
 
+func _create_spin_box(
+	minimum: float,
+	maximum: float,
+	step: float,
+	integer_value: bool = false
+) -> SpinBox:
+	var spin_box := super._create_spin_box(minimum, maximum, step, integer_value)
+	spin_box.update_on_text_changed = false
+
+	var line_edit := spin_box.get_line_edit()
+	if not line_edit.focus_exited.is_connected(spin_box.apply):
+		line_edit.focus_exited.connect(spin_box.apply)
+
+	return spin_box
+
 func _build_visualization_section(parent: VBoxContainer) -> void:
 	super._build_visualization_section(parent)
 
