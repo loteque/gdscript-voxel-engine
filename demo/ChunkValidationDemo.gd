@@ -14,6 +14,13 @@ signal startup_preview_ready
 signal generation_completed
 
 
+# [b]Primary Action[/b]
+
+## Rebuilds the validation terrain from the current top-level settings.
+@export_tool_button("Regenerate Terrain", "Callable")
+var regenerate_terrain_action: Callable = regenerate_terrain
+
+
 # [b]Scene References[/b]
 
 @export var chunk_manager: ChunkManager
@@ -168,9 +175,6 @@ var runtime_generation_budget_ms: float = 6.0
 	set(value):
 		editor_preview_enabled = value
 		_queue_editor_preview_refresh()
-
-@export_tool_button("Regenerate Terrain", "Callable")
-var regenerate_terrain_action: Callable = regenerate_terrain
 
 
 # [b]Camera[/b]
