@@ -2,6 +2,15 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.7.0
+
+### Added
+- Added touchscreen runtime controls for free-fly camera movement, sprinting, vertical movement, and drag-to-look input.
+- Added automatic touch-device visibility and headless regression coverage for shared movement actions, touch look, and touchscreen detection.
+
+### Changed
+- `NoClipCameraController` now exposes a small reusable look-delta API so non-mouse input can share the existing sensitivity and pitch constraints.
+
 ## 0.6.1
 
 ### Added
