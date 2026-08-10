@@ -6,9 +6,11 @@ extends Node3D
 ##
 ## Editor mode builds the real chunk fields and Surface Nets geometry at the
 ## configured chunk resolution, using the display layer's cheap wireframe
-## material. Runtime stages the same expensive work across frames and enables
-## camera interaction separately.
+## material. Runtime first presents the lightweight instructions and planned
+## chunk grid, then stages the expensive field generation and meshing work
+## across later frames.
 
+signal startup_preview_ready
 signal generation_completed
 
 
@@ -53,6 +55,7 @@ signal generation_completed
 
 # [b]Runtime State[/b]
 
+var startup_preview_presented: bool = false
 var generation_complete: bool = false
 var _editor_preview_refresh_queued: bool = false
 
@@ -72,18 +75,29 @@ func _run_runtime_validation() -> void:
 		push_error("ChunkValidationDemo requires a ChunkManager.")
 		return
 
+	# Phase 1 is intentionally lightweight. Configure the presentation-only
+	# consumers and frame the camera while the manager still owns zero chunks.
+	# ChunkVisualizer can draw the planned grid from layout information alone,
+	# so no point fields, densities, or terrain meshes are required yet.
 	_configure_consumers()
 
 	if frame_camera_on_ready:
 		_frame_camera()
 
-	# Allow the environment, instructions, camera, and preview bounds to render
-	# before any synchronous terrain generation begins.
+	if chunk_visualizer != null:
+		chunk_visualizer.rebuild()
+
+	startup_preview_presented = true
+	startup_preview_ready.emit()
+
+	# Do not allocate/generate chunk data until the initial UI + preview frame has
+	# actually been presented by the engine.
 	var tree := get_tree()
 	if tree == null:
 		return
 	await tree.process_frame
 
+	# Phase 2 begins only after the first presentation frame.
 	chunk_manager.create_centered_grid(grid_dimensions)
 
 	if chunk_visualizer != null:
@@ -148,7 +162,6 @@ func _configure_consumers() -> void:
 	if chunk_visualizer != null:
 		chunk_visualizer.chunk_manager = chunk_manager
 		chunk_visualizer.preview_grid_dimensions = grid_dimensions
-		chunk_visualizer.rebuild()
 
 
 # [b]Staged Generation[/b]
