@@ -45,6 +45,55 @@ func _on_iso_level_changed(value: float) -> void:
 	if not _is_synchronizing and surface_nets_display != null:
 		surface_nets_display.iso_level = value
 
+# Generation-affecting runtime edits explicitly enter the observable request
+# path. Resource dirty-state signals remain authoritative for external edits;
+# the visualizer's queue coalescing prevents duplicate work here.
+func _on_cell_dimensions_changed(value: float) -> void:
+	super._on_cell_dimensions_changed(value)
+	_request_field_regeneration_if_enabled()
+
+func _on_sample_spacing_changed(value: float) -> void:
+	super._on_sample_spacing_changed(value)
+	_request_field_regeneration_if_enabled()
+
+func _on_density_scale_changed(value: float) -> void:
+	super._on_density_scale_changed(value)
+	_request_density_regeneration_if_enabled()
+
+func _on_terrain_base_height_changed(value: float) -> void:
+	super._on_terrain_base_height_changed(value)
+	_request_density_regeneration_if_enabled()
+
+func _on_terrain_height_scale_changed(value: float) -> void:
+	super._on_terrain_height_scale_changed(value)
+	_request_density_regeneration_if_enabled()
+
+func _on_noise_type_selected(index: int) -> void:
+	super._on_noise_type_selected(index)
+	_request_density_regeneration_if_enabled()
+
+func _on_noise_offset_changed(value: float) -> void:
+	super._on_noise_offset_changed(value)
+	_request_density_regeneration_if_enabled()
+
+func _on_noise_seed_changed(value: float) -> void:
+	super._on_noise_seed_changed(value)
+	_request_density_regeneration_if_enabled()
+
+func _on_noise_frequency_changed(value: float) -> void:
+	super._on_noise_frequency_changed(value)
+	_request_density_regeneration_if_enabled()
+
+func _request_field_regeneration_if_enabled() -> void:
+	if _is_synchronizing or visualizer == null or not visualizer.auto_regenerate_field:
+		return
+	visualizer.request_field_regeneration()
+
+func _request_density_regeneration_if_enabled() -> void:
+	if _is_synchronizing or visualizer == null or not visualizer.auto_regenerate_field:
+		return
+	visualizer.request_density_regeneration()
+
 # Route explicit generation through the visualizer so manual work reports busy state.
 func _on_regenerate_pressed() -> void:
 	if visualizer != null:
