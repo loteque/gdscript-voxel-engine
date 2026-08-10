@@ -7,6 +7,8 @@ extends Node3D
 ## Rendering state is derived from the resource. Generated field freshness is
 ## owned explicitly by PointFieldResource through its dirty flags.
 
+signal loading_state_changed(is_loading: bool)
+
 
 # [b]Visualization Settings[/b]
 
@@ -63,8 +65,10 @@ var iso_highlight_width: float = 0.05:
 
 # [b]Rendering State[/b]
 
+var is_loading: bool = false
 var _point_mesh: MultiMeshInstance3D
 var _field_regeneration_queued: bool = false
+var _position_regeneration_queued: bool = false
 var _density_regeneration_queued: bool = false
 
 
@@ -78,6 +82,7 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	_disconnect_field()
+	_set_loading(false)
 
 
 # [b]Field Synchronization[/b]
@@ -127,37 +132,67 @@ func _synchronize_with_field() -> void:
 	_update_point_colors()
 
 
+func request_field_regeneration() -> void:
+	_queue_field_regeneration()
+
+
+func request_position_regeneration() -> void:
+	_queue_position_regeneration()
+
+
+func request_density_regeneration() -> void:
+	_queue_density_regeneration()
+
+
 func _queue_field_regeneration() -> void:
 	if field == null or _field_regeneration_queued:
 		return
 	_field_regeneration_queued = true
-	call_deferred("_regenerate_field")
+	_set_loading(true)
+	call_deferred("_regenerate_field_after_frame")
+
+
+func _queue_position_regeneration() -> void:
+	if field == null or _position_regeneration_queued:
+		return
+	_position_regeneration_queued = true
+	_set_loading(true)
+	call_deferred("_regenerate_positions_after_frame")
 
 
 func _queue_density_regeneration() -> void:
 	if field == null or _density_regeneration_queued:
 		return
-	_density_regeneration_queued = true
-	call_deferred("_regenerate_densities")
-
-
-func _regenerate_field() -> void:
-	_field_regeneration_queued = false
-	if field == null:
-		return
-	if not field.positions_dirty and field.is_data_current():
-		return
-	field.regenerate()
-
-
-func _regenerate_densities() -> void:
-	_density_regeneration_queued = false
-	if field == null or not field.densities_dirty:
-		return
 	if field.positions_dirty or field.positions.size() != field.sample_count:
 		_queue_field_regeneration()
 		return
-	field.generate_density_field()
+	_density_regeneration_queued = true
+	_set_loading(true)
+	call_deferred("_regenerate_densities_after_frame")
+
+
+func _regenerate_field_after_frame() -> void:
+	await get_tree().process_frame
+	_field_regeneration_queued = false
+	if field != null and (field.positions_dirty or field.densities_dirty or not field.validate_data()):
+		field.regenerate()
+	_finish_loading_if_idle()
+
+
+func _regenerate_positions_after_frame() -> void:
+	await get_tree().process_frame
+	_position_regeneration_queued = false
+	if field != null:
+		field.generate_positions()
+	_finish_loading_if_idle()
+
+
+func _regenerate_densities_after_frame() -> void:
+	await get_tree().process_frame
+	_density_regeneration_queued = false
+	if field != null and not field.positions_dirty and field.positions.size() == field.sample_count:
+		field.generate_density_field()
+	_finish_loading_if_idle()
 
 
 func _on_data_state_changed() -> void:
@@ -175,6 +210,19 @@ func _on_positions_changed() -> void:
 
 func _on_densities_changed() -> void:
 	call_deferred("_update_point_colors")
+
+
+func _finish_loading_if_idle() -> void:
+	if _field_regeneration_queued or _position_regeneration_queued or _density_regeneration_queued:
+		return
+	_set_loading(false)
+
+
+func _set_loading(value: bool) -> void:
+	if is_loading == value:
+		return
+	is_loading = value
+	loading_state_changed.emit(is_loading)
 
 
 # [b]Visualizer Construction[/b]
