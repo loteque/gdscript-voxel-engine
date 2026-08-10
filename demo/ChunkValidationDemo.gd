@@ -4,8 +4,11 @@ extends Node3D
 ## Runtime harness for validating the chunked terrain stack as one scene.
 ##
 ## The editor-visible ChunkVisualizer owns preview diagnostics. At runtime this
-## controller creates a fixed chunk grid, regenerates its fields, and asks the
-## independent Surface Nets display layer to build one mesh per chunk.
+## controller creates a fixed chunk grid, then stages field regeneration and
+## per-chunk Surface Nets meshing across frames so the window can render and
+## remain responsive while expensive GDScript work is performed.
+
+signal generation_completed
 
 
 # [b]Scene References[/b]
@@ -23,6 +26,11 @@ extends Node3D
 @export var frame_camera_on_ready: bool = true
 
 
+# [b]Runtime State[/b]
+
+var generation_complete: bool = false
+
+
 # [b]Lifecycle[/b]
 
 func _ready() -> void:
@@ -36,22 +44,52 @@ func _ready() -> void:
 	if chunk_visualizer != null:
 		chunk_visualizer.chunk_manager = chunk_manager
 		chunk_visualizer.preview_grid_dimensions = grid_dimensions
-
-	chunk_manager.create_centered_grid(grid_dimensions)
-
-	if regenerate_on_ready:
-		chunk_manager.regenerate_all_chunks()
-
-	if chunk_surface_display != null:
-		chunk_surface_display.rebuild_all_meshes()
-
-	if chunk_visualizer != null:
 		chunk_visualizer.rebuild()
 
 	if frame_camera_on_ready:
 		_frame_camera()
 
+	# Allow the environment, instructions, camera, and preview bounds to render
+	# before any synchronous terrain generation begins.
+	await get_tree().process_frame
+
+	chunk_manager.create_centered_grid(grid_dimensions)
+
+	if chunk_visualizer != null:
+		chunk_visualizer.rebuild()
+
+	if regenerate_on_ready:
+		await _regenerate_and_mesh_chunks_staged()
+
+	generation_complete = true
+	generation_completed.emit()
 	_report_validation_state()
+
+
+# [b]Staged Generation[/b]
+
+## Regenerates and meshes one chunk at a time, yielding a frame between chunks.
+##
+## This is intentionally demo-level orchestration. ChunkManager remains free of
+## frame scheduling so a future terrain work queue can replace this harness.
+func _regenerate_and_mesh_chunks_staged() -> void:
+	var coordinates := chunk_manager.get_chunk_coordinates()
+	coordinates.sort()
+
+	for coordinate in coordinates:
+		var chunk := chunk_manager.get_chunk(coordinate)
+		if chunk == null:
+			continue
+
+		chunk.regenerate_field()
+
+		if chunk_surface_display != null:
+			var display := chunk_surface_display.get_display(coordinate)
+			if display != null:
+				display.rebuild_mesh()
+
+		# Present progress and give the renderer/event loop time between chunks.
+		await get_tree().process_frame
 
 
 # [b]Camera Framing[/b]
