@@ -50,6 +50,9 @@ jobs:
       - name: Run point field integration tests
         run: godot --headless --path . --script tests/test_point_field_integration.gd
 
+      - name: Run asteroid generation contract tests
+        run: godot --headless --path . --script tests/test_asteroid_generation_contracts.gd
+
       - name: Run chunk foundation tests
         run: godot --headless --path . --script tests/test_chunk_foundation.gd
 
