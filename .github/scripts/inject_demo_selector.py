@@ -2,6 +2,10 @@ import argparse
 from pathlib import Path
 
 
+INTEGRATION_PREVIEW_ID = "integration"
+INTEGRATION_PREVIEW_LABEL = "Integration Preview"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("index_path")
@@ -14,6 +18,9 @@ def main() -> None:
 
     index_path = Path(args.index_path)
     html = index_path.read_text(encoding="utf-8")
+    current_release_label = args.current_release_label
+    if args.current_release_id == INTEGRATION_PREVIEW_ID:
+        current_release_label = INTEGRATION_PREVIEW_LABEL
 
     selector = f'''
 <style id="voxel-demo-selector-style">
@@ -34,7 +41,7 @@ def main() -> None:
   }}
 </style>
 <select id="voxel-demo-selector" aria-label="Select demo and version">
-  <option selected>{args.current_demo_name} · {args.current_release_label}</option>
+  <option selected>{args.current_demo_name} · {current_release_label}</option>
 </select>
 <script>
   (() => {{
@@ -63,7 +70,9 @@ def main() -> None:
           for (const release of releases) {{
             const option = document.createElement('option');
             const releaseId = release.id || release.version;
-            const releaseLabel = release.label || (release.version ? `v${{release.version}}` : releaseId);
+            const releaseLabel = releaseId === 'integration'
+              ? 'Integration Preview'
+              : release.label || (release.version ? `v${{release.version}}` : releaseId);
             option.value = release.path;
             option.textContent = `${{demo.name || demo.key}} · ${{releaseLabel}}`;
             option.selected = demo.key === currentDemoKey && releaseId === currentReleaseId;
