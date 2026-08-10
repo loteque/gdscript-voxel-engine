@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - nf/integration
   workflow_dispatch:
 
 permissions:
@@ -13,7 +14,7 @@ permissions:
 
 concurrency:
   group: github-pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   GODOT_VERSION: 4.7-stable
@@ -29,13 +30,33 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Read version
-        id: version
+      - name: Resolve publication channel
+        id: publication
         shell: bash
         run: |
-          VERSION="$(tr -d '[:space:]' < VERSION)"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Publishing version $VERSION"
+          set -euo pipefail
+
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            VERSION="$(tr -d '[:space:]' < VERSION)"
+            echo "release_id=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "release_label=v$VERSION" >> "$GITHUB_OUTPUT"
+            echo "archive_path=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "terrain_manifest_url=../versions.json" >> "$GITHUB_OUTPUT"
+            echo "chunks_manifest_url=../../versions.json" >> "$GITHUB_OUTPUT"
+            echo "publication_type=release" >> "$GITHUB_OUTPUT"
+            echo "Publishing immutable release $VERSION"
+          elif [ "$GITHUB_REF_NAME" = "nf/integration" ]; then
+            echo "release_id=integration" >> "$GITHUB_OUTPUT"
+            echo "release_label=Integration Preview" >> "$GITHUB_OUTPUT"
+            echo "archive_path=preview/integration" >> "$GITHUB_OUTPUT"
+            echo "terrain_manifest_url=../../versions.json" >> "$GITHUB_OUTPUT"
+            echo "chunks_manifest_url=../../../versions.json" >> "$GITHUB_OUTPUT"
+            echo "publication_type=preview" >> "$GITHUB_OUTPUT"
+            echo "Publishing mutable integration preview"
+          else
+            echo "Unsupported publication branch: $GITHUB_REF_NAME"
+            exit 1
+          fi
 
       - name: Setup Godot
         uses: solarlabyrinth/action-setup-godot@v3
@@ -91,21 +112,26 @@ jobs:
       - name: Add grouped demo selectors
         shell: bash
         env:
-          CURRENT_VERSION: ${{ steps.version.outputs.version }}
+          CURRENT_RELEASE_ID: ${{ steps.publication.outputs.release_id }}
+          CURRENT_RELEASE_LABEL: ${{ steps.publication.outputs.release_label }}
+          TERRAIN_MANIFEST_URL: ${{ steps.publication.outputs.terrain_manifest_url }}
+          CHUNKS_MANIFEST_URL: ${{ steps.publication.outputs.chunks_manifest_url }}
         run: |
           python .github/scripts/inject_demo_selector.py \
             build/web/terrain/index.html \
-            "$CURRENT_VERSION" \
+            "$CURRENT_RELEASE_ID" \
+            "$CURRENT_RELEASE_LABEL" \
             terrain \
             "Terrain / Surface Nets Demo" \
-            ../versions.json
+            "$TERRAIN_MANIFEST_URL"
 
           python .github/scripts/inject_demo_selector.py \
             build/web/chunks/index.html \
-            "$CURRENT_VERSION" \
+            "$CURRENT_RELEASE_ID" \
+            "$CURRENT_RELEASE_LABEL" \
             chunks \
             "Chunk Validation Demo" \
-            ../../versions.json
+            "$CHUNKS_MANIFEST_URL"
 
       - name: Preserve exported builds
         shell: bash
@@ -115,11 +141,14 @@ jobs:
           cp -a build/web/terrain/. "$RUNNER_TEMP/web-build/terrain/"
           cp -a build/web/chunks/. "$RUNNER_TEMP/web-build/chunks/"
 
-      - name: Prepare version archive worktree
+      - name: Prepare Pages archive worktree
         shell: bash
+        env:
+          ARCHIVE_PATH: ${{ steps.publication.outputs.archive_path }}
+          PUBLICATION_TYPE: ${{ steps.publication.outputs.publication_type }}
+          RELEASE_ID: ${{ steps.publication.outputs.release_id }}
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.version }}"
           ARCHIVE="$RUNNER_TEMP/pages-archive"
 
           if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
@@ -130,45 +159,64 @@ jobs:
             git -C "$ARCHIVE" rm -rf .
           fi
 
-          if [ -e "$ARCHIVE/$VERSION" ]; then
-            echo "Version $VERSION is already published. Published versions are immutable."
-            exit 1
-          fi
-
           # Remove legacy root build output accidentally committed by earlier deployments.
           rm -rf "$ARCHIVE/build"
 
-          # Preserve the historical version-root URL as the primary terrain demo.
-          mkdir -p "$ARCHIVE/$VERSION"
-          cp -a "$RUNNER_TEMP/web-build/terrain/." "$ARCHIVE/$VERSION/"
+          if [ "$PUBLICATION_TYPE" = "release" ]; then
+            if [ -e "$ARCHIVE/$ARCHIVE_PATH" ]; then
+              echo "Version $RELEASE_ID is already published. Published versions are immutable."
+              exit 1
+            fi
 
-          # Additional demos live below the same immutable version directory.
-          mkdir -p "$ARCHIVE/$VERSION/chunks"
-          cp -a "$RUNNER_TEMP/web-build/chunks/." "$ARCHIVE/$VERSION/chunks/"
-          touch "$ARCHIVE/.nojekyll"
+            # Preserve the historical version-root URL as the primary terrain demo.
+            mkdir -p "$ARCHIVE/$ARCHIVE_PATH"
+            cp -a "$RUNNER_TEMP/web-build/terrain/." "$ARCHIVE/$ARCHIVE_PATH/"
 
-          cat > "$ARCHIVE/index.html" <<EOF
+            # Additional demos live below the same immutable version directory.
+            mkdir -p "$ARCHIVE/$ARCHIVE_PATH/chunks"
+            cp -a "$RUNNER_TEMP/web-build/chunks/." "$ARCHIVE/$ARCHIVE_PATH/chunks/"
+
+            cat > "$ARCHIVE/index.html" <<EOF
           <!doctype html>
           <html lang="en">
           <head>
             <meta charset="utf-8">
-            <meta http-equiv="refresh" content="0; url=./$VERSION/">
-            <link rel="canonical" href="./$VERSION/">
-            <title>GDScript Voxel Terrain $VERSION</title>
+            <meta http-equiv="refresh" content="0; url=./$RELEASE_ID/">
+            <link rel="canonical" href="./$RELEASE_ID/">
+            <title>GDScript Voxel Terrain $RELEASE_ID</title>
           </head>
           <body>
-            <p>Opening <a href="./$VERSION/">GDScript Voxel Terrain $VERSION</a>…</p>
+            <p>Opening <a href="./$RELEASE_ID/">GDScript Voxel Terrain $RELEASE_ID</a>…</p>
           </body>
           </html>
           EOF
+          else
+            # The integration preview is intentionally mutable: each successful
+            # integration build replaces the previous preview without touching releases.
+            rm -rf "$ARCHIVE/$ARCHIVE_PATH"
+            mkdir -p "$ARCHIVE/$ARCHIVE_PATH"
+            cp -a "$RUNNER_TEMP/web-build/terrain/." "$ARCHIVE/$ARCHIVE_PATH/"
+            mkdir -p "$ARCHIVE/$ARCHIVE_PATH/chunks"
+            cp -a "$RUNNER_TEMP/web-build/chunks/." "$ARCHIVE/$ARCHIVE_PATH/chunks/"
+          fi
 
+          touch "$ARCHIVE/.nojekyll"
           python .github/scripts/build_demo_manifest.py "$ARCHIVE"
 
           git -C "$ARCHIVE" config user.name "github-actions[bot]"
           git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C "$ARCHIVE" add -A
-          git -C "$ARCHIVE" commit -m "Publish web demos $VERSION"
-          git -C "$ARCHIVE" push origin gh-pages
+
+          if git -C "$ARCHIVE" diff --cached --quiet; then
+            echo "Pages archive already matches this publication."
+          else
+            if [ "$PUBLICATION_TYPE" = "release" ]; then
+              git -C "$ARCHIVE" commit -m "Publish web demos $RELEASE_ID"
+            else
+              git -C "$ARCHIVE" commit -m "Publish integration web preview"
+            fi
+            git -C "$ARCHIVE" push origin gh-pages
+          fi
 
       - name: Package Pages site
         shell: bash
