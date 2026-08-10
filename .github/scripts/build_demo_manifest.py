@@ -28,6 +28,10 @@ def preview_entry(path: str) -> dict[str, str]:
     return {
         "id": PREVIEW_ID,
         "label": PREVIEW_LABEL,
+        # Historical immutable pages still run the original selector, which
+        # reads only `version`. Keep this compatibility field until those
+        # archived pages are no longer expected to consume the live manifest.
+        "version": PREVIEW_LABEL,
         "type": "preview",
         "path": path,
     }
