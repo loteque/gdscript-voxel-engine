@@ -2,6 +2,16 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.4.2
+
+### Added
+- Added a reusable lit demo terrain material for Surface Nets presentation.
+- Added directional lighting to the demo scene so generated terrain responds visibly to surface normals and scene illumination.
+
+### Changed
+- `SurfaceNetsMeshDisplay` now owns an overridable presentation material while `SurfaceNetsMesher` remains geometry-only.
+- Demo lighting remains owned by `VoxelTerrainDemo.tscn` rather than the reusable terrain components.
+
 ## 0.4.1
 
 ### Added

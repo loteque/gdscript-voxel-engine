@@ -11,6 +11,8 @@ extends MeshInstance3D
 
 signal loading_state_changed(is_loading: bool)
 
+const DEFAULT_DEMO_SURFACE: Material = preload("res://voxel/meshing/DemoTerrainSurface.tres")
+
 
 # [b]Display Configuration[/b] Controls the field and iso-surface shown by this node.
 
@@ -42,6 +44,11 @@ var iso_level: float = 0.0:
 		iso_level = value
 		_mark_mesh_dirty()
 
+@export var surface_material: Material = DEFAULT_DEMO_SURFACE:
+	set(value):
+		surface_material = value
+		material_override = value
+
 
 # [b]Meshing State[/b]
 
@@ -55,6 +62,7 @@ var _mesh_rebuild_queued: bool = false
 
 func _enter_tree() -> void:
 	visible = display_surface_nets_mesh
+	material_override = surface_material
 	_connect_field()
 	_mark_mesh_dirty()
 
