@@ -34,13 +34,14 @@ func _run() -> void:
 	_assert_equal(streamer.max_concurrent_loads, 4, "Large validation must expose four concurrent loads.")
 	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(-4, 0, -4), "Initial large validation target must begin in chunk (-4, 0, -4).")
 
-	if pause_button != null:
-		pause_button.pressed.emit()
 	streamer.process_mode = Node.PROCESS_MODE_DISABLED
-
 	_assert_equal(streamer.get_queued_coordinates().size(), 25, "Initial large validation admission must create a 25-chunk queue.")
 	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(-4, 0, -4), "Nearest-first scheduling must prioritize the target chunk.")
 	_assert_equal(streamer.get_loading_coordinates().size(), 0, "Scene wiring test must not start background loading; the dedicated scale test owns async execution proof.")
+
+	var target_before_pending_update := target.position
+	scene.call("_process", 1.0)
+	_assert_equal(target.position, target_before_pending_update, "Automatic validation traversal must wait while residency work is pending.")
 
 	_assert_true(await _wait_for_thread_smoke(scene), "Validation scene thread smoke task must complete before teardown.")
 	_assert_equal(scene.call("get_thread_smoke_state"), "PASS", "Headless validation must preserve WorkerThreadPool smoke coverage.")
@@ -49,6 +50,7 @@ func _run() -> void:
 		scene.call("_update_status")
 		_assert_true(status_label.text.contains("Dataset: 169 single-LOD chunks"), "Validation UI must identify the large dataset.")
 		_assert_true(status_label.text.contains("Thread smoke: PASS"), "Validation UI must expose successful worker-thread execution.")
+		_assert_true(status_label.text.contains("Target motion: waiting for streaming"), "Validation UI must expose loader-gated automatic traversal.")
 		_assert_true(status_label.text.contains("Load radius: 2"), "Validation UI must display the admission radius.")
 		_assert_true(status_label.text.contains("Unload radius: 3"), "Validation UI must display the retention radius.")
 		_assert_true(status_label.text.contains("Load budget: 2 starts/frame, 4 concurrent"), "Validation UI must display scheduler budgets.")
@@ -57,6 +59,11 @@ func _run() -> void:
 		_assert_true(status_label.text.contains("Average load latency:"), "Validation UI must expose load latency observation.")
 		_assert_true(status_label.text.contains("Approx. resident mesh memory:"), "Validation UI must expose approximate mesh memory.")
 		_assert_true(status_label.text.contains("Recent max frame time:"), "Validation UI must expose recent frame-time observation.")
+
+	if pause_button != null:
+		pause_button.pressed.emit()
+		scene.call("_update_status")
+		_assert_true(status_label.text.contains("Target motion: paused"), "Manual pause must remain distinct from streaming backpressure.")
 
 	await _finish(scene)
 
