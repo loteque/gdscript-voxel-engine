@@ -36,6 +36,9 @@ func _run() -> void:
 	if pause_button != null:
 		pause_button.pressed.emit()
 
+	_assert_true(await _wait_for_thread_smoke(scene), "Validation scene thread smoke task must reach a terminal state.")
+	_assert_equal(scene.call("get_thread_smoke_state"), "PASS", "Headless validation must prove WorkerThreadPool task execution.")
+
 	_assert_equal(streamer.get_pending_coordinates().size(), 9, "Initial validation residency must queue nine available baked chunks.")
 	_assert_true(await _wait_for_idle(streamer), "Initial asynchronous validation residency must settle.")
 
@@ -49,7 +52,13 @@ func _run() -> void:
 
 	var initial_instances: Dictionary[Vector3i, MeshInstance3D] = {}
 	for coordinate in streamer.get_loaded_coordinates():
-		initial_instances[coordinate] = streamer.get_chunk_instance(coordinate)
+		var instance := streamer.get_chunk_instance(coordinate)
+		initial_instances[coordinate] = instance
+		_assert_true(instance != null, "Every resident validation coordinate must own a MeshInstance3D.")
+		if instance != null:
+			_assert_true(instance.mesh != null, "Every resident validation instance must own a mesh.")
+			if instance.mesh != null:
+				_assert_true(instance.mesh.get_surface_count() > 0, "Every resident validation mesh must contain renderable surfaces.")
 
 	target.position = Vector3(13.0, target.position.y, target.position.z)
 	streamer.update_residency(target.position)
@@ -84,11 +93,22 @@ func _run() -> void:
 	_assert_equal(streamer.get_child_count(), 9, "Duplicate validation updates must not create duplicate MeshInstance3D nodes.")
 
 	if status_label != null:
+		_assert_true(status_label.text.contains("Thread smoke: PASS"), "Validation UI must display successful worker-thread smoke state.")
 		_assert_true(status_label.text.contains("Target chunk: (1, 0, 0)"), "Validation UI must display the current target chunk coordinate.")
 		_assert_true(status_label.text.contains("Pending chunks: 0"), "Validation UI must display pending load count.")
 		_assert_true(status_label.text.contains("Resident chunks: 9"), "Validation UI must display resident chunk count.")
+		_assert_true(status_label.text.contains("Resident surfaces: 9"), "Validation UI must display resident mesh surface count.")
 
 	await _finish(scene)
+
+
+func _wait_for_thread_smoke(scene: Node, max_frames: int = 180) -> bool:
+	for _frame in range(max_frames):
+		scene.call("_process", 0.0)
+		if bool(scene.call("is_thread_smoke_complete")):
+			return true
+		await process_frame
+	return bool(scene.call("is_thread_smoke_complete"))
 
 
 func _wait_for_idle(streamer: ChunkStreamer, max_frames: int = 180) -> bool:
