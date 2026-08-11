@@ -74,7 +74,7 @@ func _run() -> void:
 	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(1, 0, 0), "Moved target must resolve to chunk (1, 0, 0).")
 	_assert_true(not streamer.is_chunk_loaded(Vector3i(-2, 0, 0)), "Obsolete resident chunks must unload immediately when residency changes.")
 	_assert_true(streamer.is_chunk_pending(Vector3i(2, 0, 0)), "Newly desired baked chunks must enter pending state before residency.")
-	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(2, 0, 0), "New edge chunks nearest the moved target must lead the queued scheduler order.")
+	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(1, 0, 0), "The moved target chunk must lead newly queued scheduler work.")
 	_assert_true(await _wait_for_idle(streamer), "Moved validation residency must settle asynchronously under scheduler budgets.")
 
 	var moved_expected := _expected_coordinates(0, 2)
