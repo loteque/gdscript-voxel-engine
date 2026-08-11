@@ -150,14 +150,22 @@ func _test_committed_demo_fixture() -> void:
 	if packed_scene == null:
 		return
 	var demo := packed_scene.instantiate()
-	get_root().add_child(demo)
 	_assert_true(demo.manifest != null, "Streaming validation demo scene must assign its manifest.")
-	var streamer := demo.get_node("ChunkStreamer") as ChunkStreamer
+	demo.free()
+
+	var streamer := CHUNK_STREAMER.new()
+	streamer.manifest = manifest
+	get_root().add_child(streamer)
 	_assert_true(
-		streamer != null and streamer.is_chunk_loaded(Vector3i.ZERO),
-		"Streaming validation demo must load its committed baked chunk on startup."
+		streamer.load_chunk(Vector3i.ZERO) == OK,
+		"Committed streaming demo manifest must load its baked chunk through ChunkStreamer."
 	)
-	demo.queue_free()
+	_assert_true(
+		streamer.is_chunk_loaded(Vector3i.ZERO),
+		"Committed streaming demo chunk must become resident."
+	)
+	streamer.clear_chunks()
+	streamer.queue_free()
 
 
 func _make_manifest(coordinate: Vector3i, asset_path: String) -> TerrainChunkManifest:
