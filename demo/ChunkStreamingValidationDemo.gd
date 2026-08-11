@@ -1,13 +1,14 @@
 extends Node3D
 
-## Runtime proof for target-relative residency, bounded scheduling, and asynchronous loading.
+## Runtime proof for hysteretic residency, bounded scheduling, and asynchronous loading.
 
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 const THREAD_SMOKE_TIMEOUT_MSEC := 5000
 
 @export var manifest: TerrainChunkManifest
 @export_file("*.tres") var manifest_path: String = DEFAULT_MANIFEST_PATH
-@export_range(0, 16, 1) var residency_radius: int = 1
+@export_range(0, 16, 1) var load_radius: int = 1
+@export_range(0, 16, 1) var unload_radius: int = 2
 @export var target_speed: float = 4.0
 @export var target_min_x: float = -6.0
 @export var target_max_x: float = 18.0
@@ -33,7 +34,8 @@ func _ready() -> void:
 		manifest = ResourceLoader.load(manifest_path) as TerrainChunkManifest
 
 	_streamer.manifest = manifest
-	_streamer.residency_radius = residency_radius
+	_streamer.load_radius = load_radius
+	_streamer.unload_radius = unload_radius
 	_streamer.target = _target
 	_streamer.chunk_load_queued.connect(_on_chunk_load_queued)
 	_streamer.chunk_load_started.connect(_on_chunk_load_started)
@@ -44,7 +46,7 @@ func _ready() -> void:
 	_reset_button.pressed.connect(_reset_target)
 	_start_thread_smoke_test()
 	_streamer.update_residency(_target.position)
-	_set_streaming_state("residency active")
+	_set_streaming_state("hysteretic residency active")
 
 
 func _process(delta: float) -> void:
@@ -159,13 +161,14 @@ func _update_status() -> void:
 		if instance != null and instance.mesh != null:
 			surface_count += instance.mesh.get_surface_count()
 	_status_label.text = (
-		"Web thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nResidency radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nResident surfaces: %d\nResident coordinates: %s\nStreaming state: %s"
+		"Web thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nHysteresis band: retain active chunks outside load radius until unload radius\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nResident surfaces: %d\nResident coordinates: %s\nStreaming state: %s"
 		% [
 			_thread_smoke_web_prerequisites,
 			_thread_smoke_state,
 			target_coordinate,
 			"moving" if _motion_enabled else "paused",
-			residency_radius,
+			_streamer.load_radius,
+			_streamer.unload_radius,
 			_streamer.max_load_starts_per_frame,
 			_streamer.max_concurrent_loads,
 			queued_coordinates.size(),
