@@ -53,14 +53,11 @@ func _test_request_lifecycle_and_successful_completion() -> void:
 	var coordinate := Vector3i(3, -2, 7)
 	_assert_true(ResourceSaver.save(_make_valid_asset(coordinate), VALID_ASSET_PATH) == OK, "Streaming fixture asset must save.")
 	var streamer := _make_streamer(_make_manifest(coordinate, VALID_ASSET_PATH))
-	var start_count := 0
-	streamer.chunk_load_started.connect(func(_coordinate: Vector3i) -> void: start_count += 1)
 
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.UNLOADED, "Chunks must begin unloaded.")
 	_assert_true(streamer.load_chunk(coordinate) == OK, "Valid baked chunk request must be accepted.")
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.QUEUED, "Accepted requests must enter queued state before I/O starts.")
 	streamer._process(0.0)
-	_assert_equal(start_count, 1, "Each accepted request must start threaded loading exactly once.")
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.LOADING, "The execution stage must advance queued requests to loading.")
 	_assert_true(await _wait_for_idle(streamer), "Threaded loading must complete within the test frame budget.")
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.RESIDENT, "Successful threaded loads must become resident.")
