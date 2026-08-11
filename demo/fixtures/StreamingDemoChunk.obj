@@ -1,0 +1,30 @@
+# Precomputed mesh fixture for ChunkStreamingValidationDemo.
+# Local vertices span one 8 x 8 x 8 chunk; the asset places the chunk at (-4, -4, -4).
+o StreamingDemoChunk
+v 0 0 0
+v 8 0 0
+v 8 8 0
+v 0 8 0
+v 0 0 8
+v 8 0 8
+v 8 8 8
+v 0 8 8
+
+# -Z
+f 1 4 3
+f 1 3 2
+# +Z
+f 5 6 7
+f 5 7 8
+# -X
+f 1 5 8
+f 1 8 4
+# +X
+f 2 3 7
+f 2 7 6
+# -Y
+f 1 2 6
+f 1 6 5
+# +Y
+f 4 8 7
+f 4 7 3
