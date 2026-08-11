@@ -64,6 +64,7 @@ jobs:
       - name: Run large single-LOD streaming validation tests
         run: godot --headless --path . --script tests/test_large_streaming_validation.gd
       - name: Run chunk residency validation scene test
+        timeout-minutes: 2
         run: godot --headless --path . --script tests/test_chunk_residency_validation_scene.gd
       - name: Start chunk residency validation scene headlessly
         run: godot --headless --path . demo/ChunkStreamingValidationDemo.tscn --quit-after 4
