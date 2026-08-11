@@ -39,10 +39,7 @@ func _run() -> void:
 
 	_assert_equal(streamer.get_queued_coordinates().size(), 25, "Initial large validation admission must create a 25-chunk queue.")
 	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(-4, 0, -4), "Nearest-first scheduling must prioritize the target chunk.")
-	streamer._process(0.0)
-	_assert_true(streamer.get_loading_coordinates().size() <= 2, "First large-scene update must respect the start budget.")
-	_assert_true(streamer.get_loading_coordinates().size() <= 4, "First large-scene update must respect concurrent capacity.")
-	_assert_true(streamer.get_queued_coordinates().size() >= 23, "Large-scene queue must remain visibly backlogged after one update.")
+	_assert_equal(streamer.get_loading_coordinates().size(), 0, "Scene wiring test must not start background loading; the dedicated scale test owns async execution proof.")
 
 	if status_label != null:
 		scene.call("_update_status")
