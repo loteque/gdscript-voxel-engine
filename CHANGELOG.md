@@ -2,6 +2,13 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.13.2
+
+### Fixed
+- Documentation-only pull requests no longer require a product version bump or versioned Web-release validation.
+- Release-impacting changes still require synchronized `VERSION`, changelog, project metadata, and splash-version updates and still exercise the versioned Web deployment path.
+- Added deterministic regression coverage for documentation-only and release-impacting change classification.
+
 ## 0.13.1
 
 ### Fixed
