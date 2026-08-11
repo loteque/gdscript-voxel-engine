@@ -39,7 +39,7 @@ signal chunk_load_failed(coordinate: Vector3i, error: Error)
 
 
 # [b]Configuration[/b]
-# Selects the precomputed asset catalog, detail level, and optional runtime target.
+# Selects the precomputed asset catalog, residency policy, and loading budgets.
 
 ## Manifest used to resolve chunk coordinates to serialized assets.
 @export var manifest: TerrainChunkManifest
@@ -51,6 +51,12 @@ signal chunk_load_failed(coordinate: Vector3i, error: Error)
 ## A radius of one considers a 3 x 3 x 3 coordinate neighborhood.
 @export_range(0, 16, 1) var residency_radius: int = 1
 
+## Maximum number of queued requests that may begin loading in one process update.
+@export_range(1, 64, 1) var max_load_starts_per_frame: int = 2
+
+## Maximum number of requests that may simultaneously occupy LOADING state.
+@export_range(1, 256, 1) var max_concurrent_loads: int = 8
+
 ## Optional runtime target whose position drives automatic residency updates.
 @export var target: Node3D
 
@@ -60,6 +66,8 @@ signal chunk_load_failed(coordinate: Vector3i, error: Error)
 
 var _loaded_chunks: Dictionary[Vector3i, MeshInstance3D] = {}
 var _load_requests: Dictionary[Vector3i, ChunkLoadRequest] = {}
+var _priority_origin: Vector3i = Vector3i.ZERO
+var _has_priority_origin: bool = false
 
 
 # [b]Runtime Update[/b]
@@ -74,7 +82,7 @@ func _process(_delta: float) -> void:
 
 
 # [b]Queries[/b]
-# Exposes residency, pending work, and deterministic chunk-space conversion.
+# Exposes residency, scheduler state, and deterministic chunk-space conversion.
 
 ## Returns whether [param coordinate] currently has a resident mesh instance.
 func is_chunk_loaded(coordinate: Vector3i) -> bool:
@@ -118,6 +126,22 @@ func get_pending_coordinates() -> Array[Vector3i]:
 	return coordinates
 
 
+## Returns queued coordinates in the order the scheduler would currently prefer them.
+func get_queued_coordinates() -> Array[Vector3i]:
+	return _get_prioritized_queued_coordinates()
+
+
+## Returns all active LOADING coordinates in deterministic x/y/z order.
+func get_loading_coordinates() -> Array[Vector3i]:
+	var coordinates: Array[Vector3i] = []
+	for coordinate in _load_requests:
+		var request := _load_requests.get(coordinate) as ChunkLoadRequest
+		if request != null and request.state == ChunkLoadState.LOADING:
+			coordinates.append(coordinate)
+	coordinates.sort_custom(_coordinate_less_than)
+	return coordinates
+
+
 ## Converts a streamer-local terrain position to its containing chunk coordinate.
 ##
 ## Chunk extent is derived exclusively from manifest cell dimensions and sample
@@ -147,6 +171,8 @@ func update_residency(target_position: Vector3) -> void:
 		return
 
 	var target_coordinate := position_to_chunk_coordinate(target_position)
+	_priority_origin = target_coordinate
+	_has_priority_origin = true
 	var desired: Dictionary[Vector3i, bool] = {}
 	for z_offset in range(-residency_radius, residency_radius + 1):
 		for y_offset in range(-residency_radius, residency_radius + 1):
@@ -222,13 +248,13 @@ func clear_chunks() -> void:
 
 
 # [b]Loading Execution[/b]
-# Owns threaded ResourceLoader lifecycle independently of residency policy.
+# Owns threaded loading lifecycle and bounded scheduler execution.
 
 func _poll_loading_requests() -> void:
-	var coordinates := get_pending_coordinates()
+	var coordinates := get_loading_coordinates()
 	for coordinate in coordinates:
 		var request := _load_requests.get(coordinate) as ChunkLoadRequest
-		if request == null or request.state != ChunkLoadState.LOADING:
+		if request == null:
 			continue
 
 		var status := ResourceLoader.load_threaded_get_status(request.asset_path)
@@ -242,8 +268,16 @@ func _poll_loading_requests() -> void:
 
 
 func _start_queued_loads() -> void:
-	var coordinates := get_pending_coordinates()
-	for coordinate in coordinates:
+	var available_capacity := maxi(max_concurrent_loads - _get_loading_count(), 0)
+	var start_budget := mini(max_load_starts_per_frame, available_capacity)
+	if start_budget <= 0:
+		return
+
+	var started := 0
+	for coordinate in _get_prioritized_queued_coordinates():
+		if started >= start_budget:
+			break
+
 		var request := _load_requests.get(coordinate) as ChunkLoadRequest
 		if request == null or request.state != ChunkLoadState.QUEUED:
 			continue
@@ -254,7 +288,41 @@ func _start_queued_loads() -> void:
 			continue
 
 		request.state = ChunkLoadState.LOADING
+		started += 1
 		chunk_load_started.emit(coordinate)
+
+
+func _get_loading_count() -> int:
+	var count := 0
+	for request_value in _load_requests.values():
+		var request := request_value as ChunkLoadRequest
+		if request != null and request.state == ChunkLoadState.LOADING:
+			count += 1
+	return count
+
+
+func _get_prioritized_queued_coordinates() -> Array[Vector3i]:
+	var coordinates: Array[Vector3i] = []
+	for coordinate in _load_requests:
+		var request := _load_requests.get(coordinate) as ChunkLoadRequest
+		if request != null and request.state == ChunkLoadState.QUEUED:
+			coordinates.append(coordinate)
+	coordinates.sort_custom(_queued_coordinate_less_than)
+	return coordinates
+
+
+func _queued_coordinate_less_than(a: Vector3i, b: Vector3i) -> bool:
+	if _has_priority_origin:
+		var distance_a := _chunk_distance_squared(a, _priority_origin)
+		var distance_b := _chunk_distance_squared(b, _priority_origin)
+		if distance_a != distance_b:
+			return distance_a < distance_b
+	return _coordinate_less_than(a, b)
+
+
+func _chunk_distance_squared(a: Vector3i, b: Vector3i) -> int:
+	var delta := a - b
+	return delta.x * delta.x + delta.y * delta.y + delta.z * delta.z
 
 
 func _complete_load_request(request: ChunkLoadRequest) -> void:
