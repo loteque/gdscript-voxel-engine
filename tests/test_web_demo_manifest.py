@@ -52,6 +52,16 @@ class WebDemoManifestTests(unittest.TestCase):
         self.assertNotIn("build/web/residency/index.html", workflow)
         self.assertNotIn('"$ARCHIVE/$ARCHIVE_PATH/residency"', workflow)
 
+    def test_async_loading_branch_publishes_existing_integration_preview(self) -> None:
+        workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("      - async-chunk-loading", workflow)
+        self.assertIn(
+            'elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "async-chunk-loading" ]; then',
+            workflow,
+        )
+        self.assertIn('echo "archive_path=preview/integration"', workflow)
+        self.assertIn('echo "publication_type=preview"', workflow)
+
     def _build_manifest(self, archive: Path) -> None:
         subprocess.run(["python", str(MANIFEST_SCRIPT), str(archive)], cwd=REPOSITORY_ROOT, check=True)
 
