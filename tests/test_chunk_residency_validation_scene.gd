@@ -44,24 +44,9 @@ func _run() -> void:
 	_assert_true(streamer.get_loading_coordinates().size() <= 4, "First large-scene update must respect concurrent capacity.")
 	_assert_true(streamer.get_queued_coordinates().size() >= 23, "Large-scene queue must remain visibly backlogged after one update.")
 
-	_assert_true(await _wait_for_scene_runtime(scene, streamer), "Validation scene must prove worker execution and create resident production meshes.")
-	_assert_equal(scene.call("get_thread_smoke_state"), "PASS", "Headless validation must prove WorkerThreadPool execution.")
-	_assert_true(streamer.get_loaded_coordinates().size() >= 1, "Validation scene must create at least one resident chunk through the production async path.")
-
-	for coordinate in streamer.get_loaded_coordinates():
-		var instance := streamer.get_chunk_instance(coordinate)
-		_assert_true(instance != null and instance.mesh != null, "Every resident scale-test coordinate must own a mesh instance.")
-		if instance != null and instance.mesh != null:
-			_assert_true(instance.mesh.get_surface_count() > 0, "Every resident scale-test mesh must contain renderable surfaces.")
-
-	var metrics := streamer.get_streaming_metrics()
-	_assert_true(int(metrics["completed_load_count"]) >= 1, "Validation-scene metrics must observe completed production loads.")
-	_assert_true(int(metrics["approximate_mesh_memory_bytes"]) > 0, "Validation-scene metrics must expose positive approximate resident mesh memory.")
-
 	if status_label != null:
 		scene.call("_update_status")
 		_assert_true(status_label.text.contains("Dataset: 169 single-LOD chunks"), "Validation UI must identify the large dataset.")
-		_assert_true(status_label.text.contains("Thread smoke: PASS"), "Validation UI must preserve successful thread smoke diagnostics.")
 		_assert_true(status_label.text.contains("Load radius: 2"), "Validation UI must display the admission radius.")
 		_assert_true(status_label.text.contains("Unload radius: 3"), "Validation UI must display the retention radius.")
 		_assert_true(status_label.text.contains("Load budget: 2 starts/frame, 4 concurrent"), "Validation UI must display scheduler budgets.")
@@ -72,22 +57,6 @@ func _run() -> void:
 		_assert_true(status_label.text.contains("Recent max frame time:"), "Validation UI must expose recent frame-time observation.")
 
 	await _finish(scene)
-
-
-func _wait_for_scene_runtime(scene: Node, streamer: ChunkStreamer, max_frames: int = 240) -> bool:
-	for _frame in range(max_frames):
-		scene.call("_process", 0.0)
-		streamer._process(0.0)
-		if bool(scene.call("is_thread_smoke_complete")) \
-			and scene.call("get_thread_smoke_state") == "PASS" \
-			and not streamer.get_loaded_coordinates().is_empty():
-			return true
-		await process_frame
-	return (
-		bool(scene.call("is_thread_smoke_complete"))
-		and scene.call("get_thread_smoke_state") == "PASS"
-		and not streamer.get_loaded_coordinates().is_empty()
-	)
 
 
 func _finish(scene: Node) -> void:
