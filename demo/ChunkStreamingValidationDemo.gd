@@ -11,10 +11,10 @@ const RECENT_FRAME_WINDOW := 120
 @export_range(0, 16, 1) var load_radius: int = 2
 @export_range(0, 16, 1) var unload_radius: int = 3
 @export var target_speed: float = 18.0
-@export var target_min_x: float = -66.0
-@export var target_max_x: float = 66.0
-@export var target_min_z: float = -66.0
-@export var target_max_z: float = 66.0
+@export var target_min_x: float = -42.0
+@export var target_max_x: float = 42.0
+@export var target_min_z: float = -42.0
+@export var target_max_z: float = 42.0
 @export var lane_step: float = 12.0
 
 @onready var _streamer: ChunkStreamer = $ChunkStreamer
