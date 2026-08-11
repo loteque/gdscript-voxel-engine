@@ -1,20 +1,26 @@
 extends Node3D
 
-## Runtime proof for hysteretic residency, bounded scheduling, and asynchronous loading.
+## Runtime proof for large single-LOD streaming, hysteresis, scheduling, and async loading.
 
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 const THREAD_SMOKE_TIMEOUT_MSEC := 5000
+const RECENT_FRAME_WINDOW := 120
 
 @export var manifest: TerrainChunkManifest
 @export_file("*.tres") var manifest_path: String = DEFAULT_MANIFEST_PATH
-@export_range(0, 16, 1) var load_radius: int = 1
-@export_range(0, 16, 1) var unload_radius: int = 2
-@export var target_speed: float = 4.0
-@export var target_min_x: float = -6.0
-@export var target_max_x: float = 18.0
+@export_range(0, 16, 1) var load_radius: int = 2
+@export_range(0, 16, 1) var unload_radius: int = 3
+@export var target_speed: float = 18.0
+@export var target_min_x: float = -42.0
+@export var target_max_x: float = 42.0
+@export var target_min_z: float = -42.0
+@export var target_max_z: float = 42.0
+@export var lane_step: float = 12.0
+@export var thread_smoke_enabled: bool = true
 
 @onready var _streamer: ChunkStreamer = $ChunkStreamer
 @onready var _target: Node3D = $ResidencyTarget
+@onready var _camera: Camera3D = $Camera
 @onready var _status_label: Label = $UI/Panel/Margin/Content/Status
 @onready var _pause_button: Button = $UI/Panel/Margin/Content/Buttons/Load
 @onready var _reset_button: Button = $UI/Panel/Margin/Content/Buttons/Unload
@@ -27,6 +33,7 @@ var _thread_smoke_started_msec: int = 0
 var _thread_smoke_state: String = "not started"
 var _thread_smoke_web_prerequisites: String = "not checked"
 var _thread_smoke_timed_out: bool = false
+var _recent_frame_times_msec: Array[float] = []
 
 
 func _ready() -> void:
@@ -44,21 +51,22 @@ func _ready() -> void:
 	_streamer.chunk_load_failed.connect(_on_chunk_load_failed)
 	_pause_button.pressed.connect(_toggle_motion)
 	_reset_button.pressed.connect(_reset_target)
-	_start_thread_smoke_test()
+	if thread_smoke_enabled:
+		_start_thread_smoke_test()
+	else:
+		_thread_smoke_state = "disabled"
+		_thread_smoke_web_prerequisites = "disabled"
 	_streamer.update_residency(_target.position)
-	_set_streaming_state("hysteretic residency active")
+	_set_streaming_state("large single-LOD streaming active")
 
 
 func _process(delta: float) -> void:
-	_poll_thread_smoke_test()
-	if _motion_enabled:
-		_target.position.x += target_speed * _motion_direction * delta
-		if _target.position.x >= target_max_x:
-			_target.position.x = target_max_x
-			_motion_direction = -1.0
-		elif _target.position.x <= target_min_x:
-			_target.position.x = target_min_x
-			_motion_direction = 1.0
+	if thread_smoke_enabled:
+		_poll_thread_smoke_test()
+	_record_frame_time(delta)
+	if _can_advance_target():
+		_advance_target(delta)
+	_follow_target_with_camera()
 	_update_status()
 
 
@@ -72,6 +80,55 @@ func get_thread_smoke_state() -> String:
 	return _thread_smoke_state
 
 
+## Returns the recent maximum frame time observed by this validation scene.
+func get_recent_max_frame_time_msec() -> float:
+	var maximum := 0.0
+	for frame_time in _recent_frame_times_msec:
+		maximum = maxf(maximum, frame_time)
+	return maximum
+
+
+func _can_advance_target() -> bool:
+	return _motion_enabled and _streamer.get_pending_coordinates().is_empty()
+
+
+func _get_target_motion_state() -> String:
+	if not _motion_enabled:
+		return "paused"
+	if not _streamer.get_pending_coordinates().is_empty():
+		return "waiting for streaming"
+	return "moving"
+
+
+func _advance_target(delta: float) -> void:
+	_target.position.x += target_speed * _motion_direction * delta
+	if _target.position.x >= target_max_x:
+		_target.position.x = target_max_x
+		_motion_direction = -1.0
+		_advance_lane()
+	elif _target.position.x <= target_min_x:
+		_target.position.x = target_min_x
+		_motion_direction = 1.0
+		_advance_lane()
+
+
+func _advance_lane() -> void:
+	_target.position.z += lane_step
+	if _target.position.z > target_max_z:
+		_target.position.z = target_min_z
+
+
+func _follow_target_with_camera() -> void:
+	_camera.position.x = _target.position.x + 36.0
+	_camera.position.z = _target.position.z + 48.0
+
+
+func _record_frame_time(delta: float) -> void:
+	_recent_frame_times_msec.append(delta * 1000.0)
+	if _recent_frame_times_msec.size() > RECENT_FRAME_WINDOW:
+		_recent_frame_times_msec.pop_front()
+
+
 func _toggle_motion() -> void:
 	_motion_enabled = not _motion_enabled
 	_pause_button.text = "Pause Target" if _motion_enabled else "Resume Target"
@@ -79,10 +136,11 @@ func _toggle_motion() -> void:
 
 
 func _reset_target() -> void:
-	_target.position.x = target_min_x
+	_target.position = Vector3(target_min_x, _target.position.y, target_min_z)
 	_motion_direction = 1.0
+	_streamer.reset_streaming_metrics()
 	_streamer.update_residency(_target.position)
-	_set_streaming_state("target reset")
+	_set_streaming_state("target and metrics reset")
 
 
 func _set_streaming_state(state: String) -> void:
@@ -155,18 +213,24 @@ func _update_status() -> void:
 	var queued_coordinates := _streamer.get_queued_coordinates()
 	var loading_coordinates := _streamer.get_loading_coordinates()
 	var loaded_coordinates := _streamer.get_loaded_coordinates()
+	var metrics := _streamer.get_streaming_metrics()
 	var surface_count := 0
 	for coordinate in loaded_coordinates:
 		var instance := _streamer.get_chunk_instance(coordinate)
 		if instance != null and instance.mesh != null:
 			surface_count += instance.mesh.get_surface_count()
+	var current_frame_msec := 0.0 if _recent_frame_times_msec.is_empty() else _recent_frame_times_msec.back()
+	var approximate_mesh_mib := float(metrics["approximate_mesh_memory_bytes"]) / (1024.0 * 1024.0)
 	_status_label.text = (
-		"Web thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nHysteresis band: retain active chunks outside load radius until unload radius\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nResident surfaces: %d\nResident coordinates: %s\nStreaming state: %s"
+		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nPeak resident chunks: %d\nResident surfaces: %d\nCompleted loads: %d\nFailed loads: %d\nUnloads: %d\nCancelled pending: %d\nResidency churn: %d\nAverage load latency: %.2f ms\nMaximum load latency: %d ms\nApprox. resident mesh memory: %.2f MiB\nFrame time: %.2f ms\nRecent max frame time: %.2f ms\nResident coordinates: %s\nStreaming state: %s"
 		% [
+			manifest.entries.size(),
+			manifest.chunk_cell_dimensions,
+			manifest.sample_spacing,
 			_thread_smoke_web_prerequisites,
 			_thread_smoke_state,
 			target_coordinate,
-			"moving" if _motion_enabled else "paused",
+			_get_target_motion_state(),
 			_streamer.load_radius,
 			_streamer.unload_radius,
 			_streamer.max_load_starts_per_frame,
@@ -176,7 +240,18 @@ func _update_status() -> void:
 			loading_coordinates.size(),
 			loading_coordinates,
 			loaded_coordinates.size(),
+			metrics["peak_resident_count"],
 			surface_count,
+			metrics["completed_load_count"],
+			metrics["failed_load_count"],
+			metrics["unload_count"],
+			metrics["cancelled_pending_load_count"],
+			metrics["residency_churn_count"],
+			metrics["average_load_latency_msec"],
+			metrics["maximum_load_latency_msec"],
+			approximate_mesh_mib,
+			current_frame_msec,
+			get_recent_max_frame_time_msec(),
 			loaded_coordinates,
 			_streaming_state,
 		]

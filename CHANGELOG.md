@@ -2,6 +2,18 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.13.0
+
+### Added
+- Expanded the deterministic streaming validation fixture from 25 to 169 single-LOD chunks using the existing offline `PointFieldResource` → Surface Nets → `ChunkAssetBaker` pipeline.
+- Added lightweight `ChunkStreamer` metrics snapshots for resident/queued/loading counts, peak residency, completed and failed loads, unloads, cancelled pending work, residency churn, threaded-load latency, and approximate resident mesh memory.
+- Added deterministic large-dataset headless validation covering the 13 x 1 x 13 manifest, serialized chunk validity, substantial residency queues, bounded scheduling, hysteresis, metrics correctness, and runtime generation-layer separation.
+- Added validation-oriented current/recent frame-time observation to the streaming demo without presenting it as laboratory-grade profiling.
+
+### Changed
+- The existing Chunk Streaming Validation Demo now traverses the larger single-LOD asteroid-surface region with load radius 2, unload radius 3, two load starts per frame, and four concurrent threaded loads.
+- The stable `streaming` Integration Preview now exposes scale-test metrics, Web thread diagnostics, queue/loading/residency state, latency, approximate mesh memory, churn, and frame-time observations while retaining the existing production runtime path.
+
 ## 0.12.0
 
 ### Added

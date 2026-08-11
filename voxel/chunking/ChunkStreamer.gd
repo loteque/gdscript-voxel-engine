@@ -22,6 +22,7 @@ class ChunkLoadRequest:
 	var coordinate: Vector3i
 	var asset_path: String
 	var state: ChunkLoadState = ChunkLoadState.QUEUED
+	var started_msec: int = 0
 
 	func _init(request_coordinate: Vector3i, request_asset_path: String) -> void:
 		coordinate = request_coordinate
@@ -90,6 +91,14 @@ var _load_requests: Dictionary[Vector3i, ChunkLoadRequest] = {}
 var _priority_origin: Vector3i = Vector3i.ZERO
 var _has_priority_origin: bool = false
 
+var _peak_resident_count: int = 0
+var _completed_load_count: int = 0
+var _failed_load_count: int = 0
+var _unload_count: int = 0
+var _cancelled_pending_load_count: int = 0
+var _total_load_latency_msec: int = 0
+var _maximum_load_latency_msec: int = 0
+
 
 # [b]Runtime Update[/b]
 # Runs residency policy and loading execution as separate stages each frame.
@@ -103,7 +112,7 @@ func _process(_delta: float) -> void:
 
 
 # [b]Queries[/b]
-# Exposes residency, scheduler state, and deterministic chunk-space conversion.
+# Exposes residency, scheduler state, deterministic chunk-space conversion, and metrics.
 
 ## Returns whether [param coordinate] currently has a resident mesh instance.
 func is_chunk_loaded(coordinate: Vector3i) -> bool:
@@ -161,6 +170,43 @@ func get_loading_coordinates() -> Array[Vector3i]:
 			coordinates.append(coordinate)
 	coordinates.sort_custom(_coordinate_less_than)
 	return coordinates
+
+
+## Returns a read-only snapshot of cumulative and current streaming observations.
+##
+## Latency values measure threaded load execution from request start until the
+## serialized chunk asset is accepted as resident. Approximate mesh memory is a
+## lightweight estimate derived from resident ArrayMesh vertex/index counts; it
+## is intended for comparative validation rather than allocator-precise profiling.
+func get_streaming_metrics() -> Dictionary:
+	var average_latency_msec := 0.0
+	if _completed_load_count > 0:
+		average_latency_msec = float(_total_load_latency_msec) / float(_completed_load_count)
+	return {
+		"resident_count": _loaded_chunks.size(),
+		"queued_count": get_queued_coordinates().size(),
+		"loading_count": get_loading_coordinates().size(),
+		"peak_resident_count": _peak_resident_count,
+		"completed_load_count": _completed_load_count,
+		"failed_load_count": _failed_load_count,
+		"unload_count": _unload_count,
+		"cancelled_pending_load_count": _cancelled_pending_load_count,
+		"residency_churn_count": _unload_count + _cancelled_pending_load_count,
+		"average_load_latency_msec": average_latency_msec,
+		"maximum_load_latency_msec": _maximum_load_latency_msec,
+		"approximate_mesh_memory_bytes": _get_approximate_mesh_memory_bytes(),
+	}
+
+
+## Resets cumulative streaming metrics without changing residency or pending work.
+func reset_streaming_metrics() -> void:
+	_peak_resident_count = _loaded_chunks.size()
+	_completed_load_count = 0
+	_failed_load_count = 0
+	_unload_count = 0
+	_cancelled_pending_load_count = 0
+	_total_load_latency_msec = 0
+	_maximum_load_latency_msec = 0
 
 
 ## Converts a streamer-local terrain position to its containing chunk coordinate.
@@ -246,6 +292,7 @@ func load_chunk(coordinate: Vector3i) -> Error:
 ## cached resource result is ignored and no MeshInstance3D is created.
 func unload_chunk(coordinate: Vector3i) -> bool:
 	if _load_requests.erase(coordinate):
+		_cancelled_pending_load_count += 1
 		return true
 
 	var instance := get_chunk_instance(coordinate)
@@ -253,6 +300,7 @@ func unload_chunk(coordinate: Vector3i) -> bool:
 		return false
 
 	_loaded_chunks.erase(coordinate)
+	_unload_count += 1
 	instance.queue_free()
 	chunk_unloaded.emit(coordinate)
 	return true
@@ -260,7 +308,9 @@ func unload_chunk(coordinate: Vector3i) -> bool:
 
 ## Cancels pending requests and unloads every resident chunk.
 func clear_chunks() -> void:
-	_load_requests.clear()
+	var pending_coordinates := get_pending_coordinates()
+	for coordinate in pending_coordinates:
+		unload_chunk(coordinate)
 	var coordinates := get_loaded_coordinates()
 	for coordinate in coordinates:
 		unload_chunk(coordinate)
@@ -307,6 +357,7 @@ func _start_queued_loads() -> void:
 			continue
 
 		request.state = ChunkLoadState.LOADING
+		request.started_msec = Time.get_ticks_msec()
 		started += 1
 		chunk_load_started.emit(coordinate)
 
@@ -369,12 +420,37 @@ func _complete_load_request(request: ChunkLoadRequest) -> void:
 	instance.position = asset.local_origin
 	add_child(instance)
 	_loaded_chunks[request.coordinate] = instance
+
+	_completed_load_count += 1
+	_peak_resident_count = maxi(_peak_resident_count, _loaded_chunks.size())
+	if request.started_msec > 0:
+		var latency_msec := maxi(Time.get_ticks_msec() - request.started_msec, 0)
+		_total_load_latency_msec += latency_msec
+		_maximum_load_latency_msec = maxi(_maximum_load_latency_msec, latency_msec)
 	chunk_loaded.emit(request.coordinate, instance)
 
 
 func _fail_load_request(coordinate: Vector3i, error: Error) -> void:
 	_load_requests.erase(coordinate)
 	_report_load_failure(coordinate, error)
+
+
+# [b]Metrics[/b]
+# Provides lightweight comparative observability without exposing mutable storage.
+
+func _get_approximate_mesh_memory_bytes() -> int:
+	var bytes := 0
+	for instance in _loaded_chunks.values():
+		var mesh_instance := instance as MeshInstance3D
+		if mesh_instance == null or mesh_instance.mesh == null:
+			continue
+		var mesh := mesh_instance.mesh
+		for surface_index in mesh.get_surface_count():
+			# Position + normal are guaranteed by the current Surface Nets path. The
+			# estimate intentionally stays simple and stable for comparative QA.
+			bytes += mesh.surface_get_array_len(surface_index) * 24
+			bytes += mesh.surface_get_array_index_len(surface_index) * 4
+	return bytes
 
 
 # [b]Manifest Geometry[/b]
@@ -417,5 +493,6 @@ func _coordinate_less_than(a: Vector3i, b: Vector3i) -> bool:
 
 
 func _report_load_failure(coordinate: Vector3i, error: Error) -> Error:
+	_failed_load_count += 1
 	chunk_load_failed.emit(coordinate, error)
 	return error

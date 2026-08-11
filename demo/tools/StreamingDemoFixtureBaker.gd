@@ -12,8 +12,8 @@ const SURFACE_MATERIAL_PATH := "res://voxel/meshing/DemoTerrainSurface.tres"
 
 const CELL_DIMENSIONS := Vector3i(12, 12, 12)
 const SAMPLE_SPACING := 1.0
-const REGION_MIN := Vector3i(-2, 0, -2)
-const REGION_MAX := Vector3i(2, 0, 2)
+const REGION_MIN := Vector3i(-6, 0, -6)
+const REGION_MAX := Vector3i(6, 0, 6)
 const NOISE_SEED := 8675309
 const NOISE_FREQUENCY := 0.065
 const TERRAIN_BASE_HEIGHT := 4.0
@@ -21,13 +21,19 @@ const TERRAIN_HEIGHT_SCALE := 5.5
 const ISO_LEVEL := 0.0
 
 
-## Generates a 5 x 1 x 5 noise-driven Surface Nets region and serializes its manifest.
+## Generates a deterministic 13 x 1 x 13 asteroid-surface region and serializes its manifest.
+##
+## The 169-chunk scale is large enough to exercise sustained queueing, bounded
+## threaded loading, hysteresis, and repeated eviction while remaining practical
+## for CI and the threaded GitHub Pages Web export.
 func bake() -> Error:
 	var directory_error := DirAccess.make_dir_recursive_absolute(
 		ProjectSettings.globalize_path(OUTPUT_DIRECTORY)
 	)
 	if directory_error != OK and directory_error != ERR_ALREADY_EXISTS:
 		return directory_error
+
+	_cleanup_previous_chunks()
 
 	var baker := ChunkAssetBaker.new()
 	var manifest := TerrainChunkManifest.new()
@@ -75,6 +81,15 @@ func _create_field(sampling_center: Vector3, noise: FastNoiseLite) -> PointField
 	field.terrain_height_scale = TERRAIN_HEIGHT_SCALE
 	field.regenerate()
 	return field
+
+
+func _cleanup_previous_chunks() -> void:
+	var directory := DirAccess.open(OUTPUT_DIRECTORY)
+	if directory == null:
+		return
+	for filename in directory.get_files():
+		if filename.begins_with("StreamingDemoChunk_") and filename.ends_with(".tres"):
+			directory.remove(filename)
 
 
 func _asset_path(coordinate: Vector3i) -> String:
