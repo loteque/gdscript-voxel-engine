@@ -53,8 +53,8 @@ current = true
 [node name="Panel" type="PanelContainer" parent="UI"]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 720.0
-offset_bottom = 250.0
+offset_right = 820.0
+offset_bottom = 300.0
 
 [node name="Margin" type="MarginContainer" parent="UI/Panel"]
 theme_override_constants/margin_left = 12
@@ -66,14 +66,15 @@ theme_override_constants/margin_bottom = 10
 theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Camera-Relative Chunk Residency Validation"
+text = "Asynchronous Chunk Streaming Validation"
 
 [node name="Status" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Target chunk: loading\nResidency radius: 1\nLoaded chunks: 0\nLoaded coordinates: []\nState: not configured"
+text = "Target chunk: loading\nResidency radius: 1\nPending chunks: 0\nPending coordinates: []\nResident chunks: 0\nResident coordinates: []\nState: not configured"
 autowrap_mode = 2
 
 [node name="Instructions" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Orange marker moves across baked chunk boundaries. New terrain chunks load while obsolete chunks unload."
+text = "Orange marker crosses baked chunk boundaries. Requested chunks pass through queued/loading state before becoming resident; obsolete pending or resident chunks are removed cleanly."
+autowrap_mode = 2
 
 [node name="Buttons" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
 theme_override_constants/separation = 8
