@@ -2,17 +2,12 @@ extends Node3D
 
 ## Minimal runtime proof for loading a baked chunk through TerrainChunkManifest.
 
-
-# [b]Configuration[/b]
-# Supplies the baked catalog and coordinate under validation.
+const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 
 @export var manifest: TerrainChunkManifest
+@export_file("*.tres") var manifest_path: String = DEFAULT_MANIFEST_PATH
 @export var chunk_coordinate: Vector3i = Vector3i.ZERO
 @export var lod_level: int = 0
-
-
-# [b]Scene References[/b]
-# Keeps validation UI separate from the streaming implementation.
 
 @onready var _streamer: ChunkStreamer = $ChunkStreamer
 @onready var _status_label: Label = $UI/Panel/Margin/Content/Status
@@ -21,6 +16,8 @@ extends Node3D
 
 
 func _ready() -> void:
+	if manifest == null and not manifest_path.is_empty():
+		manifest = ResourceLoader.load(manifest_path) as TerrainChunkManifest
 	_streamer.manifest = manifest
 	_streamer.lod_level = lod_level
 	_streamer.chunk_loaded.connect(_on_chunk_loaded)
@@ -30,9 +27,6 @@ func _ready() -> void:
 	_unload_button.pressed.connect(_unload_chunk)
 	_load_chunk()
 
-
-# [b]Validation Actions[/b]
-# Exercises only the baked-asset runtime path.
 
 func _load_chunk() -> void:
 	var error := _streamer.load_chunk(chunk_coordinate)
@@ -49,29 +43,22 @@ func _unload_chunk() -> void:
 		_update_status("already unloaded")
 
 
-# [b]Status[/b]
-# Makes manifest lookup and residency state visible during manual QA.
-
 func _update_status(state: String) -> void:
 	var asset_path := "<missing manifest entry>"
 	if manifest != null:
 		var entry := manifest.find_entry(chunk_coordinate, lod_level)
 		if entry != null:
 			asset_path = entry.asset_path
-
-	_status_label.text = (
-		"Coordinate: %s\nLOD: %d\nAsset: %s\nState: %s"
-		% [chunk_coordinate, lod_level, asset_path, state]
-	)
+	_status_label.text = "Coordinate: %s\nLOD: %d\nAsset: %s\nState: %s" % [
+		chunk_coordinate, lod_level, asset_path, state
+	]
 
 
 func _on_chunk_loaded(_coordinate: Vector3i, _instance: MeshInstance3D) -> void:
 	_update_status("loaded")
 
-
 func _on_chunk_unloaded(_coordinate: Vector3i) -> void:
 	_update_status("unloaded")
-
 
 func _on_chunk_load_failed(_coordinate: Vector3i, error: Error) -> void:
 	_update_status("load failed: %s" % error_string(error))
