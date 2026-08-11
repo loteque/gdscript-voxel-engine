@@ -58,7 +58,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_poll_thread_smoke_test()
 	_record_frame_time(delta)
-	if _motion_enabled:
+	if _can_advance_target():
 		_advance_target(delta)
 	_follow_target_with_camera()
 	_update_status()
@@ -80,6 +80,18 @@ func get_recent_max_frame_time_msec() -> float:
 	for frame_time in _recent_frame_times_msec:
 		maximum = maxf(maximum, frame_time)
 	return maximum
+
+
+func _can_advance_target() -> bool:
+	return _motion_enabled and _streamer.get_pending_coordinates().is_empty()
+
+
+func _get_target_motion_state() -> String:
+	if not _motion_enabled:
+		return "paused"
+	if not _streamer.get_pending_coordinates().is_empty():
+		return "waiting for streaming"
+	return "moving"
 
 
 func _advance_target(delta: float) -> void:
@@ -212,7 +224,7 @@ func _update_status() -> void:
 			_thread_smoke_web_prerequisites,
 			_thread_smoke_state,
 			target_coordinate,
-			"moving" if _motion_enabled else "paused",
+			_get_target_motion_state(),
 			_streamer.load_radius,
 			_streamer.unload_radius,
 			_streamer.max_load_starts_per_frame,
