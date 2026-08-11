@@ -1,8 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://demo/ChunkStreamingValidationDemo.gd" id="1_demo"]
 [ext_resource type="Script" path="res://voxel/chunking/ChunkStreamer.gd" id="2_streamer"]
-[ext_resource type="Resource" path="res://demo/fixtures/StreamingDemoManifest.tres" id="3_manifest"]
 
 [sub_resource type="Environment" id="Environment_streaming"]
 background_mode = 1
@@ -13,7 +12,7 @@ ambient_light_energy = 0.75
 
 [node name="ChunkStreamingValidationDemo" type="Node3D"]
 script = ExtResource("1_demo")
-manifest = ExtResource("3_manifest")
+manifest_path = "res://demo/generated/StreamingDemoManifest.tres"
 
 [node name="ChunkStreamer" type="Node3D" parent="."]
 script = ExtResource("2_streamer")
@@ -49,10 +48,10 @@ theme_override_constants/margin_bottom = 10
 theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Baked Chunk Streaming Validation"
+text = "Baked Noise Terrain Streaming Validation"
 
 [node name="Status" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Coordinate: (0, 0, 0)\nLOD: 0\nAsset: loading manifest fixture\nState: not configured"
+text = "Coordinate: (0, 0, 0)\nLOD: 0\nAsset: loading baked noise terrain\nState: not configured"
 
 [node name="Buttons" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
 theme_override_constants/separation = 8
