@@ -6,7 +6,10 @@ extends Node3D
 # [b]Configuration[/b]
 # Supplies the baked catalog and coordinate under validation.
 
+const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
+
 @export var manifest: TerrainChunkManifest
+@export_file("*.tres") var manifest_path: String = DEFAULT_MANIFEST_PATH
 @export var chunk_coordinate: Vector3i = Vector3i.ZERO
 @export var lod_level: int = 0
 
@@ -21,6 +24,7 @@ extends Node3D
 
 
 func _ready() -> void:
+	_resolve_manifest()
 	_streamer.manifest = manifest
 	_streamer.lod_level = lod_level
 	_streamer.chunk_loaded.connect(_on_chunk_loaded)
@@ -47,6 +51,17 @@ func _unload_chunk() -> void:
 		_update_status("unloaded")
 	else:
 		_update_status("already unloaded")
+
+
+# [b]Manifest Resolution[/b]
+# Loads only the precomputed catalog required by the runtime streaming path.
+
+func _resolve_manifest() -> void:
+	if manifest != null:
+		return
+	if manifest_path.is_empty():
+		return
+	manifest = ResourceLoader.load(manifest_path) as TerrainChunkManifest
 
 
 # [b]Status[/b]
