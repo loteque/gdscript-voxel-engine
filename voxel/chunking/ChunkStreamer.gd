@@ -47,9 +47,30 @@ signal chunk_load_failed(coordinate: Vector3i, error: Error)
 ## LOD requested by coordinate-only load calls.
 @export var lod_level: int = 0
 
-## Radius, in chunk coordinates, maintained around the residency target.
+## Radius, in chunk coordinates, inside which available chunks are admitted.
 ## A radius of one considers a 3 x 3 x 3 coordinate neighborhood.
-@export_range(0, 16, 1) var residency_radius: int = 1
+@export_range(0, 16, 1) var load_radius: int = 1:
+	set(value):
+		load_radius = clampi(value, 0, 16)
+		if unload_radius < load_radius:
+			unload_radius = load_radius
+
+## Radius, in chunk coordinates, inside which resident or pending chunks are retained.
+## Values below [member load_radius] are normalized up to the load radius.
+@export_range(0, 16, 1) var unload_radius: int = 2:
+	set(value):
+		unload_radius = maxi(clampi(value, 0, 16), load_radius)
+
+## Compatibility alias for the former single-radius residency policy.
+## Setting this property assigns both [member load_radius] and [member unload_radius]
+## to the same value, reproducing the previous admission/eviction behavior.
+var residency_radius: int:
+	get:
+		return load_radius
+	set(value):
+		var radius := clampi(value, 0, 16)
+		load_radius = radius
+		unload_radius = radius
 
 ## Maximum number of queued requests that may begin loading in one process update.
 @export_range(1, 64, 1) var max_load_starts_per_frame: int = 2
@@ -159,13 +180,15 @@ func position_to_chunk_coordinate(local_position: Vector3) -> Vector3i:
 
 
 # [b]Residency[/b]
-# Builds neighborhood policy on the existing explicit load/unload API.
+# Separates admission from retention while reusing the explicit chunk APIs.
 
 ## Updates available baked-chunk residency around [param target_position].
 ##
 ## [param target_position] is expressed in this streamer's local terrain space.
-## Missing manifest coordinates are skipped cleanly. Existing explicit chunk APIs
-## remain authoritative for requesting and removing chunks.
+## Available chunks inside [member load_radius] are admitted. Existing resident or
+## pending chunks remain retained until they leave [member unload_radius]. Missing
+## manifest coordinates are skipped cleanly. Loading priority and budgets are not
+## changed by the hysteresis policy.
 func update_residency(target_position: Vector3) -> void:
 	if not _has_valid_manifest_geometry():
 		return
@@ -173,13 +196,9 @@ func update_residency(target_position: Vector3) -> void:
 	var target_coordinate := position_to_chunk_coordinate(target_position)
 	_priority_origin = target_coordinate
 	_has_priority_origin = true
-	var desired: Dictionary[Vector3i, bool] = {}
-	for z_offset in range(-residency_radius, residency_radius + 1):
-		for y_offset in range(-residency_radius, residency_radius + 1):
-			for x_offset in range(-residency_radius, residency_radius + 1):
-				var coordinate := target_coordinate + Vector3i(x_offset, y_offset, z_offset)
-				if manifest.has_entry(coordinate, lod_level):
-					desired[coordinate] = true
+
+	var admission := _get_available_coordinates_in_radius(target_coordinate, load_radius)
+	var retention := _get_available_coordinates_in_radius(target_coordinate, unload_radius)
 
 	var active_coordinates: Array[Vector3i] = get_loaded_coordinates()
 	for coordinate in get_pending_coordinates():
@@ -187,13 +206,13 @@ func update_residency(target_position: Vector3) -> void:
 			active_coordinates.append(coordinate)
 	active_coordinates.sort_custom(_coordinate_less_than)
 	for coordinate in active_coordinates:
-		if not desired.has(coordinate):
+		if not retention.has(coordinate):
 			unload_chunk(coordinate)
 
-	var desired_coordinates: Array[Vector3i] = []
-	desired_coordinates.assign(desired.keys())
-	desired_coordinates.sort_custom(_coordinate_less_than)
-	for coordinate in desired_coordinates:
+	var admission_coordinates: Array[Vector3i] = []
+	admission_coordinates.assign(admission.keys())
+	admission_coordinates.sort_custom(_coordinate_less_than)
+	for coordinate in admission_coordinates:
 		if not is_chunk_loaded(coordinate) and not is_chunk_pending(coordinate):
 			load_chunk(coordinate)
 
@@ -373,6 +392,20 @@ func _has_valid_manifest_geometry() -> bool:
 
 func _get_chunk_extent() -> Vector3:
 	return Vector3(manifest.chunk_cell_dimensions) * manifest.sample_spacing
+
+
+func _get_available_coordinates_in_radius(
+	center: Vector3i,
+	radius: int
+) -> Dictionary[Vector3i, bool]:
+	var coordinates: Dictionary[Vector3i, bool] = {}
+	for z_offset in range(-radius, radius + 1):
+		for y_offset in range(-radius, radius + 1):
+			for x_offset in range(-radius, radius + 1):
+				var coordinate := center + Vector3i(x_offset, y_offset, z_offset)
+				if manifest.has_entry(coordinate, lod_level):
+					coordinates[coordinate] = true
+	return coordinates
 
 
 func _coordinate_less_than(a: Vector3i, b: Vector3i) -> bool:
