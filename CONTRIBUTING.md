@@ -212,6 +212,32 @@ Before calling a browser-demonstrable feature merge-ready:
 
 If the published build has not been manually exercised, describe publication as complete but browser validation as outstanding.
 
+## Performance and Scaling Evidence
+
+Performance and scalability milestones must leave a durable evidence record under `docs/performance/` when their measurements materially inform later architecture or optimization work.
+
+Use the conventions in `docs/performance/README.md`.
+
+A performance report should record enough build, dataset, configuration, platform, and runtime context to make later comparisons meaningful. If a detail such as exact hardware was not recorded, say so rather than reconstructing it from memory.
+
+Keep these categories explicit and separate:
+
+```text
+measured evidence
+        ↓
+engineering inference
+        ↓
+decisions
+        ↓
+open questions / next experiments
+```
+
+Do not present an estimate or hypothesis as a measurement. Preserve qualifiers such as `approximate`, and do not treat validation-oriented frame-time observations as laboratory-grade benchmarks.
+
+When an earlier validation run is later found to contain a test or demo artifact, preserve the observation when it remains useful, explain the artifact, and identify the corrected run that should serve as the baseline.
+
+For a substantial performance/scaling PR, merge readiness additionally requires that applicable measured findings and their architectural implications are recorded in `docs/performance/` before the milestone is considered complete.
+
 ## Versioning and Changelog
 
 Substantial features may require a version change under the repository's established release policy. Keep version metadata synchronized wherever the project currently records it, including files such as `VERSION`, `project.godot`, splash/version metadata, and `CHANGELOG.md` when applicable.
@@ -231,6 +257,7 @@ Before describing a substantial feature PR as **ready to merge**, verify all app
 - validation-scene coverage passes;
 - the actual validation scene is exercised in CI where practical;
 - required version and changelog changes are complete;
+- applicable performance/scaling evidence is recorded under `docs/performance/`;
 - the relevant Integration Preview contains the current feature behavior;
 - the published browser build has been manually verified;
 - all required CI checks are green; and
@@ -253,6 +280,7 @@ A substantial feature PR should explain:
 - edge cases addressed;
 - automated tests added or updated;
 - validation-scene behavior;
+- performance/scaling evidence where applicable;
 - GitHub Pages/Integration Preview status where applicable;
 - manual browser QA status;
 - version/changelog changes; and
@@ -293,8 +321,9 @@ architecture
     + implementation
     + tests
     + validation scene
+    + performance evidence, when applicable
     + published browser QA, when applicable
     + green PR
 ```
 
-End-to-end delivery is part of engineering correctness. Do not wait for the project owner to request the validation, publication, or CI work that is already implied by the feature.
+End-to-end delivery is part of engineering correctness. Do not wait for the project owner to request the validation, publication, evidence recording, or CI work that is already implied by the feature.
