@@ -111,6 +111,9 @@ jobs:
             --export-release "Web" \
             build/web/chunks/index.html
 
+      - name: Bake streaming demo terrain fixture
+        run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
+
       - name: Export chunk streaming demo
         shell: bash
         run: |
@@ -207,7 +210,6 @@ jobs:
             git -C "$ARCHIVE" rm -rf .
           fi
 
-          # Remove legacy root build output accidentally committed by earlier deployments.
           rm -rf "$ARCHIVE/build"
 
           if [ "$PUBLICATION_TYPE" = "release" ]; then
@@ -216,11 +218,8 @@ jobs:
               exit 1
             fi
 
-            # Preserve the historical version-root URL as the primary terrain demo.
             mkdir -p "$ARCHIVE/$ARCHIVE_PATH"
             cp -a "$RUNNER_TEMP/web-build/terrain/." "$ARCHIVE/$ARCHIVE_PATH/"
-
-            # Additional demos live below the same immutable version directory.
             mkdir -p "$ARCHIVE/$ARCHIVE_PATH/chunks"
             cp -a "$RUNNER_TEMP/web-build/chunks/." "$ARCHIVE/$ARCHIVE_PATH/chunks/"
             mkdir -p "$ARCHIVE/$ARCHIVE_PATH/streaming"
@@ -241,8 +240,6 @@ jobs:
           </html>
           EOF
           else
-            # The integration preview is intentionally mutable: each successful
-            # integration build replaces the previous preview without touching releases.
             rm -rf "$ARCHIVE/$ARCHIVE_PATH"
             mkdir -p "$ARCHIVE/$ARCHIVE_PATH"
             cp -a "$RUNNER_TEMP/web-build/terrain/." "$ARCHIVE/$ARCHIVE_PATH/"

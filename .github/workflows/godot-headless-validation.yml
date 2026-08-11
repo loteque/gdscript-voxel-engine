@@ -34,11 +34,7 @@ jobs:
           GODOT_VERSION="4.7.1-stable"
           GODOT_ARCHIVE="Godot_v${GODOT_VERSION}_linux.x86_64.zip"
           GODOT_BINARY="Godot_v${GODOT_VERSION}_linux.x86_64"
-
-          curl --fail --location --silent --show-error \
-            --output "$GODOT_ARCHIVE" \
-            "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/${GODOT_ARCHIVE}"
-
+          curl --fail --location --silent --show-error --output "$GODOT_ARCHIVE" "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/${GODOT_ARCHIVE}"
           unzip -q "$GODOT_ARCHIVE"
           install -m 0755 "$GODOT_BINARY" /usr/local/bin/godot
           godot --version
@@ -46,44 +42,34 @@ jobs:
       - name: Import project headlessly
         run: godot --headless --path . --import
 
+      - name: Bake streaming demo terrain fixture
+        run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
+
       - name: Run surface orientation tests
         run: godot --headless --path . --script tests/test_surface_orientation.gd
-
       - name: Run point field state tests
         run: godot --headless --path . --script tests/test_point_field_state.gd
-
       - name: Run point field integration tests
         run: godot --headless --path . --script tests/test_point_field_integration.gd
-
       - name: Run asteroid generation contract tests
         run: godot --headless --path . --script tests/test_asteroid_generation_contracts.gd
-
       - name: Run chunk foundation tests
         run: godot --headless --path . --script tests/test_chunk_foundation.gd
-
       - name: Run chunk Surface Nets grid tests
         run: godot --headless --path . --script tests/test_chunk_surface_nets_grid.gd
-
       - name: Run chunk streaming tests
         run: godot --headless --path . --script tests/test_chunk_streaming.gd
-
       - name: Run chunk visualizer tests
         run: godot --headless --path . --script tests/test_chunk_visualizer.gd
-
       - name: Run chunk validation scene test
         run: godot --headless --path . --script tests/test_chunk_validation_scene.gd
-
       - name: Start chunk validation scene headlessly
         run: godot --headless --path . demo/ChunkValidationDemo.tscn --quit-after 8
-
       - name: Run loading indicator UI tests
         run: godot --headless --path . --script tests/test_loading_indicator_ui.gd
-
       - name: Run mobile touch control tests
         run: godot --headless --path . --script tests/test_mobile_touch_controls.gd
-
       - name: Run main scene loading wiring test
         run: godot --headless --path . --script tests/test_main_scene_loading_wiring.gd
-
       - name: Start main scene headlessly
         run: godot --headless --path . --quit-after 2
