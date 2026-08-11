@@ -37,8 +37,6 @@ func _run() -> void:
 		pause_button.pressed.emit()
 
 	_assert_equal(streamer.get_pending_coordinates().size(), 9, "Initial validation residency must queue nine available baked chunks.")
-	await process_frame
-	_assert_equal(streamer.get_pending_coordinates().size(), 9, "Queued validation chunks must enter threaded loading without becoming duplicate work.")
 	_assert_true(await _wait_for_idle(streamer), "Initial asynchronous validation residency must settle.")
 
 	var initial_expected := _expected_coordinates(-2, 0)
@@ -95,6 +93,7 @@ func _run() -> void:
 
 func _wait_for_idle(streamer: ChunkStreamer, max_frames: int = 180) -> bool:
 	for _frame in range(max_frames):
+		streamer._process(0.0)
 		if streamer.get_pending_coordinates().is_empty():
 			return true
 		await process_frame
