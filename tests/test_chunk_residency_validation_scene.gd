@@ -73,6 +73,11 @@ func _run() -> void:
 			"Chunks shared by consecutive residency sets must keep their existing instances."
 		)
 
+	# unload_chunk() removes residency synchronously but frees scene nodes at the
+	# end of the frame. Advance once before checking physical child cleanup.
+	await process_frame
+	_assert_equal(streamer.get_child_count(), 9, "Queued obsolete chunk instances must be freed after one frame.")
+
 	streamer.update_residency(target.position)
 	_assert_coordinates_equal(
 		streamer.get_loaded_coordinates(),
@@ -82,7 +87,6 @@ func _run() -> void:
 	_assert_equal(streamer.get_child_count(), 9, "Duplicate validation updates must not create duplicate MeshInstance3D nodes.")
 
 	if status_label != null:
-		await process_frame
 		_assert_true(status_label.text.contains("Target chunk: (1, 0, 0)"), "Validation UI must display the current target chunk coordinate.")
 		_assert_true(status_label.text.contains("Loaded chunks: 9"), "Validation UI must display the current resident chunk count.")
 
