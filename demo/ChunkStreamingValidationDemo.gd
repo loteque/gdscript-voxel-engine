@@ -19,6 +19,7 @@ const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 
 var _motion_direction: float = 1.0
 var _motion_enabled: bool = true
+var _streaming_state: String = "not configured"
 
 
 func _ready() -> void:
@@ -36,7 +37,7 @@ func _ready() -> void:
 	_pause_button.pressed.connect(_toggle_motion)
 	_reset_button.pressed.connect(_reset_target)
 	_streamer.update_residency(_target.position)
-	_update_status("residency active")
+	_set_streaming_state("residency active")
 
 
 func _process(delta: float) -> void:
@@ -48,58 +49,71 @@ func _process(delta: float) -> void:
 		elif _target.position.x <= target_min_x:
 			_target.position.x = target_min_x
 			_motion_direction = 1.0
-	_update_status("moving" if _motion_enabled else "paused")
+	_update_status()
 
 
 func _toggle_motion() -> void:
 	_motion_enabled = not _motion_enabled
 	_pause_button.text = "Pause Target" if _motion_enabled else "Resume Target"
+	_update_status()
 
 
 func _reset_target() -> void:
 	_target.position.x = target_min_x
 	_motion_direction = 1.0
 	_streamer.update_residency(_target.position)
-	_update_status("target reset")
+	_set_streaming_state("target reset")
 
 
-func _update_status(state: String) -> void:
+func _set_streaming_state(state: String) -> void:
+	_streaming_state = state
+	_update_status()
+
+
+func _update_status() -> void:
 	if manifest == null:
-		_status_label.text = "Manifest: missing\nState: %s" % state
+		_status_label.text = "Manifest: missing\nStreaming state: %s" % _streaming_state
 		return
 
 	var target_coordinate := _streamer.position_to_chunk_coordinate(_target.position)
 	var loaded_coordinates := _streamer.get_loaded_coordinates()
 	var pending_coordinates := _streamer.get_pending_coordinates()
+	var surface_count := 0
+	for coordinate in loaded_coordinates:
+		var instance := _streamer.get_chunk_instance(coordinate)
+		if instance != null and instance.mesh != null:
+			surface_count += instance.mesh.get_surface_count()
 	_status_label.text = (
-		"Target chunk: %s\nResidency radius: %d\nPending chunks: %d\nPending coordinates: %s\nResident chunks: %d\nResident coordinates: %s\nState: %s"
+		"Target chunk: %s\nTarget motion: %s\nResidency radius: %d\nPending chunks: %d\nPending coordinates: %s\nResident chunks: %d\nResident surfaces: %d\nResident coordinates: %s\nStreaming state: %s"
 		% [
 			target_coordinate,
+			"moving" if _motion_enabled else "paused",
 			residency_radius,
 			pending_coordinates.size(),
 			pending_coordinates,
 			loaded_coordinates.size(),
+			surface_count,
 			loaded_coordinates,
-			state,
+			_streaming_state,
 		]
 	)
 
 
 func _on_chunk_load_queued(_coordinate: Vector3i) -> void:
-	_update_status("chunk queued")
+	_set_streaming_state("chunk queued")
 
 
 func _on_chunk_load_started(_coordinate: Vector3i) -> void:
-	_update_status("chunk loading")
+	_set_streaming_state("chunk loading")
 
 
 func _on_residency_changed(_coordinate: Vector3i, _instance: MeshInstance3D) -> void:
-	_update_status("chunk resident")
+	_set_streaming_state("chunk resident")
 
 
 func _on_chunk_unloaded(_coordinate: Vector3i) -> void:
-	_update_status("chunk unloaded")
+	_set_streaming_state("chunk unloaded")
 
 
 func _on_chunk_load_failed(coordinate: Vector3i, error: Error) -> void:
-	_update_status("load failed %s: %s" % [coordinate, error_string(error)])
+	_set_streaming_state("load failed %s: %s" % [coordinate, error_string(error)])
