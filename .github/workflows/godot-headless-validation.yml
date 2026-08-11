@@ -46,6 +46,9 @@ jobs:
       - name: Import project headlessly
         run: godot --headless --path . --import
 
+      - name: Bake streaming demo terrain fixture
+        run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
+
       - name: Run surface orientation tests
         run: godot --headless --path . --script tests/test_surface_orientation.gd
 
