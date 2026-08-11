@@ -81,6 +81,7 @@ func _test_large_runtime_streaming(manifest: TerrainChunkManifest) -> void:
 	_assert_true(int(settled["approximate_mesh_memory_bytes"]) > 0, "Resident mesh memory estimate must be positive for rendered terrain.")
 	_assert_true(float(settled["average_load_latency_msec"]) >= 0.0, "Average latency must be structurally non-negative.")
 	_assert_true(int(settled["maximum_load_latency_msec"]) >= 0, "Maximum latency must be structurally non-negative.")
+	print("Large streaming settled metrics: %s" % settled)
 
 	streamer.update_residency(Vector3(12.5, 0.5, 0.5))
 	_assert_true(await _wait_for_idle(streamer), "Hysteretic movement across one chunk must settle.")
@@ -89,6 +90,7 @@ func _test_large_runtime_streaming(manifest: TerrainChunkManifest) -> void:
 	_assert_equal(retained["peak_resident_count"], 30, "Peak resident count must grow with the hysteresis band.")
 	_assert_equal(retained["completed_load_count"], 30, "Five newly admitted chunks must increase completed load count exactly.")
 	_assert_equal(retained["unload_count"], 0, "Crossing only the load boundary must not evict retained chunks.")
+	print("Large streaming retained metrics: %s" % retained)
 
 	streamer.update_residency(Vector3(48.5, 0.5, 0.5))
 	_assert_true(int(streamer.get_streaming_metrics()["unload_count"]) > 0, "Moving beyond the unload radius must record resident eviction.")
@@ -96,6 +98,7 @@ func _test_large_runtime_streaming(manifest: TerrainChunkManifest) -> void:
 	var moved := streamer.get_streaming_metrics()
 	_assert_true(int(moved["completed_load_count"]) > 30, "Traversal must accumulate completed loads beyond the resident set size.")
 	_assert_true(int(moved["residency_churn_count"]) >= int(moved["unload_count"]), "Residency churn must include unload activity.")
+	print("Large streaming moved metrics: %s" % moved)
 
 	var failures_before := int(moved["failed_load_count"])
 	_assert_true(streamer.load_chunk(Vector3i(99, 0, 99)) != OK, "Missing explicit load must fail coherently.")
