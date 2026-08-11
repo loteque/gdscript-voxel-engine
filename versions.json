@@ -155,7 +155,7 @@
     },
     {
       "key": "streaming",
-      "name": "Chunk Streaming Demo",
+      "name": "Runtime Streaming Validation Demo",
       "releases": [
         {
           "id": "integration",
@@ -170,19 +170,6 @@
           "version": "0.8.0",
           "type": "release",
           "path": "0.8.0/streaming/"
-        }
-      ]
-    },
-    {
-      "key": "residency",
-      "name": "Chunk Residency Validation Demo",
-      "releases": [
-        {
-          "id": "integration",
-          "label": "Integration Preview",
-          "version": "Integration Preview",
-          "type": "preview",
-          "path": "preview/integration/residency/"
         }
       ]
     }
