@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.13.1
+
+### Fixed
+- Fixed a `ChunkStreamingValidationDemo` frame-time local that inferred `Variant` from `Array.back()`, which is rejected because GDScript warnings are treated as errors in headless validation.
+- Restored parsing of the streaming validation scene and its headless scene-wiring test without changing runtime streaming behavior.
+
 ## 0.13.0
 
 ### Added
