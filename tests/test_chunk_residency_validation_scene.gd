@@ -36,14 +36,19 @@ func _run() -> void:
 
 	if pause_button != null:
 		pause_button.pressed.emit()
+	streamer.process_mode = Node.PROCESS_MODE_DISABLED
 
 	_assert_equal(streamer.get_queued_coordinates().size(), 25, "Initial large validation admission must create a 25-chunk queue.")
 	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(-4, 0, -4), "Nearest-first scheduling must prioritize the target chunk.")
 	_assert_equal(streamer.get_loading_coordinates().size(), 0, "Scene wiring test must not start background loading; the dedicated scale test owns async execution proof.")
 
+	_assert_true(await _wait_for_thread_smoke(scene), "Validation scene thread smoke task must complete before teardown.")
+	_assert_equal(scene.call("get_thread_smoke_state"), "PASS", "Headless validation must preserve WorkerThreadPool smoke coverage.")
+
 	if status_label != null:
 		scene.call("_update_status")
 		_assert_true(status_label.text.contains("Dataset: 169 single-LOD chunks"), "Validation UI must identify the large dataset.")
+		_assert_true(status_label.text.contains("Thread smoke: PASS"), "Validation UI must expose successful worker-thread execution.")
 		_assert_true(status_label.text.contains("Load radius: 2"), "Validation UI must display the admission radius.")
 		_assert_true(status_label.text.contains("Unload radius: 3"), "Validation UI must display the retention radius.")
 		_assert_true(status_label.text.contains("Load budget: 2 starts/frame, 4 concurrent"), "Validation UI must display scheduler budgets.")
@@ -54,6 +59,15 @@ func _run() -> void:
 		_assert_true(status_label.text.contains("Recent max frame time:"), "Validation UI must expose recent frame-time observation.")
 
 	await _finish(scene)
+
+
+func _wait_for_thread_smoke(scene: Node, max_frames: int = 240) -> bool:
+	for _frame in range(max_frames):
+		scene.call("_poll_thread_smoke_test")
+		if bool(scene.call("is_thread_smoke_complete")):
+			return true
+		await process_frame
+	return bool(scene.call("is_thread_smoke_complete"))
 
 
 func _finish(scene: Node) -> void:
