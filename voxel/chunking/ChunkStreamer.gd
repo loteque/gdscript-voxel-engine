@@ -8,9 +8,31 @@ extends Node3D
 ## systems remain offline concerns for the asteroid pipeline.
 
 
-# [b]Signals[/b]
-# Reports observable residency changes without exposing storage internals.
+enum ChunkLoadState {
+	UNLOADED,
+	QUEUED,
+	LOADING,
+	RESIDENT,
+}
 
+
+class ChunkLoadRequest:
+	extends RefCounted
+
+	var coordinate: Vector3i
+	var asset_path: String
+	var state: ChunkLoadState = ChunkLoadState.QUEUED
+
+	func _init(request_coordinate: Vector3i, request_asset_path: String) -> void:
+		coordinate = request_coordinate
+		asset_path = request_asset_path
+
+
+# [b]Signals[/b]
+# Reports observable loading and residency changes without exposing storage internals.
+
+signal chunk_load_queued(coordinate: Vector3i)
+signal chunk_load_started(coordinate: Vector3i)
 signal chunk_loaded(coordinate: Vector3i, instance: MeshInstance3D)
 signal chunk_unloaded(coordinate: Vector3i)
 signal chunk_load_failed(coordinate: Vector3i, error: Error)
@@ -34,25 +56,45 @@ signal chunk_load_failed(coordinate: Vector3i, error: Error)
 
 
 # [b]Runtime Storage[/b]
-# Tracks only currently resident scene instances.
+# Separates pending loading work from currently resident scene instances.
 
 var _loaded_chunks: Dictionary[Vector3i, MeshInstance3D] = {}
+var _load_requests: Dictionary[Vector3i, ChunkLoadRequest] = {}
 
 
 # [b]Runtime Update[/b]
-# Converts an explicit scene target into streamer-local residency updates.
+# Runs residency policy and loading execution as separate stages each frame.
 
 func _process(_delta: float) -> void:
 	if target != null:
 		update_residency(to_local(target.global_position))
 
+	_poll_loading_requests()
+	_start_queued_loads()
+
 
 # [b]Queries[/b]
-# Exposes residency and deterministic chunk-space conversion.
+# Exposes residency, pending work, and deterministic chunk-space conversion.
 
 ## Returns whether [param coordinate] currently has a resident mesh instance.
 func is_chunk_loaded(coordinate: Vector3i) -> bool:
 	return _loaded_chunks.has(coordinate)
+
+
+## Returns whether [param coordinate] currently has queued or loading work.
+func is_chunk_pending(coordinate: Vector3i) -> bool:
+	return _load_requests.has(coordinate)
+
+
+## Returns the current loading lifecycle state for [param coordinate].
+func get_chunk_load_state(coordinate: Vector3i) -> ChunkLoadState:
+	if is_chunk_loaded(coordinate):
+		return ChunkLoadState.RESIDENT
+
+	var request := _load_requests.get(coordinate) as ChunkLoadRequest
+	if request != null:
+		return request.state
+	return ChunkLoadState.UNLOADED
 
 
 ## Returns the resident mesh instance for [param coordinate], or null.
@@ -64,6 +106,14 @@ func get_chunk_instance(coordinate: Vector3i) -> MeshInstance3D:
 func get_loaded_coordinates() -> Array[Vector3i]:
 	var coordinates: Array[Vector3i] = []
 	coordinates.assign(_loaded_chunks.keys())
+	coordinates.sort_custom(_coordinate_less_than)
+	return coordinates
+
+
+## Returns all queued or loading chunk coordinates in deterministic x/y/z order.
+func get_pending_coordinates() -> Array[Vector3i]:
+	var coordinates: Array[Vector3i] = []
+	coordinates.assign(_load_requests.keys())
 	coordinates.sort_custom(_coordinate_less_than)
 	return coordinates
 
@@ -91,7 +141,7 @@ func position_to_chunk_coordinate(local_position: Vector3) -> Vector3i:
 ##
 ## [param target_position] is expressed in this streamer's local terrain space.
 ## Missing manifest coordinates are skipped cleanly. Existing explicit chunk APIs
-## remain authoritative for the actual load and unload operations.
+## remain authoritative for requesting and removing chunks.
 func update_residency(target_position: Vector3) -> void:
 	if not _has_valid_manifest_geometry():
 		return
@@ -105,7 +155,12 @@ func update_residency(target_position: Vector3) -> void:
 				if manifest.has_entry(coordinate, lod_level):
 					desired[coordinate] = true
 
-	for coordinate in get_loaded_coordinates():
+	var active_coordinates: Array[Vector3i] = get_loaded_coordinates()
+	for coordinate in get_pending_coordinates():
+		if not active_coordinates.has(coordinate):
+			active_coordinates.append(coordinate)
+	active_coordinates.sort_custom(_coordinate_less_than)
+	for coordinate in active_coordinates:
 		if not desired.has(coordinate):
 			unload_chunk(coordinate)
 
@@ -113,16 +168,17 @@ func update_residency(target_position: Vector3) -> void:
 	desired_coordinates.assign(desired.keys())
 	desired_coordinates.sort_custom(_coordinate_less_than)
 	for coordinate in desired_coordinates:
-		if not is_chunk_loaded(coordinate):
+		if not is_chunk_loaded(coordinate) and not is_chunk_pending(coordinate):
 			load_chunk(coordinate)
 
 
-## Loads one precomputed chunk and adds its mesh instance as a child.
+## Requests one precomputed chunk for asynchronous loading.
 ##
-## Duplicate requests are idempotent. Returns an error when the manifest entry,
-## resource, or serialized asset contract is invalid.
+## Duplicate requests are idempotent. A successful return means the request was
+## accepted or the chunk is already active; residency becomes observable through
+## [method is_chunk_loaded] and [signal chunk_loaded] after threaded loading completes.
 func load_chunk(coordinate: Vector3i) -> Error:
-	if is_chunk_loaded(coordinate):
+	if is_chunk_loaded(coordinate) or is_chunk_pending(coordinate):
 		return OK
 	if manifest == null:
 		return _report_load_failure(coordinate, ERR_UNCONFIGURED)
@@ -130,32 +186,23 @@ func load_chunk(coordinate: Vector3i) -> Error:
 	var entry := manifest.find_entry(coordinate, lod_level)
 	if entry == null or not entry.is_valid():
 		return _report_load_failure(coordinate, ERR_DOES_NOT_EXIST)
-
-	var asset := _load_chunk_asset(entry)
-	if asset == null:
+	if not ResourceLoader.exists(entry.asset_path):
 		return _report_load_failure(coordinate, ERR_CANT_OPEN)
-	if not asset.is_valid():
-		return _report_load_failure(coordinate, ERR_INVALID_DATA)
-	if asset.chunk_coordinate != coordinate or asset.lod_level != lod_level:
-		return _report_load_failure(coordinate, ERR_INVALID_DATA)
 
-	var instance := MeshInstance3D.new()
-	instance.name = "StreamedChunk_%d_%d_%d_L%d" % [
-		coordinate.x,
-		coordinate.y,
-		coordinate.z,
-		lod_level,
-	]
-	instance.mesh = asset.mesh
-	instance.position = asset.local_origin
-	add_child(instance)
-	_loaded_chunks[coordinate] = instance
-	chunk_loaded.emit(coordinate, instance)
+	_load_requests[coordinate] = ChunkLoadRequest.new(coordinate, entry.asset_path)
+	chunk_load_queued.emit(coordinate)
 	return OK
 
 
-## Unloads one resident chunk. Returns false when it was not loaded.
+## Removes a resident chunk or cancels its pending residency request.
+##
+## Godot does not expose cancellation for an already-started threaded resource
+## load. Removing the request is therefore a logical cancellation: any eventual
+## cached resource result is ignored and no MeshInstance3D is created.
 func unload_chunk(coordinate: Vector3i) -> bool:
+	if _load_requests.erase(coordinate):
+		return true
+
 	var instance := get_chunk_instance(coordinate)
 	if instance == null:
 		return false
@@ -166,11 +213,81 @@ func unload_chunk(coordinate: Vector3i) -> bool:
 	return true
 
 
-## Unloads every resident chunk.
+## Cancels pending requests and unloads every resident chunk.
 func clear_chunks() -> void:
+	_load_requests.clear()
 	var coordinates := get_loaded_coordinates()
 	for coordinate in coordinates:
 		unload_chunk(coordinate)
+
+
+# [b]Loading Execution[/b]
+# Owns threaded ResourceLoader lifecycle independently of residency policy.
+
+func _poll_loading_requests() -> void:
+	var coordinates := get_pending_coordinates()
+	for coordinate in coordinates:
+		var request := _load_requests.get(coordinate) as ChunkLoadRequest
+		if request == null or request.state != ChunkLoadState.LOADING:
+			continue
+
+		var status := ResourceLoader.load_threaded_get_status(request.asset_path)
+		match status:
+			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				continue
+			ResourceLoader.THREAD_LOAD_LOADED:
+				_complete_load_request(request)
+			ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+				_fail_load_request(request.coordinate, ERR_CANT_OPEN)
+
+
+func _start_queued_loads() -> void:
+	var coordinates := get_pending_coordinates()
+	for coordinate in coordinates:
+		var request := _load_requests.get(coordinate) as ChunkLoadRequest
+		if request == null or request.state != ChunkLoadState.QUEUED:
+			continue
+
+		var error := ResourceLoader.load_threaded_request(request.asset_path)
+		if error != OK:
+			_fail_load_request(coordinate, error)
+			continue
+
+		request.state = ChunkLoadState.LOADING
+		chunk_load_started.emit(coordinate)
+
+
+func _complete_load_request(request: ChunkLoadRequest) -> void:
+	var resource := ResourceLoader.load_threaded_get(request.asset_path)
+	var asset := resource as TerrainChunkAsset
+	if asset == null:
+		_fail_load_request(request.coordinate, ERR_INVALID_DATA)
+		return
+	if not asset.is_valid():
+		_fail_load_request(request.coordinate, ERR_INVALID_DATA)
+		return
+	if asset.chunk_coordinate != request.coordinate or asset.lod_level != lod_level:
+		_fail_load_request(request.coordinate, ERR_INVALID_DATA)
+		return
+
+	_load_requests.erase(request.coordinate)
+	var instance := MeshInstance3D.new()
+	instance.name = "StreamedChunk_%d_%d_%d_L%d" % [
+		request.coordinate.x,
+		request.coordinate.y,
+		request.coordinate.z,
+		lod_level,
+	]
+	instance.mesh = asset.mesh
+	instance.position = asset.local_origin
+	add_child(instance)
+	_loaded_chunks[request.coordinate] = instance
+	chunk_loaded.emit(request.coordinate, instance)
+
+
+func _fail_load_request(coordinate: Vector3i, error: Error) -> void:
+	_load_requests.erase(coordinate)
+	_report_load_failure(coordinate, error)
 
 
 # [b]Manifest Geometry[/b]
@@ -196,15 +313,6 @@ func _coordinate_less_than(a: Vector3i, b: Vector3i) -> bool:
 	if a.y != b.y:
 		return a.y < b.y
 	return a.z < b.z
-
-
-# [b]Resource Loading[/b]
-# Isolates synchronous I/O so a threaded loader can replace it later.
-
-func _load_chunk_asset(entry: TerrainChunkManifestEntry) -> TerrainChunkAsset:
-	if not ResourceLoader.exists(entry.asset_path):
-		return null
-	return ResourceLoader.load(entry.asset_path) as TerrainChunkAsset
 
 
 func _report_load_failure(coordinate: Vector3i, error: Error) -> Error:

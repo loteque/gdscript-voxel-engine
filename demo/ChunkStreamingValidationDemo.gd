@@ -1,8 +1,9 @@
 extends Node3D
 
-## Runtime proof for target-relative residency using only baked chunk assets.
+## Runtime proof for target-relative residency and asynchronous baked-chunk loading.
 
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
+const THREAD_SMOKE_TIMEOUT_MSEC := 5000
 
 @export var manifest: TerrainChunkManifest
 @export_file("*.tres") var manifest_path: String = DEFAULT_MANIFEST_PATH
@@ -19,6 +20,12 @@ const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 
 var _motion_direction: float = 1.0
 var _motion_enabled: bool = true
+var _streaming_state: String = "not configured"
+var _thread_smoke_task_id: int = -1
+var _thread_smoke_started_msec: int = 0
+var _thread_smoke_state: String = "not started"
+var _thread_smoke_web_prerequisites: String = "not checked"
+var _thread_smoke_timed_out: bool = false
 
 
 func _ready() -> void:
@@ -28,16 +35,20 @@ func _ready() -> void:
 	_streamer.manifest = manifest
 	_streamer.residency_radius = residency_radius
 	_streamer.target = _target
+	_streamer.chunk_load_queued.connect(_on_chunk_load_queued)
+	_streamer.chunk_load_started.connect(_on_chunk_load_started)
 	_streamer.chunk_loaded.connect(_on_residency_changed)
 	_streamer.chunk_unloaded.connect(_on_chunk_unloaded)
 	_streamer.chunk_load_failed.connect(_on_chunk_load_failed)
 	_pause_button.pressed.connect(_toggle_motion)
 	_reset_button.pressed.connect(_reset_target)
+	_start_thread_smoke_test()
 	_streamer.update_residency(_target.position)
-	_update_status("residency active")
+	_set_streaming_state("residency active")
 
 
 func _process(delta: float) -> void:
+	_poll_thread_smoke_test()
 	if _motion_enabled:
 		_target.position.x += target_speed * _motion_direction * delta
 		if _target.position.x >= target_max_x:
@@ -46,41 +57,139 @@ func _process(delta: float) -> void:
 		elif _target.position.x <= target_min_x:
 			_target.position.x = target_min_x
 			_motion_direction = 1.0
-	_update_status("moving" if _motion_enabled else "paused")
+	_update_status()
+
+
+## Returns whether the validation thread smoke test reached a terminal state.
+func is_thread_smoke_complete() -> bool:
+	return _thread_smoke_state.begins_with("PASS") or _thread_smoke_state.begins_with("FAIL")
+
+
+## Returns the current validation thread smoke-test state.
+func get_thread_smoke_state() -> String:
+	return _thread_smoke_state
 
 
 func _toggle_motion() -> void:
 	_motion_enabled = not _motion_enabled
 	_pause_button.text = "Pause Target" if _motion_enabled else "Resume Target"
+	_update_status()
 
 
 func _reset_target() -> void:
 	_target.position.x = target_min_x
 	_motion_direction = 1.0
 	_streamer.update_residency(_target.position)
-	_update_status("target reset")
+	_set_streaming_state("target reset")
 
 
-func _update_status(state: String) -> void:
+func _set_streaming_state(state: String) -> void:
+	_streaming_state = state
+	_update_status()
+
+
+# [b]Thread Smoke Test[/b]
+# Proves browser thread prerequisites and actual WorkerThreadPool task execution.
+
+func _start_thread_smoke_test() -> void:
+	if OS.has_feature("web"):
+		var browser_ready := bool(JavaScriptBridge.eval(
+			"globalThis.crossOriginIsolated === true && typeof SharedArrayBuffer !== 'undefined'",
+			true
+		))
+		_thread_smoke_web_prerequisites = "PASS" if browser_ready else "FAIL"
+	else:
+		_thread_smoke_web_prerequisites = "N/A (non-Web)"
+
+	_thread_smoke_state = "RUNNING"
+	_thread_smoke_started_msec = Time.get_ticks_msec()
+	_thread_smoke_task_id = WorkerThreadPool.add_task(
+		_run_thread_smoke_worker,
+		false,
+		"Chunk streaming validation thread smoke"
+	)
+
+
+func _poll_thread_smoke_test() -> void:
+	if _thread_smoke_task_id < 0:
+		return
+
+	if WorkerThreadPool.is_task_completed(_thread_smoke_task_id):
+		var completion_error := WorkerThreadPool.wait_for_task_completion(_thread_smoke_task_id)
+		_thread_smoke_task_id = -1
+		if completion_error != OK:
+			_thread_smoke_state = "FAIL worker completion: %s" % error_string(completion_error)
+		elif _thread_smoke_timed_out:
+			_thread_smoke_state = "FAIL worker timeout"
+		elif OS.has_feature("web") and _thread_smoke_web_prerequisites != "PASS":
+			_thread_smoke_state = "FAIL browser prerequisites"
+		else:
+			_thread_smoke_state = "PASS"
+		return
+
+	if not _thread_smoke_timed_out \
+		and Time.get_ticks_msec() - _thread_smoke_started_msec > THREAD_SMOKE_TIMEOUT_MSEC:
+		_thread_smoke_timed_out = true
+		_thread_smoke_state = "FAIL worker timeout"
+
+
+func _run_thread_smoke_worker() -> void:
+	var checksum := 0
+	for index in range(100000):
+		checksum = (checksum + index * 17) % 104729
+	if checksum < 0:
+		push_error("Unreachable thread smoke checksum state.")
+
+
+func _update_status() -> void:
 	if manifest == null:
-		_status_label.text = "Manifest: missing\nState: %s" % state
+		_status_label.text = (
+			"Manifest: missing\nWeb thread prerequisites: %s\nThread smoke: %s\nStreaming state: %s"
+			% [_thread_smoke_web_prerequisites, _thread_smoke_state, _streaming_state]
+		)
 		return
 
 	var target_coordinate := _streamer.position_to_chunk_coordinate(_target.position)
 	var loaded_coordinates := _streamer.get_loaded_coordinates()
+	var pending_coordinates := _streamer.get_pending_coordinates()
+	var surface_count := 0
+	for coordinate in loaded_coordinates:
+		var instance := _streamer.get_chunk_instance(coordinate)
+		if instance != null and instance.mesh != null:
+			surface_count += instance.mesh.get_surface_count()
 	_status_label.text = (
-		"Target chunk: %s\nResidency radius: %d\nLoaded chunks: %d\nLoaded coordinates: %s\nState: %s"
-		% [target_coordinate, residency_radius, loaded_coordinates.size(), loaded_coordinates, state]
+		"Web thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nResidency radius: %d\nPending chunks: %d\nPending coordinates: %s\nResident chunks: %d\nResident surfaces: %d\nResident coordinates: %s\nStreaming state: %s"
+		% [
+			_thread_smoke_web_prerequisites,
+			_thread_smoke_state,
+			target_coordinate,
+			"moving" if _motion_enabled else "paused",
+			residency_radius,
+			pending_coordinates.size(),
+			pending_coordinates,
+			loaded_coordinates.size(),
+			surface_count,
+			loaded_coordinates,
+			_streaming_state,
+		]
 	)
 
 
+func _on_chunk_load_queued(_coordinate: Vector3i) -> void:
+	_set_streaming_state("chunk queued")
+
+
+func _on_chunk_load_started(_coordinate: Vector3i) -> void:
+	_set_streaming_state("chunk loading")
+
+
 func _on_residency_changed(_coordinate: Vector3i, _instance: MeshInstance3D) -> void:
-	_update_status("chunk loaded")
+	_set_streaming_state("chunk resident")
 
 
 func _on_chunk_unloaded(_coordinate: Vector3i) -> void:
-	_update_status("chunk unloaded")
+	_set_streaming_state("chunk unloaded")
 
 
 func _on_chunk_load_failed(coordinate: Vector3i, error: Error) -> void:
-	_update_status("load failed %s: %s" % [coordinate, error_string(error)])
+	_set_streaming_state("load failed %s: %s" % [coordinate, error_string(error)])

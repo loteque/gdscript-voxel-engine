@@ -2,6 +2,20 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.10.0
+
+### Added
+- Added asynchronous precomputed chunk loading to `ChunkStreamer` using Godot's threaded `ResourceLoader` APIs.
+- Added an explicit `UNLOADED` → `QUEUED` → `LOADING` → `RESIDENT` lifecycle with pending-state queries and loading lifecycle signals.
+- Added deterministic headless coverage for request lifecycle, successful completion, duplicate requests, pending cancellation, failed loads, residency changes while loads are pending, and runtime generation-layer separation.
+- Expanded the existing Chunk Streaming Validation Demo to display queued/loading work separately from resident chunks.
+
+### Changed
+- `update_residency()` remains a residency-policy operation while loading execution advances pending requests independently each frame.
+- `load_chunk()` now accepts an asynchronous load request instead of blocking on resource I/O; `is_chunk_loaded()` continues to mean that a normal resident `MeshInstance3D` exists.
+- Pending chunks that stop being desired are logically cancelled without creating runtime instances when their threaded resource request eventually completes.
+- The GitHub Pages `streaming` Integration Preview continues to use the existing stable validation slot while exposing the latest asynchronous streaming behavior.
+
 ## 0.9.0
 
 ### Added

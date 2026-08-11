@@ -8,6 +8,7 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_SCRIPT = REPOSITORY_ROOT / ".github" / "scripts" / "build_demo_manifest.py"
 DEPLOY_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "deploy-web-demo.yml"
+EXPORT_PRESETS = REPOSITORY_ROOT / "export_presets.cfg"
 
 
 class WebDemoManifestTests(unittest.TestCase):
@@ -51,6 +52,25 @@ class WebDemoManifestTests(unittest.TestCase):
         self.assertIn('"$ARCHIVE/$ARCHIVE_PATH/streaming"', workflow)
         self.assertNotIn("build/web/residency/index.html", workflow)
         self.assertNotIn('"$ARCHIVE/$ARCHIVE_PATH/residency"', workflow)
+
+    def test_async_loading_branch_publishes_existing_integration_preview(self) -> None:
+        workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("      - async-chunk-loading", workflow)
+        self.assertIn(
+            'elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "async-chunk-loading" ]; then',
+            workflow,
+        )
+        self.assertIn('echo "archive_path=preview/integration"', workflow)
+        self.assertIn('echo "publication_type=preview"', workflow)
+
+    def test_streaming_preview_uses_thread_capable_web_export(self) -> None:
+        workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
+        presets = EXPORT_PRESETS.read_text(encoding="utf-8")
+        self.assertIn('--export-release "Web Threads"', workflow)
+        self.assertIn('name="Web Threads"', presets)
+        self.assertIn('variant/thread_support=true', presets)
+        self.assertIn('progressive_web_app/enabled=true', presets)
+        self.assertIn('progressive_web_app/ensure_cross_origin_isolation_headers=true', presets)
 
     def _build_manifest(self, archive: Path) -> None:
         subprocess.run(["python", str(MANIFEST_SCRIPT), str(archive)], cwd=REPOSITORY_ROOT, check=True)
