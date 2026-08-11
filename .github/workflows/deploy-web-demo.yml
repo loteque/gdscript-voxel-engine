@@ -44,6 +44,7 @@ jobs:
             echo "terrain_manifest_url=../versions.json" >> "$GITHUB_OUTPUT"
             echo "chunks_manifest_url=../../versions.json" >> "$GITHUB_OUTPUT"
             echo "streaming_manifest_url=../../versions.json" >> "$GITHUB_OUTPUT"
+            echo "residency_manifest_url=../../versions.json" >> "$GITHUB_OUTPUT"
             echo "publication_type=release" >> "$GITHUB_OUTPUT"
             echo "Publishing immutable release $VERSION"
           elif [ "$GITHUB_REF_NAME" = "nf/integration" ]; then
@@ -53,6 +54,7 @@ jobs:
             echo "terrain_manifest_url=../../versions.json" >> "$GITHUB_OUTPUT"
             echo "chunks_manifest_url=../../../versions.json" >> "$GITHUB_OUTPUT"
             echo "streaming_manifest_url=../../../versions.json" >> "$GITHUB_OUTPUT"
+            echo "residency_manifest_url=../../../versions.json" >> "$GITHUB_OUTPUT"
             echo "publication_type=preview" >> "$GITHUB_OUTPUT"
             echo "Publishing mutable integration preview"
           else
@@ -149,6 +151,41 @@ jobs:
             --export-release "Web" \
             build/web/streaming/index.html
 
+      - name: Export chunk residency validation demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp project.godot "$RUNNER_TEMP/project.godot.original"
+          trap 'cp "$RUNNER_TEMP/project.godot.original" project.godot' EXIT
+
+          python - <<'PY'
+          from pathlib import Path
+
+          project_path = Path('project.godot')
+          text = project_path.read_text(encoding='utf-8')
+          prefix = 'run/main_scene='
+          lines = text.splitlines()
+          replaced = False
+
+          for index, line in enumerate(lines):
+              if line.startswith(prefix):
+                  lines[index] = 'run/main_scene="res://demo/ChunkStreamingValidationDemo.tscn"'
+                  replaced = True
+                  break
+
+          if not replaced:
+              raise SystemExit('project.godot does not define run/main_scene.')
+
+          project_path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+
+          mkdir -p build/web/residency
+          godot \
+            --headless \
+            --path . \
+            --export-release "Web" \
+            build/web/residency/index.html
+
       - name: Add grouped demo selectors
         shell: bash
         env:
@@ -157,6 +194,7 @@ jobs:
           TERRAIN_MANIFEST_URL: ${{ steps.publication.outputs.terrain_manifest_url }}
           CHUNKS_MANIFEST_URL: ${{ steps.publication.outputs.chunks_manifest_url }}
           STREAMING_MANIFEST_URL: ${{ steps.publication.outputs.streaming_manifest_url }}
+          RESIDENCY_MANIFEST_URL: ${{ steps.publication.outputs.residency_manifest_url }}
         run: |
           python .github/scripts/inject_demo_selector.py \
             build/web/terrain/index.html \
@@ -182,15 +220,25 @@ jobs:
             "Chunk Streaming Demo" \
             "$STREAMING_MANIFEST_URL"
 
+          python .github/scripts/inject_demo_selector.py \
+            build/web/residency/index.html \
+            "$CURRENT_RELEASE_ID" \
+            "$CURRENT_RELEASE_LABEL" \
+            residency \
+            "Chunk Residency Validation Demo" \
+            "$RESIDENCY_MANIFEST_URL"
+
       - name: Preserve exported builds
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/web-build/terrain"
           mkdir -p "$RUNNER_TEMP/web-build/chunks"
           mkdir -p "$RUNNER_TEMP/web-build/streaming"
+          mkdir -p "$RUNNER_TEMP/web-build/residency"
           cp -a build/web/terrain/. "$RUNNER_TEMP/web-build/terrain/"
           cp -a build/web/chunks/. "$RUNNER_TEMP/web-build/chunks/"
           cp -a build/web/streaming/. "$RUNNER_TEMP/web-build/streaming/"
+          cp -a build/web/residency/. "$RUNNER_TEMP/web-build/residency/"
 
       - name: Prepare Pages archive worktree
         shell: bash
@@ -224,6 +272,8 @@ jobs:
             cp -a "$RUNNER_TEMP/web-build/chunks/." "$ARCHIVE/$ARCHIVE_PATH/chunks/"
             mkdir -p "$ARCHIVE/$ARCHIVE_PATH/streaming"
             cp -a "$RUNNER_TEMP/web-build/streaming/." "$ARCHIVE/$ARCHIVE_PATH/streaming/"
+            mkdir -p "$ARCHIVE/$ARCHIVE_PATH/residency"
+            cp -a "$RUNNER_TEMP/web-build/residency/." "$ARCHIVE/$ARCHIVE_PATH/residency/"
 
             cat > "$ARCHIVE/index.html" <<EOF
           <!doctype html>
@@ -247,6 +297,8 @@ jobs:
             cp -a "$RUNNER_TEMP/web-build/chunks/." "$ARCHIVE/$ARCHIVE_PATH/chunks/"
             mkdir -p "$ARCHIVE/$ARCHIVE_PATH/streaming"
             cp -a "$RUNNER_TEMP/web-build/streaming/." "$ARCHIVE/$ARCHIVE_PATH/streaming/"
+            mkdir -p "$ARCHIVE/$ARCHIVE_PATH/residency"
+            cp -a "$RUNNER_TEMP/web-build/residency/." "$ARCHIVE/$ARCHIVE_PATH/residency/"
           fi
 
           touch "$ARCHIVE/.nojekyll"
