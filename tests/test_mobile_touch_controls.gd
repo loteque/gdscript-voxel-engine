@@ -28,19 +28,24 @@ func _test_controls_drive_shared_input_actions() -> void:
 	root.add_child(controls)
 	await process_frame
 
-	var forward_button := controls.get_node("%ForwardButton") as Button
-	var fast_button := controls.get_node("%FastButton") as Button
+	var action_buttons := {
+		"move_forward": controls.get_node("%ForwardButton") as Button,
+		"move_backward": controls.get_node("%BackwardButton") as Button,
+		"move_left": controls.get_node("%LeftButton") as Button,
+		"move_right": controls.get_node("%RightButton") as Button,
+		"move_up": controls.get_node("%UpButton") as Button,
+		"move_down": controls.get_node("%DownButton") as Button,
+		"move_fast": controls.get_node("%FastButton") as Button,
+	}
 
-	forward_button.button_down.emit()
-	_assert_true(Input.is_action_pressed("move_forward"), "Forward touch control must press move_forward.")
-
-	fast_button.button_down.emit()
-	_assert_true(Input.is_action_pressed("move_fast"), "Fast touch control must press move_fast.")
-
-	forward_button.button_up.emit()
-	fast_button.button_up.emit()
-	_assert_true(not Input.is_action_pressed("move_forward"), "Forward touch control must release move_forward.")
-	_assert_true(not Input.is_action_pressed("move_fast"), "Fast touch control must release move_fast.")
+	for action: String in action_buttons:
+		var button := action_buttons[action] as Button
+		_assert_true(button != null, "%s touch control must exist." % action)
+		_assert_true(button.visible, "%s touch control must be visible when touch-only filtering is disabled." % action)
+		button.button_down.emit()
+		_assert_true(Input.is_action_pressed(action), "%s touch control must press its shared input action." % action)
+		button.button_up.emit()
+		_assert_true(not Input.is_action_pressed(action), "%s touch control must release its shared input action." % action)
 
 	controls.queue_free()
 	await process_frame
@@ -85,8 +90,8 @@ func _test_touchscreen_only_visibility() -> void:
 	await process_frame
 
 	_assert_true(
-		controls.visible == DisplayServer.is_touchscreen_available(),
-		"Touch controls visibility must follow DisplayServer touchscreen availability."
+		controls.visible == controls._is_touch_input_available(),
+		"Touch controls visibility must follow the shared touch capability check."
 	)
 
 	controls.queue_free()

@@ -2,10 +2,15 @@ import argparse
 from pathlib import Path
 
 
+INTEGRATION_PREVIEW_ID = "integration"
+INTEGRATION_PREVIEW_LABEL = "Integration Preview"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("index_path")
-    parser.add_argument("current_version")
+    parser.add_argument("current_release_id")
+    parser.add_argument("current_release_label")
     parser.add_argument("current_demo_key")
     parser.add_argument("current_demo_name")
     parser.add_argument("manifest_relative_url")
@@ -13,6 +18,9 @@ def main() -> None:
 
     index_path = Path(args.index_path)
     html = index_path.read_text(encoding="utf-8")
+    current_release_label = args.current_release_label
+    if args.current_release_id == INTEGRATION_PREVIEW_ID:
+        current_release_label = INTEGRATION_PREVIEW_LABEL
 
     selector = f'''
 <style id="voxel-demo-selector-style">
@@ -33,11 +41,11 @@ def main() -> None:
   }}
 </style>
 <select id="voxel-demo-selector" aria-label="Select demo and version">
-  <option selected>{args.current_demo_name} · v{args.current_version}</option>
+  <option selected>{args.current_demo_name} · {current_release_label}</option>
 </select>
 <script>
   (() => {{
-    const currentVersion = {args.current_version!r};
+    const currentReleaseId = {args.current_release_id!r};
     const currentDemoKey = {args.current_demo_key!r};
     const manifestRelativeUrl = {args.manifest_relative_url!r};
     const selector = document.getElementById('voxel-demo-selector');
@@ -61,9 +69,13 @@ def main() -> None:
 
           for (const release of releases) {{
             const option = document.createElement('option');
+            const releaseId = release.id || release.version;
+            const releaseLabel = releaseId === 'integration'
+              ? 'Integration Preview'
+              : release.label || (release.version ? `v${{release.version}}` : releaseId);
             option.value = release.path;
-            option.textContent = `${{demo.name || demo.key}} · v${{release.version}}`;
-            option.selected = demo.key === currentDemoKey && release.version === currentVersion;
+            option.textContent = `${{demo.name || demo.key}} · ${{releaseLabel}}`;
+            option.selected = demo.key === currentDemoKey && releaseId === currentReleaseId;
             group.appendChild(option);
           }}
 

@@ -11,12 +11,12 @@ config_version=5
 [application]
 
 config/name="smooth_voxel_tech_demo"
-config/version="0.7.0"
+config/version="0.8.0"
 run/main_scene="uid://dph66w3lyeo2k"
 config/features=PackedStringArray("4.7")
 boot_splash/bg_color=Color(0.00784314, 0.0352941, 0.0784314, 1)
-boot_splash/use_filter=false
-boot_splash/image="res://assets/splash/voxel_terrain_splash.svg"
+boot_splash/use_filter=true
+boot_splash/image="res://assets/splash/voxel_terrain_splash.png"
 config/icon="res://icon.svg"
 
 [input]

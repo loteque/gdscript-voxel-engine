@@ -39,7 +39,7 @@ var _look_touch_index: int = -1
 
 func _ready() -> void:
 	if show_on_touchscreen_only:
-		visible = DisplayServer.is_touchscreen_available()
+		visible = _is_touch_input_available()
 
 	_bind_action(_forward_button, &"move_forward")
 	_bind_action(_backward_button, &"move_backward")
@@ -54,6 +54,21 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	_release_movement_actions()
 	_look_touch_index = -1
+
+
+func _is_touch_input_available() -> bool:
+	if DisplayServer.is_touchscreen_available():
+		return true
+	if not OS.has_feature("web"):
+		return false
+
+	# Some mobile browsers do not surface Godot's touchscreen capability during
+	# startup even though the browser itself reports touch input. Use the browser
+	# as a Web-only fallback so desktop/native behavior remains unchanged.
+	var browser_touch: Variant = JavaScriptBridge.eval(
+		"navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches"
+	)
+	return browser_touch is bool and browser_touch
 
 
 # [b]Action Binding[/b]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://demo/ChunkValidationDemo.gd" id="1_demo"]
 [ext_resource type="Script" path="res://voxel/chunking/ChunkManager.gd" id="2_manager"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://voxel/field/PointFieldResource.gd" id="5_field"]
 [ext_resource type="Script" path="res://demo/NoClipCameraController.gd" id="6_camera"]
 [ext_resource type="Material" path="res://voxel/meshing/DemoTerrainSurface.tres" id="7_surface_material"]
+[ext_resource type="PackedScene" path="res://voxel/visualization/MobileTouchControls.tscn" id="8_touch_controls"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_validation"]
 seed = 8675309
@@ -112,3 +113,8 @@ theme_override_constants/margin_bottom = 10
 
 [node name="Label" type="Label" parent="Instructions/Panel/Margin"]
 text = "Chunk Validation Scene\n\nCyan: loaded chunk bounds + centers\nMuted bounds: planned 3 x 1 x 3 grid\nTerrain: one Surface Nets mesh per chunk\n\nRight mouse: look   WASD: move   E/Q: up/down   Shift: fast\nInspect shared chunk edges for boundary cracks."
+
+[node name="MobileControlsLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="MobileTouchControls" parent="MobileControlsLayer" instance=ExtResource("8_touch_controls")]

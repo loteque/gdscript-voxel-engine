@@ -57,9 +57,15 @@ func _test_flat_ground_faces_up() -> void:
 
 func _test_x_plane_faces_right() -> void:
 	var field := _make_manual_field(Vector3i(4, 4, 4))
+	var densities := PackedFloat32Array()
+	densities.resize(field.sample_count)
 	for index in field.sample_count:
 		var position := field.positions[index]
-		field.densities[index] = 0.25 - position.x
+		densities[index] = 0.25 - position.x
+	_assert_true(
+		field.set_density_data(densities),
+		"X-plane fixture must install a complete current density channel."
+	)
 
 	_assert_mesh_front_faces_direction(
 		field,
@@ -70,9 +76,15 @@ func _test_x_plane_faces_right() -> void:
 
 func _test_z_plane_faces_back() -> void:
 	var field := _make_manual_field(Vector3i(4, 4, 4))
+	var densities := PackedFloat32Array()
+	densities.resize(field.sample_count)
 	for index in field.sample_count:
 		var position := field.positions[index]
-		field.densities[index] = 0.25 - position.z
+		densities[index] = 0.25 - position.z
+	_assert_true(
+		field.set_density_data(densities),
+		"Z-plane fixture must install a complete current density channel."
+	)
 
 	_assert_mesh_front_faces_direction(
 		field,
@@ -87,9 +99,15 @@ func _test_sphere_normals_point_outward() -> void:
 	# Keep the iso-surface away from exact lattice samples. Exact endpoint hits are
 	# a separate Surface Nets degeneracy case and should not muddy orientation.
 	var radius := 2.25
+	var densities := PackedFloat32Array()
+	densities.resize(field.sample_count)
 	for index in field.sample_count:
 		var position := field.positions[index]
-		field.densities[index] = radius - position.length()
+		densities[index] = radius - position.length()
+	_assert_true(
+		field.set_density_data(densities),
+		"Sphere fixture must install a complete current density channel."
+	)
 
 	var mesher := SURFACE_NETS_MESHER.new()
 	var mesh: ArrayMesh = mesher.generate_mesh(field, 0.0)
@@ -116,7 +134,6 @@ func _make_manual_field(dimensions: Vector3i) -> PointFieldResource:
 	field.cell_dimensions = dimensions
 	field.sample_spacing = 1.0
 	field.generate_positions()
-	field.densities.resize(field.sample_count)
 	return field
 
 

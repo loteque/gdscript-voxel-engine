@@ -2,6 +2,19 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.8.0
+
+### Added
+- Added serialized terrain chunk assets and manifests for precomputed runtime terrain data.
+- Added `ChunkStreamer` as the runtime owner for loading, unloading, and tracking baked chunk residency without invoking terrain generation or meshing.
+- Added the Chunk Streaming Validation Demo and exposed it as a third selectable GitHub Pages demo for immutable releases and the mutable Integration Preview.
+- Added a deterministic noise-backed streaming demo bake that runs through the real `PointFieldResource` → Surface Nets → chunk asset pipeline before validation and Web export.
+- Added automated coverage for manifest lookup, serialized chunk loading, duplicate residency protection, unload/reload behavior, streaming architecture boundaries, and the web-demo manifest/deployment wiring.
+
+### Changed
+- The GitHub Pages demo catalog now includes Terrain / Surface Nets, Chunk Validation, and Chunk Streaming demos while preserving existing versioned URLs.
+- Integration and release validation now exercise the baked chunk streaming path using reproducible procedural terrain data.
+
 ## 0.7.0
 
 ### Added
