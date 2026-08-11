@@ -16,6 +16,7 @@ const RECENT_FRAME_WINDOW := 120
 @export var target_min_z: float = -42.0
 @export var target_max_z: float = 42.0
 @export var lane_step: float = 12.0
+@export var thread_smoke_enabled: bool = true
 
 @onready var _streamer: ChunkStreamer = $ChunkStreamer
 @onready var _target: Node3D = $ResidencyTarget
@@ -50,13 +51,18 @@ func _ready() -> void:
 	_streamer.chunk_load_failed.connect(_on_chunk_load_failed)
 	_pause_button.pressed.connect(_toggle_motion)
 	_reset_button.pressed.connect(_reset_target)
-	_start_thread_smoke_test()
+	if thread_smoke_enabled:
+		_start_thread_smoke_test()
+	else:
+		_thread_smoke_state = "disabled"
+		_thread_smoke_web_prerequisites = "disabled"
 	_streamer.update_residency(_target.position)
 	_set_streaming_state("large single-LOD streaming active")
 
 
 func _process(delta: float) -> void:
-	_poll_thread_smoke_test()
+	if thread_smoke_enabled:
+		_poll_thread_smoke_test()
 	_record_frame_time(delta)
 	if _can_advance_target():
 		_advance_target(delta)
