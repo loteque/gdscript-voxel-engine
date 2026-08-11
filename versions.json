@@ -1,6 +1,7 @@
 {
-  "latest": "0.13.1",
+  "latest": "0.13.2",
   "versions": [
+    "0.13.2",
     "0.13.1",
     "0.13.0",
     "0.12.0",
@@ -31,6 +32,13 @@
           "version": "Integration Preview",
           "type": "preview",
           "path": "preview/integration/"
+        },
+        {
+          "id": "0.13.2",
+          "label": "v0.13.2",
+          "version": "0.13.2",
+          "type": "release",
+          "path": "0.13.2/"
         },
         {
           "id": "0.13.1",
@@ -172,6 +180,13 @@
           "path": "preview/integration/chunks/"
         },
         {
+          "id": "0.13.2",
+          "label": "v0.13.2",
+          "version": "0.13.2",
+          "type": "release",
+          "path": "0.13.2/chunks/"
+        },
+        {
           "id": "0.13.1",
           "label": "v0.13.1",
           "version": "0.13.1",
@@ -253,6 +268,13 @@
           "version": "Integration Preview",
           "type": "preview",
           "path": "preview/integration/streaming/"
+        },
+        {
+          "id": "0.13.2",
+          "label": "v0.13.2",
+          "version": "0.13.2",
+          "type": "release",
+          "path": "0.13.2/streaming/"
         },
         {
           "id": "0.13.1",
