@@ -30,7 +30,8 @@ func _run() -> void:
 
 	_assert_true(streamer.manifest != null, "Streaming validation scene must load its baked TerrainChunkManifest.")
 	_assert_equal(streamer.target, target, "ChunkStreamer must use the scene target through its public target property.")
-	_assert_equal(streamer.residency_radius, 1, "Validation scene must exercise residency radius 1.")
+	_assert_equal(streamer.load_radius, 1, "Validation scene must exercise load radius 1.")
+	_assert_equal(streamer.unload_radius, 2, "Validation scene must exercise unload radius 2.")
 	_assert_equal(streamer.max_load_starts_per_frame, 1, "Validation scene must make the per-frame start budget visible.")
 	_assert_equal(streamer.max_concurrent_loads, 2, "Validation scene must make concurrent loading capacity visible.")
 	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(-1, 0, 0), "Initial target position must resolve to chunk (-1, 0, 0).")
@@ -38,7 +39,7 @@ func _run() -> void:
 	if pause_button != null:
 		pause_button.pressed.emit()
 
-	_assert_equal(streamer.get_queued_coordinates().size(), 9, "Initial validation residency must queue nine available baked chunks.")
+	_assert_equal(streamer.get_queued_coordinates().size(), 9, "Initial validation admission set must queue nine available baked chunks.")
 	_assert_equal(streamer.get_loading_coordinates().size(), 0, "No validation load should start before the loading execution stage runs.")
 	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(-1, 0, 0), "The target chunk must be the highest-priority initial request.")
 	streamer._process(0.0)
@@ -54,7 +55,7 @@ func _run() -> void:
 	_assert_coordinates_equal(
 		streamer.get_loaded_coordinates(),
 		initial_expected,
-		"Initial validation residency must contain the available 3 x 1 x 3 neighborhood after loading."
+		"Initial validation residency must contain the admitted 3 x 1 x 3 neighborhood after loading."
 	)
 	_assert_equal(streamer.get_loaded_coordinates().size(), 9, "Initial validation residency must load nine baked chunks.")
 
@@ -72,44 +73,48 @@ func _run() -> void:
 	streamer.update_residency(target.position)
 
 	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(1, 0, 0), "Moved target must resolve to chunk (1, 0, 0).")
-	_assert_true(not streamer.is_chunk_loaded(Vector3i(-2, 0, 0)), "Obsolete resident chunks must unload immediately when residency changes.")
-	_assert_true(streamer.is_chunk_pending(Vector3i(2, 0, 0)), "Newly desired baked chunks must enter pending state before residency.")
+	_assert_true(not streamer.is_chunk_loaded(Vector3i(-2, 0, 0)), "Chunks beyond the unload radius must be evicted immediately when residency changes.")
+	_assert_true(streamer.is_chunk_loaded(Vector3i(-1, 0, 0)), "Loaded chunks outside load radius but on the unload-radius boundary must remain retained.")
+	_assert_true(streamer.is_chunk_pending(Vector3i(2, 0, 0)), "Newly admitted baked chunks must enter pending state before residency.")
 	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(1, 0, 0), "The moved target chunk must lead newly queued scheduler work.")
 	_assert_true(await _wait_for_idle(streamer), "Moved validation residency must settle asynchronously under scheduler budgets.")
 
-	var moved_expected := _expected_coordinates(0, 2)
+	var moved_expected := _expected_coordinates(-1, 2)
 	_assert_coordinates_equal(
 		streamer.get_loaded_coordinates(),
 		moved_expected,
-		"Crossing into chunk (1, 0, 0) must replace obsolete residents with the new neighborhood."
+		"Moved residency must retain the trailing hysteresis band while admitting the new load-radius neighborhood."
 	)
-	_assert_equal(streamer.get_loaded_coordinates().size(), 9, "Moved residency must retain nine available baked chunks.")
-	_assert_true(streamer.is_chunk_loaded(Vector3i(2, 0, 0)), "Newly desired baked chunks must become resident after loading.")
+	_assert_equal(streamer.get_loaded_coordinates().size(), 12, "Hysteresis must retain one trailing chunk column in the validation fixture.")
+	_assert_true(streamer.is_chunk_loaded(Vector3i(2, 0, 0)), "Newly admitted baked chunks must become resident after loading.")
 
-	for coordinate in _expected_coordinates(0, 0):
+	for coordinate in _expected_coordinates(-1, 0):
 		_assert_equal(
 			streamer.get_chunk_instance(coordinate),
 			initial_instances.get(coordinate),
-			"Chunks shared by consecutive residency sets must keep their existing instances."
+			"Chunks retained through the hysteresis band must keep their existing instances."
 		)
 
 	await process_frame
-	_assert_equal(streamer.get_child_count(), 9, "Queued obsolete chunk instances must be freed after one frame.")
+	_assert_equal(streamer.get_child_count(), 12, "Only chunks beyond the retention radius should be freed after one frame.")
 
 	streamer.update_residency(target.position)
 	_assert_true(streamer.get_pending_coordinates().is_empty(), "Duplicate settled residency updates must not create new queued work.")
-	_assert_coordinates_equal(streamer.get_loaded_coordinates(), moved_expected, "Duplicate residency updates must remain idempotent in the validation scene.")
-	_assert_equal(streamer.get_child_count(), 9, "Duplicate validation updates must not create duplicate MeshInstance3D nodes.")
+	_assert_coordinates_equal(streamer.get_loaded_coordinates(), moved_expected, "Duplicate hysteretic residency updates must remain idempotent.")
+	_assert_equal(streamer.get_child_count(), 12, "Duplicate validation updates must not create duplicate MeshInstance3D nodes.")
 
 	if status_label != null:
 		scene.call("_update_status")
 		_assert_true(status_label.text.contains("Thread smoke: PASS"), "Validation UI must display successful worker-thread smoke state.")
 		_assert_true(status_label.text.contains("Target chunk: (1, 0, 0)"), "Validation UI must display the current target chunk coordinate.")
+		_assert_true(status_label.text.contains("Load radius: 1"), "Validation UI must display the admission radius.")
+		_assert_true(status_label.text.contains("Unload radius: 2"), "Validation UI must display the retention radius.")
+		_assert_true(status_label.text.contains("Hysteresis band:"), "Validation UI must explain the retention band.")
 		_assert_true(status_label.text.contains("Load budget: 1 starts/frame, 2 concurrent"), "Validation UI must display scheduler budgets.")
 		_assert_true(status_label.text.contains("Queued chunks: 0"), "Validation UI must display queued load count.")
 		_assert_true(status_label.text.contains("Loading chunks: 0"), "Validation UI must display active loading count.")
-		_assert_true(status_label.text.contains("Resident chunks: 9"), "Validation UI must display resident chunk count.")
-		_assert_true(status_label.text.contains("Resident surfaces: 9"), "Validation UI must display resident mesh surface count.")
+		_assert_true(status_label.text.contains("Resident chunks: 12"), "Validation UI must display hysteretically retained resident count.")
+		_assert_true(status_label.text.contains("Resident surfaces: 12"), "Validation UI must display resident mesh surface count.")
 
 	await _finish(scene)
 
