@@ -172,6 +172,19 @@
           "path": "0.8.0/streaming/"
         }
       ]
+    },
+    {
+      "key": "residency",
+      "name": "Chunk Residency Validation Demo",
+      "releases": [
+        {
+          "id": "integration",
+          "label": "Integration Preview",
+          "version": "Integration Preview",
+          "type": "preview",
+          "path": "preview/integration/residency/"
+        }
+      ]
     }
   ]
 }
