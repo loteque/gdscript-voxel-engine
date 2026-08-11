@@ -111,6 +111,9 @@ jobs:
             --export-release "Web" \
             build/web/chunks/index.html
 
+      - name: Bake streaming demo terrain fixture
+        run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
+
       - name: Export chunk streaming demo
         shell: bash
         run: |
