@@ -248,10 +248,7 @@ func _start_queued_loads() -> void:
 		if request == null or request.state != ChunkLoadState.QUEUED:
 			continue
 
-		var error := ResourceLoader.load_threaded_request(
-			request.asset_path,
-			"TerrainChunkAsset"
-		)
+		var error := ResourceLoader.load_threaded_request(request.asset_path)
 		if error != OK:
 			_fail_load_request(coordinate, error)
 			continue
