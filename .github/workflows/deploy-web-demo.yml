@@ -147,7 +147,7 @@ jobs:
           godot \
             --headless \
             --path . \
-            --export-release "Web" \
+            --export-release "Web Threads" \
             build/web/streaming/index.html
 
       - name: Add grouped demo selectors
