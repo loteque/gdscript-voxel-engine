@@ -11,7 +11,7 @@ DEPLOY_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "deploy-web-demo.y
 
 
 class WebDemoManifestTests(unittest.TestCase):
-    def test_manifest_exposes_streaming_preview_and_preserves_existing_demos(self) -> None:
+    def test_manifest_exposes_residency_preview_and_preserves_existing_demos(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             archive = Path(temporary_directory)
             self._write_index(archive / "0.2.0")
@@ -19,35 +19,43 @@ class WebDemoManifestTests(unittest.TestCase):
             self._write_index(archive / "preview" / "integration")
             self._write_index(archive / "preview" / "integration" / "chunks")
             self._write_index(archive / "preview" / "integration" / "streaming")
+            self._write_index(archive / "preview" / "integration" / "residency")
             self._build_manifest(archive)
             manifest = json.loads((archive / "versions.json").read_text(encoding="utf-8"))
             demos = {demo["key"]: demo for demo in manifest["demos"]}
-            self.assertEqual(list(demos), ["terrain", "chunks", "streaming"])
+            self.assertEqual(list(demos), ["terrain", "chunks", "streaming", "residency"])
             self.assertEqual(demos["streaming"]["name"], "Chunk Streaming Demo")
             self.assertEqual(demos["streaming"]["releases"][0]["path"], "preview/integration/streaming/")
+            self.assertEqual(demos["residency"]["name"], "Chunk Residency Validation Demo")
+            self.assertEqual(demos["residency"]["releases"][0]["path"], "preview/integration/residency/")
 
-    def test_manifest_only_lists_streaming_for_releases_that_have_it(self) -> None:
+    def test_manifest_only_lists_residency_for_releases_that_have_it(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             archive = Path(temporary_directory)
-            self._write_index(archive / "0.1.0")
-            self._write_index(archive / "0.1.0" / "chunks")
-            self._write_index(archive / "0.2.0")
-            self._write_index(archive / "0.2.0" / "chunks")
-            self._write_index(archive / "0.2.0" / "streaming")
+            self._write_index(archive / "0.8.0")
+            self._write_index(archive / "0.8.0" / "streaming")
+            self._write_index(archive / "0.9.0")
+            self._write_index(archive / "0.9.0" / "streaming")
+            self._write_index(archive / "0.9.0" / "residency")
             self._build_manifest(archive)
             manifest = json.loads((archive / "versions.json").read_text(encoding="utf-8"))
-            streaming = next(demo for demo in manifest["demos"] if demo["key"] == "streaming")
-            self.assertEqual([release["id"] for release in streaming["releases"]], ["0.2.0"])
+            residency = next(demo for demo in manifest["demos"] if demo["key"] == "residency")
+            self.assertEqual([release["id"] for release in residency["releases"]], ["0.9.0"])
 
-    def test_deployment_workflow_bakes_before_streaming_export(self) -> None:
+    def test_deployment_workflow_exports_residency_demo_after_bake(self) -> None:
         workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
         bake_command = "godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd"
-        export_target = "build/web/streaming/index.html"
+        streaming_target = "build/web/streaming/index.html"
+        residency_target = "build/web/residency/index.html"
         self.assertIn(bake_command, workflow)
-        self.assertIn(export_target, workflow)
-        self.assertLess(workflow.index(bake_command), workflow.index(export_target))
+        self.assertIn(streaming_target, workflow)
+        self.assertIn(residency_target, workflow)
+        self.assertLess(workflow.index(bake_command), workflow.index(streaming_target))
+        self.assertLess(workflow.index(bake_command), workflow.index(residency_target))
         self.assertIn('"Chunk Streaming Demo"', workflow)
+        self.assertIn('"Chunk Residency Validation Demo"', workflow)
         self.assertIn('"$ARCHIVE/$ARCHIVE_PATH/streaming"', workflow)
+        self.assertIn('"$ARCHIVE/$ARCHIVE_PATH/residency"', workflow)
 
     def _build_manifest(self, archive: Path) -> None:
         subprocess.run(["python", str(MANIFEST_SCRIPT), str(archive)], cwd=REPOSITORY_ROOT, check=True)
