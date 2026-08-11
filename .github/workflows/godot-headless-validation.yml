@@ -24,8 +24,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Run web demo deployment tests
-        run: python -m unittest tests/test_web_demo_manifest.py
+      - name: Run web and release workflow tests
+        run: python -m unittest tests/test_web_demo_manifest.py tests/test_release_change_classification.py
 
       - name: Install Godot 4.7.1
         shell: bash
