@@ -219,7 +219,7 @@ func _update_status() -> void:
 		var instance := _streamer.get_chunk_instance(coordinate)
 		if instance != null and instance.mesh != null:
 			surface_count += instance.mesh.get_surface_count()
-	var current_frame_msec := 0.0 if _recent_frame_times_msec.is_empty() else _recent_frame_times_msec.back()
+	var current_frame_msec: float = 0.0 if _recent_frame_times_msec.is_empty() else float(_recent_frame_times_msec.back())
 	var approximate_mesh_mib := float(metrics["approximate_mesh_memory_bytes"]) / (1024.0 * 1024.0)
 	_status_label.text = (
 		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nPeak resident chunks: %d\nResident surfaces: %d\nCompleted loads: %d\nFailed loads: %d\nUnloads: %d\nCancelled pending: %d\nResidency churn: %d\nAverage load latency: %.2f ms\nMaximum load latency: %d ms\nApprox. resident mesh memory: %.2f MiB\nFrame time: %.2f ms\nRecent max frame time: %.2f ms\nResident coordinates: %s\nStreaming state: %s"
