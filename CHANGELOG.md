@@ -2,6 +2,19 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.12.0
+
+### Added
+- Added deterministic spatial residency hysteresis to `ChunkStreamer` with separate `load_radius` admission and `unload_radius` retention thresholds.
+- Added a compatibility `residency_radius` property that reproduces the previous single-radius policy when explicitly assigned.
+- Added deterministic headless coverage for equal-radius compatibility, radius invariant normalization, pending and resident retention, boundary churn suppression, deterministic eviction, scheduler preservation, sparse manifests, and runtime architecture separation.
+
+### Changed
+- `update_residency()` now builds separate manifest-backed admission and retention sets while continuing to use the existing explicit load and unload APIs.
+- Radius configuration deterministically preserves `unload_radius >= load_radius`; lowering unload radius below load radius normalizes it upward, and increasing load radius raises unload radius when required.
+- Nearest-first scheduling, per-frame load-start budgets, maximum concurrent loads, threaded loading, failure handling, and logical cancellation semantics remain unchanged.
+- The existing Chunk Streaming Validation Demo now exposes load and unload radii and visibly retains a trailing hysteresis band through the stable `streaming` Integration Preview.
+
 ## 0.11.0
 
 ### Added
