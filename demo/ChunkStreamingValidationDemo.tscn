@@ -33,7 +33,7 @@ max_load_starts_per_frame = 2
 max_concurrent_loads = 4
 
 [node name="ResidencyTarget" type="Node3D" parent="."]
-position = Vector3(-66, 6, -66)
+position = Vector3(-42, 6, -42)
 
 [node name="Marker" type="MeshInstance3D" parent="ResidencyTarget"]
 mesh = SubResource("TargetMesh")
@@ -47,7 +47,7 @@ light_energy = 1.35
 shadow_enabled = true
 
 [node name="Camera" type="Camera3D" parent="."]
-position = Vector3(-30, 32, -18)
+position = Vector3(-6, 32, 6)
 rotation_degrees = Vector3(-28, 38, 0)
 current = true
 
