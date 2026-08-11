@@ -7,6 +7,8 @@ const CHUNK_STREAMER := preload("res://voxel/chunking/ChunkStreamer.gd")
 
 const VALID_ASSET_PATH := "user://chunk_streaming_valid.tres"
 const BROKEN_ASSET_PATH := "user://chunk_streaming_broken.tres"
+const DEMO_MANIFEST_PATH := "res://demo/fixtures/StreamingDemoManifest.tres"
+const DEMO_SCENE_PATH := "res://demo/ChunkStreamingValidationDemo.tscn"
 
 var _failed: bool = false
 
@@ -16,6 +18,7 @@ func _initialize() -> void:
 	_test_load_duplicate_unload_and_reload()
 	_test_missing_and_broken_assets_fail_cleanly()
 	_test_runtime_streamer_does_not_depend_on_generation()
+	_test_committed_demo_fixture()
 	_cleanup_fixture_files()
 
 	if _failed:
@@ -121,6 +124,40 @@ func _test_runtime_streamer_does_not_depend_on_generation() -> void:
 		not source.contains("generate_mesh("),
 		"Runtime streaming must not regenerate meshes."
 	)
+
+
+func _test_committed_demo_fixture() -> void:
+	var manifest := ResourceLoader.load(DEMO_MANIFEST_PATH) as TerrainChunkManifest
+	_assert_true(manifest != null and manifest.is_valid(), "Streaming demo must ship a valid manifest.")
+	if manifest == null:
+		return
+
+	var entry := manifest.find_entry(Vector3i.ZERO)
+	_assert_true(entry != null, "Streaming demo manifest must contain chunk (0, 0, 0).")
+	if entry == null:
+		return
+
+	var asset := ResourceLoader.load(entry.asset_path) as TerrainChunkAsset
+	_assert_true(asset != null and asset.is_valid(), "Streaming demo manifest must resolve a valid baked chunk asset.")
+	if asset != null:
+		_assert_true(
+			asset.mesh != null and asset.mesh.get_surface_count() > 0,
+			"Streaming demo baked chunk must contain renderable mesh data."
+		)
+
+	var packed_scene := ResourceLoader.load(DEMO_SCENE_PATH) as PackedScene
+	_assert_true(packed_scene != null, "Streaming validation demo scene must load.")
+	if packed_scene == null:
+		return
+	var demo := packed_scene.instantiate()
+	get_root().add_child(demo)
+	_assert_true(demo.manifest != null, "Streaming validation demo scene must assign its manifest.")
+	var streamer := demo.get_node("ChunkStreamer") as ChunkStreamer
+	_assert_true(
+		streamer != null and streamer.is_chunk_loaded(Vector3i.ZERO),
+		"Streaming validation demo must load its committed baked chunk on startup."
+	)
+	demo.queue_free()
 
 
 func _make_manifest(coordinate: Vector3i, asset_path: String) -> TerrainChunkManifest:
