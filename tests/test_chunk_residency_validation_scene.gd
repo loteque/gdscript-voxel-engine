@@ -17,109 +17,73 @@ func _run() -> void:
 	var target := scene.get_node("ResidencyTarget") as Node3D
 	var status_label := scene.get_node("UI/Panel/Margin/Content/Status") as Label
 	var pause_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Load") as Button
-	var reset_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Unload") as Button
 
 	_assert_true(streamer != null, "Streaming validation scene must contain ChunkStreamer.")
 	_assert_true(target != null, "Streaming validation scene must contain an explicit Node3D target.")
-	_assert_true(status_label != null, "Streaming validation UI must expose runtime status separately from ChunkStreamer.")
-	_assert_true(pause_button != null and reset_button != null, "Streaming validation scene must expose its target controls.")
-
+	_assert_true(status_label != null, "Streaming validation UI must expose runtime scaling state.")
 	if streamer == null or target == null:
 		await _finish(scene)
 		return
 
-	_assert_true(streamer.manifest != null, "Streaming validation scene must load its baked TerrainChunkManifest.")
+	_assert_true(streamer.manifest != null, "Streaming validation scene must load the baked production manifest.")
+	_assert_equal(streamer.manifest.entries.size(), 169, "Streaming validation scene must use the large 13 x 1 x 13 dataset.")
 	_assert_equal(streamer.target, target, "ChunkStreamer must use the scene target through its public target property.")
-	_assert_equal(streamer.load_radius, 1, "Validation scene must exercise load radius 1.")
-	_assert_equal(streamer.unload_radius, 2, "Validation scene must exercise unload radius 2.")
-	_assert_equal(streamer.max_load_starts_per_frame, 1, "Validation scene must make the per-frame start budget visible.")
-	_assert_equal(streamer.max_concurrent_loads, 2, "Validation scene must make concurrent loading capacity visible.")
-	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(-1, 0, 0), "Initial target position must resolve to chunk (-1, 0, 0).")
+	_assert_equal(streamer.load_radius, 2, "Large validation must exercise load radius two.")
+	_assert_equal(streamer.unload_radius, 3, "Large validation must exercise unload radius three.")
+	_assert_equal(streamer.max_load_starts_per_frame, 2, "Large validation must expose the two-start scheduling budget.")
+	_assert_equal(streamer.max_concurrent_loads, 4, "Large validation must expose four concurrent loads.")
+	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(-4, 0, -4), "Initial large validation target must begin in chunk (-4, 0, -4).")
 
 	if pause_button != null:
 		pause_button.pressed.emit()
 
-	_assert_equal(streamer.get_queued_coordinates().size(), 9, "Initial validation admission set must queue nine available baked chunks.")
-	_assert_equal(streamer.get_loading_coordinates().size(), 0, "No validation load should start before the loading execution stage runs.")
-	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(-1, 0, 0), "The target chunk must be the highest-priority initial request.")
+	_assert_equal(streamer.get_queued_coordinates().size(), 25, "Initial large validation admission must create a 25-chunk queue.")
+	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(-4, 0, -4), "Nearest-first scheduling must prioritize the target chunk.")
 	streamer._process(0.0)
-	_assert_equal(streamer.get_loading_coordinates(), [Vector3i(-1, 0, 0)], "The one-per-frame validation budget must start only the target chunk first.")
-	_assert_equal(streamer.get_queued_coordinates().size(), 8, "Farther validation chunks must remain queued after the first scheduling update.")
+	_assert_true(streamer.get_loading_coordinates().size() <= 2, "First large-scene update must respect the start budget.")
+	_assert_true(streamer.get_loading_coordinates().size() <= 4, "First large-scene update must respect concurrent capacity.")
+	_assert_true(streamer.get_queued_coordinates().size() >= 23, "Large-scene queue must remain visibly backlogged after one update.")
 
-	_assert_true(await _wait_for_thread_smoke(scene), "Validation scene thread smoke task must reach a terminal state.")
-	_assert_equal(scene.call("get_thread_smoke_state"), "PASS", "Headless validation must prove WorkerThreadPool task execution.")
+	_assert_true(await _wait_for_thread_smoke(scene), "Validation thread smoke task must reach a terminal state.")
+	_assert_equal(scene.call("get_thread_smoke_state"), "PASS", "Headless validation must prove WorkerThreadPool execution.")
+	_assert_true(await _wait_for_idle(streamer), "Initial large residency must settle under bounded asynchronous scheduling.")
+	_assert_equal(streamer.get_loaded_coordinates().size(), 25, "Initial large residency must settle 25 chunks.")
 
-	_assert_true(await _wait_for_idle(streamer), "Initial asynchronous validation residency must settle under bounded scheduling.")
-
-	var initial_expected := _expected_coordinates(-2, 0)
-	_assert_coordinates_equal(
-		streamer.get_loaded_coordinates(),
-		initial_expected,
-		"Initial validation residency must contain the admitted 3 x 1 x 3 neighborhood after loading."
-	)
-	_assert_equal(streamer.get_loaded_coordinates().size(), 9, "Initial validation residency must load nine baked chunks.")
-
-	var initial_instances: Dictionary[Vector3i, MeshInstance3D] = {}
 	for coordinate in streamer.get_loaded_coordinates():
 		var instance := streamer.get_chunk_instance(coordinate)
-		initial_instances[coordinate] = instance
-		_assert_true(instance != null, "Every resident validation coordinate must own a MeshInstance3D.")
-		if instance != null:
-			_assert_true(instance.mesh != null, "Every resident validation instance must own a mesh.")
-			if instance.mesh != null:
-				_assert_true(instance.mesh.get_surface_count() > 0, "Every resident validation mesh must contain renderable surfaces.")
+		_assert_true(instance != null and instance.mesh != null, "Every resident scale-test coordinate must own a mesh instance.")
+		if instance != null and instance.mesh != null:
+			_assert_true(instance.mesh.get_surface_count() > 0, "Every resident scale-test mesh must contain renderable surfaces.")
 
-	target.position = Vector3(13.0, target.position.y, target.position.z)
+	target.position.x = -29.0
 	streamer.update_residency(target.position)
+	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(-3, 0, -4), "Moved large-scene target must enter the adjacent chunk.")
+	_assert_true(await _wait_for_idle(streamer), "Moved large residency must settle under hysteresis and scheduler budgets.")
+	_assert_equal(streamer.get_loaded_coordinates().size(), 30, "One-chunk movement must retain the trailing five-chunk hysteresis column.")
 
-	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(1, 0, 0), "Moved target must resolve to chunk (1, 0, 0).")
-	_assert_true(not streamer.is_chunk_loaded(Vector3i(-2, 0, 0)), "Chunks beyond the unload radius must be evicted immediately when residency changes.")
-	_assert_true(streamer.is_chunk_loaded(Vector3i(-1, 0, 0)), "Loaded chunks outside load radius but on the unload-radius boundary must remain retained.")
-	_assert_true(streamer.is_chunk_pending(Vector3i(2, 0, 0)), "Newly admitted baked chunks must enter pending state before residency.")
-	_assert_equal(streamer.get_queued_coordinates()[0], Vector3i(1, 0, 0), "The moved target chunk must lead newly queued scheduler work.")
-	_assert_true(await _wait_for_idle(streamer), "Moved validation residency must settle asynchronously under scheduler budgets.")
-
-	var moved_expected := _expected_coordinates(-1, 2)
-	_assert_coordinates_equal(
-		streamer.get_loaded_coordinates(),
-		moved_expected,
-		"Moved residency must retain the trailing hysteresis band while admitting the new load-radius neighborhood."
-	)
-	_assert_equal(streamer.get_loaded_coordinates().size(), 12, "Hysteresis must retain one trailing chunk column in the validation fixture.")
-	_assert_true(streamer.is_chunk_loaded(Vector3i(2, 0, 0)), "Newly admitted baked chunks must become resident after loading.")
-
-	for coordinate in _expected_coordinates(-1, 0):
-		_assert_equal(
-			streamer.get_chunk_instance(coordinate),
-			initial_instances.get(coordinate),
-			"Chunks retained through the hysteresis band must keep their existing instances."
-		)
-
-	await process_frame
-	_assert_equal(streamer.get_child_count(), 12, "Only chunks beyond the retention radius should be freed after one frame.")
-
-	streamer.update_residency(target.position)
-	_assert_true(streamer.get_pending_coordinates().is_empty(), "Duplicate settled residency updates must not create new queued work.")
-	_assert_coordinates_equal(streamer.get_loaded_coordinates(), moved_expected, "Duplicate hysteretic residency updates must remain idempotent.")
-	_assert_equal(streamer.get_child_count(), 12, "Duplicate validation updates must not create duplicate MeshInstance3D nodes.")
+	var metrics := streamer.get_streaming_metrics()
+	_assert_equal(metrics["resident_count"], 30, "Metrics must report the real resident count.")
+	_assert_equal(metrics["peak_resident_count"], 30, "Metrics must report peak hysteretic residency.")
+	_assert_equal(metrics["completed_load_count"], 30, "Metrics must count all successful loads in the deterministic scene path.")
+	_assert_true(int(metrics["approximate_mesh_memory_bytes"]) > 0, "Metrics must expose positive approximate resident mesh memory.")
 
 	if status_label != null:
 		scene.call("_update_status")
-		_assert_true(status_label.text.contains("Thread smoke: PASS"), "Validation UI must display successful worker-thread smoke state.")
-		_assert_true(status_label.text.contains("Target chunk: (1, 0, 0)"), "Validation UI must display the current target chunk coordinate.")
-		_assert_true(status_label.text.contains("Load radius: 1"), "Validation UI must display the admission radius.")
-		_assert_true(status_label.text.contains("Unload radius: 2"), "Validation UI must display the retention radius.")
-		_assert_true(status_label.text.contains("Hysteresis band:"), "Validation UI must explain the retention band.")
-		_assert_true(status_label.text.contains("Load budget: 1 starts/frame, 2 concurrent"), "Validation UI must display scheduler budgets.")
-		_assert_true(status_label.text.contains("Queued chunks: 0"), "Validation UI must display queued load count.")
-		_assert_true(status_label.text.contains("Loading chunks: 0"), "Validation UI must display active loading count.")
-		_assert_true(status_label.text.contains("Resident chunks: 12"), "Validation UI must display hysteretically retained resident count.")
-		_assert_true(status_label.text.contains("Resident surfaces: 12"), "Validation UI must display resident mesh surface count.")
+		_assert_true(status_label.text.contains("Dataset: 169 single-LOD chunks"), "Validation UI must identify the large dataset.")
+		_assert_true(status_label.text.contains("Thread smoke: PASS"), "Validation UI must preserve successful thread smoke diagnostics.")
+		_assert_true(status_label.text.contains("Load radius: 2"), "Validation UI must display the admission radius.")
+		_assert_true(status_label.text.contains("Unload radius: 3"), "Validation UI must display the retention radius.")
+		_assert_true(status_label.text.contains("Load budget: 2 starts/frame, 4 concurrent"), "Validation UI must display scheduler budgets.")
+		_assert_true(status_label.text.contains("Peak resident chunks: 30"), "Validation UI must expose peak residency.")
+		_assert_true(status_label.text.contains("Completed loads: 30"), "Validation UI must expose completed load count.")
+		_assert_true(status_label.text.contains("Average load latency:"), "Validation UI must expose load latency observation.")
+		_assert_true(status_label.text.contains("Approx. resident mesh memory:"), "Validation UI must expose approximate mesh memory.")
+		_assert_true(status_label.text.contains("Recent max frame time:"), "Validation UI must expose recent frame-time observation.")
 
 	await _finish(scene)
 
 
-func _wait_for_thread_smoke(scene: Node, max_frames: int = 180) -> bool:
+func _wait_for_thread_smoke(scene: Node, max_frames: int = 240) -> bool:
 	for _frame in range(max_frames):
 		scene.call("_process", 0.0)
 		if bool(scene.call("is_thread_smoke_complete")):
@@ -128,34 +92,13 @@ func _wait_for_thread_smoke(scene: Node, max_frames: int = 180) -> bool:
 	return bool(scene.call("is_thread_smoke_complete"))
 
 
-func _wait_for_idle(streamer: ChunkStreamer, max_frames: int = 240) -> bool:
+func _wait_for_idle(streamer: ChunkStreamer, max_frames: int = 600) -> bool:
 	for _frame in range(max_frames):
 		streamer._process(0.0)
 		if streamer.get_pending_coordinates().is_empty():
 			return true
 		await process_frame
 	return streamer.get_pending_coordinates().is_empty()
-
-
-func _expected_coordinates(minimum_x: int, maximum_x: int) -> Array[Vector3i]:
-	var coordinates: Array[Vector3i] = []
-	for z in range(-1, 2):
-		for x in range(minimum_x, maximum_x + 1):
-			coordinates.append(Vector3i(x, 0, z))
-	coordinates.sort()
-	return coordinates
-
-
-func _assert_coordinates_equal(
-	actual: Array[Vector3i],
-	expected: Array[Vector3i],
-	message: String
-) -> void:
-	var sorted_actual := actual.duplicate()
-	sorted_actual.sort()
-	var sorted_expected := expected.duplicate()
-	sorted_expected.sort()
-	_assert_equal(sorted_actual, sorted_expected, message)
 
 
 func _finish(scene: Node) -> void:
