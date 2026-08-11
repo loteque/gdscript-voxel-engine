@@ -1,8 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://demo/ChunkStreamingValidationDemo.gd" id="1_demo"]
 [ext_resource type="Script" path="res://voxel/chunking/ChunkStreamer.gd" id="2_streamer"]
-[ext_resource type="Resource" path="res://demo/fixtures/StreamingDemoManifest.tres" id="3_manifest"]
 
 [sub_resource type="Environment" id="Environment_streaming"]
 background_mode = 1
@@ -13,7 +12,7 @@ ambient_light_energy = 0.75
 
 [node name="ChunkStreamingValidationDemo" type="Node3D"]
 script = ExtResource("1_demo")
-manifest = ExtResource("3_manifest")
+manifest_path = "res://demo/generated/StreamingDemoManifest.tres"
 
 [node name="ChunkStreamer" type="Node3D" parent="."]
 script = ExtResource("2_streamer")
@@ -32,33 +31,25 @@ rotation_degrees = Vector3(-25, 45, 0)
 current = true
 
 [node name="UI" type="CanvasLayer" parent="."]
-
 [node name="Panel" type="PanelContainer" parent="UI"]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 560.0
 offset_bottom = 190.0
-
 [node name="Margin" type="MarginContainer" parent="UI/Panel"]
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 10
-
 [node name="Content" type="VBoxContainer" parent="UI/Panel/Margin"]
 theme_override_constants/separation = 8
-
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Baked Chunk Streaming Validation"
-
+text = "Baked Noise Terrain Streaming Validation"
 [node name="Status" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Coordinate: (0, 0, 0)\nLOD: 0\nAsset: loading manifest fixture\nState: not configured"
-
+text = "Coordinate: (0, 0, 0)\nLOD: 0\nAsset: loading baked noise terrain\nState: not configured"
 [node name="Buttons" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
 theme_override_constants/separation = 8
-
 [node name="Load" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
 text = "Load Chunk"
-
 [node name="Unload" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
 text = "Unload Chunk"
