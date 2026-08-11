@@ -55,11 +55,15 @@ class WebDemoManifestTests(unittest.TestCase):
             )
             self.assertEqual(streaming["releases"][0]["path"], "0.2.0/streaming/")
 
-    def test_deployment_workflow_exports_and_archives_streaming_demo(self) -> None:
+    def test_deployment_workflow_bakes_exports_and_archives_streaming_demo(self) -> None:
         workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
+        bake_command = "godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd"
+        export_target = "build/web/streaming/index.html"
 
         self.assertIn("res://demo/ChunkStreamingValidationDemo.tscn", workflow)
-        self.assertIn("build/web/streaming/index.html", workflow)
+        self.assertIn(bake_command, workflow)
+        self.assertIn(export_target, workflow)
+        self.assertLess(workflow.index(bake_command), workflow.index(export_target))
         self.assertIn("streaming_manifest_url=../../versions.json", workflow)
         self.assertIn("streaming_manifest_url=../../../versions.json", workflow)
         self.assertIn("streaming \\", workflow)
