@@ -2,6 +2,19 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.11.0
+
+### Added
+- Added deterministic nearest-first scheduling for queued chunk loads using squared chunk-coordinate distance from the current residency target, with coordinate ordering as a stable tie-breaker.
+- Added configurable per-frame load-start and simultaneous-loading budgets to `ChunkStreamer`.
+- Added public queued and loading coordinate queries for runtime validation and instrumentation without exposing scheduler storage internals.
+- Added deterministic headless coverage for priority ordering, tie ordering, per-frame budgets, concurrent-loading limits, capacity reuse, cancellation, failure recovery, sparse manifests, and unchanged residency behavior.
+
+### Changed
+- Loading execution now polls active requests before starting only the highest-priority queued work that fits the configured budgets.
+- `update_residency()` continues to decide desired chunk coordinates while scheduling controls only when queued requests enter `LOADING` state.
+- The existing Chunk Streaming Validation Demo now exposes queued priority, active loading work, resident chunks, and scheduler budgets through the stable `streaming` Integration Preview.
+
 ## 0.10.0
 
 ### Added
