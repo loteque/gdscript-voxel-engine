@@ -55,14 +55,14 @@ class WebDemoManifestTests(unittest.TestCase):
 
     def test_current_streaming_feature_branch_publishes_existing_integration_preview(self) -> None:
         workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn("      - chunk-load-priority", workflow)
+        self.assertIn("      - chunk-residency-hysteresis", workflow)
         self.assertIn(
-            'elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "chunk-load-priority" ]; then',
+            'elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "chunk-residency-hysteresis" ]; then',
             workflow,
         )
         self.assertIn('echo "archive_path=preview/integration"', workflow)
         self.assertIn('echo "publication_type=preview"', workflow)
-        self.assertNotIn("      - async-chunk-loading", workflow)
+        self.assertNotIn("      - chunk-load-priority", workflow)
 
     def test_streaming_preview_uses_thread_capable_web_export(self) -> None:
         workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
