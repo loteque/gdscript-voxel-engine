@@ -59,6 +59,8 @@ jobs:
         run: godot --headless --path . --script tests/test_chunk_surface_nets_grid.gd
       - name: Run chunk streaming tests
         run: godot --headless --path . --script tests/test_chunk_streaming.gd
+      - name: Run chunk residency hysteresis tests
+        run: godot --headless --path . --script tests/test_chunk_residency_hysteresis.gd
       - name: Run chunk residency validation scene test
         run: godot --headless --path . --script tests/test_chunk_residency_validation_scene.gd
       - name: Start chunk residency validation scene headlessly
