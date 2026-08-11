@@ -4,10 +4,11 @@ const TERRAIN_CHUNK_ASSET := preload("res://voxel/chunking/TerrainChunkAsset.gd"
 const TERRAIN_CHUNK_MANIFEST := preload("res://voxel/chunking/TerrainChunkManifest.gd")
 const TERRAIN_CHUNK_MANIFEST_ENTRY := preload("res://voxel/chunking/TerrainChunkManifestEntry.gd")
 const CHUNK_STREAMER := preload("res://voxel/chunking/ChunkStreamer.gd")
+const STREAMING_DEMO_FIXTURE_BAKER := preload("res://demo/tools/StreamingDemoFixtureBaker.gd")
 
 const VALID_ASSET_PATH := "user://chunk_streaming_valid.tres"
 const BROKEN_ASSET_PATH := "user://chunk_streaming_broken.tres"
-const DEMO_MANIFEST_PATH := "res://demo/fixtures/StreamingDemoManifest.tres"
+const DEMO_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 const DEMO_SCENE_PATH := "res://demo/ChunkStreamingValidationDemo.tscn"
 
 var _failed: bool = false
@@ -18,7 +19,7 @@ func _initialize() -> void:
 	_test_load_duplicate_unload_and_reload()
 	_test_missing_and_broken_assets_fail_cleanly()
 	_test_runtime_streamer_does_not_depend_on_generation()
-	_test_committed_demo_fixture()
+	_test_noise_baked_demo_fixture()
 	_cleanup_fixture_files()
 
 	if _failed:
@@ -126,43 +127,59 @@ func _test_runtime_streamer_does_not_depend_on_generation() -> void:
 	)
 
 
-func _test_committed_demo_fixture() -> void:
-	var manifest := ResourceLoader.load(DEMO_MANIFEST_PATH) as TerrainChunkManifest
-	_assert_true(manifest != null and manifest.is_valid(), "Streaming demo must ship a valid manifest.")
+func _test_noise_baked_demo_fixture() -> void:
+	var fixture_baker := STREAMING_DEMO_FIXTURE_BAKER.new()
+	_assert_true(
+		fixture_baker.bake() == OK,
+		"Streaming validation fixture must bake deterministically from noise."
+	)
+
+	var manifest := ResourceLoader.load(DEMO_MANIFEST_PATH, "", ResourceLoader.CACHE_MODE_REPLACE) as TerrainChunkManifest
+	_assert_true(manifest != null and manifest.is_valid(), "Streaming demo must produce a valid manifest.")
 	if manifest == null:
 		return
+	_assert_true(
+		manifest.chunk_cell_dimensions == STREAMING_DEMO_FIXTURE_BAKER.CELL_DIMENSIONS,
+		"Streaming demo manifest must describe the noise-baked chunk geometry."
+	)
 
 	var entry := manifest.find_entry(Vector3i.ZERO)
 	_assert_true(entry != null, "Streaming demo manifest must contain chunk (0, 0, 0).")
 	if entry == null:
 		return
 
-	var asset := ResourceLoader.load(entry.asset_path) as TerrainChunkAsset
-	_assert_true(asset != null and asset.is_valid(), "Streaming demo manifest must resolve a valid baked chunk asset.")
+	var asset := ResourceLoader.load(entry.asset_path, "", ResourceLoader.CACHE_MODE_REPLACE) as TerrainChunkAsset
+	_assert_true(asset != null and asset.is_valid(), "Streaming demo manifest must resolve the baked terrain asset.")
 	if asset != null:
 		_assert_true(
 			asset.mesh != null and asset.mesh.get_surface_count() > 0,
-			"Streaming demo baked chunk must contain renderable mesh data."
+			"Noise-baked streaming demo chunk must contain renderable Surface Nets geometry."
+		)
+		_assert_true(
+			asset.mesh.get_faces().size() > 24,
+			"Streaming demo fixture must be real terrain rather than the previous toy box mesh."
 		)
 
 	var packed_scene := ResourceLoader.load(DEMO_SCENE_PATH) as PackedScene
 	_assert_true(packed_scene != null, "Streaming validation demo scene must load.")
-	if packed_scene == null:
-		return
-	var demo := packed_scene.instantiate()
-	_assert_true(demo.manifest != null, "Streaming validation demo scene must assign its manifest.")
-	demo.free()
+	if packed_scene != null:
+		var demo := packed_scene.instantiate()
+		_assert_true(
+			demo.manifest_path == DEMO_MANIFEST_PATH,
+			"Streaming validation demo must point at the generated terrain manifest."
+		)
+		demo.free()
 
 	var streamer := CHUNK_STREAMER.new()
 	streamer.manifest = manifest
 	get_root().add_child(streamer)
 	_assert_true(
 		streamer.load_chunk(Vector3i.ZERO) == OK,
-		"Committed streaming demo manifest must load its baked chunk through ChunkStreamer."
+		"Noise-baked streaming demo manifest must load through ChunkStreamer."
 	)
 	_assert_true(
 		streamer.is_chunk_loaded(Vector3i.ZERO),
-		"Committed streaming demo chunk must become resident."
+		"Noise-baked streaming demo chunk must become resident."
 	)
 	streamer.clear_chunks()
 	streamer.queue_free()
