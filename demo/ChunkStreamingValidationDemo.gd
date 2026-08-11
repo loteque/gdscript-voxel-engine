@@ -1,6 +1,6 @@
 extends Node3D
 
-## Runtime proof for target-relative residency and asynchronous baked-chunk loading.
+## Runtime proof for target-relative residency, bounded scheduling, and asynchronous loading.
 
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 const THREAD_SMOKE_TIMEOUT_MSEC := 5000
@@ -150,23 +150,28 @@ func _update_status() -> void:
 		return
 
 	var target_coordinate := _streamer.position_to_chunk_coordinate(_target.position)
+	var queued_coordinates := _streamer.get_queued_coordinates()
+	var loading_coordinates := _streamer.get_loading_coordinates()
 	var loaded_coordinates := _streamer.get_loaded_coordinates()
-	var pending_coordinates := _streamer.get_pending_coordinates()
 	var surface_count := 0
 	for coordinate in loaded_coordinates:
 		var instance := _streamer.get_chunk_instance(coordinate)
 		if instance != null and instance.mesh != null:
 			surface_count += instance.mesh.get_surface_count()
 	_status_label.text = (
-		"Web thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nResidency radius: %d\nPending chunks: %d\nPending coordinates: %s\nResident chunks: %d\nResident surfaces: %d\nResident coordinates: %s\nStreaming state: %s"
+		"Web thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nResidency radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nResident surfaces: %d\nResident coordinates: %s\nStreaming state: %s"
 		% [
 			_thread_smoke_web_prerequisites,
 			_thread_smoke_state,
 			target_coordinate,
 			"moving" if _motion_enabled else "paused",
 			residency_radius,
-			pending_coordinates.size(),
-			pending_coordinates,
+			_streamer.max_load_starts_per_frame,
+			_streamer.max_concurrent_loads,
+			queued_coordinates.size(),
+			queued_coordinates,
+			loading_coordinates.size(),
+			loading_coordinates,
 			loaded_coordinates.size(),
 			surface_count,
 			loaded_coordinates,
@@ -179,16 +184,16 @@ func _on_chunk_load_queued(_coordinate: Vector3i) -> void:
 	_set_streaming_state("chunk queued")
 
 
-func _on_chunk_load_started(_coordinate: Vector3i) -> void:
-	_set_streaming_state("chunk loading")
+func _on_chunk_load_started(coordinate: Vector3i) -> void:
+	_set_streaming_state("chunk loading %s" % coordinate)
 
 
-func _on_residency_changed(_coordinate: Vector3i, _instance: MeshInstance3D) -> void:
-	_set_streaming_state("chunk resident")
+func _on_residency_changed(coordinate: Vector3i, _instance: MeshInstance3D) -> void:
+	_set_streaming_state("chunk resident %s" % coordinate)
 
 
-func _on_chunk_unloaded(_coordinate: Vector3i) -> void:
-	_set_streaming_state("chunk unloaded")
+func _on_chunk_unloaded(coordinate: Vector3i) -> void:
+	_set_streaming_state("chunk unloaded %s" % coordinate)
 
 
 func _on_chunk_load_failed(coordinate: Vector3i, error: Error) -> void:

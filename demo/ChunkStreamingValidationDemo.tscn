@@ -28,6 +28,8 @@ residency_radius = 1
 
 [node name="ChunkStreamer" type="Node3D" parent="."]
 script = ExtResource("2_streamer")
+max_load_starts_per_frame = 1
+max_concurrent_loads = 2
 
 [node name="ResidencyTarget" type="Node3D" parent="."]
 position = Vector3(-6, 6, 6)
@@ -53,8 +55,8 @@ current = true
 [node name="Panel" type="PanelContainer" parent="UI"]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 860.0
-offset_bottom = 370.0
+offset_right = 900.0
+offset_bottom = 430.0
 
 [node name="Margin" type="MarginContainer" parent="UI/Panel"]
 theme_override_constants/margin_left = 12
@@ -66,14 +68,14 @@ theme_override_constants/margin_bottom = 10
 theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Asynchronous Chunk Streaming Validation"
+text = "Prioritized Asynchronous Chunk Streaming Validation"
 
 [node name="Status" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Web thread prerequisites: not checked\nThread smoke: not started\nTarget chunk: loading\nResidency radius: 1\nPending chunks: 0\nPending coordinates: []\nResident chunks: 0\nResident surfaces: 0\nResident coordinates: []\nStreaming state: not configured"
+text = "Web thread prerequisites: not checked\nThread smoke: not started\nTarget chunk: loading\nResidency radius: 1\nLoad budget: 1 starts/frame, 2 concurrent\nQueued chunks: 0\nQueued priority: []\nLoading chunks: 0\nLoading coordinates: []\nResident chunks: 0\nResident surfaces: 0\nResident coordinates: []\nStreaming state: not configured"
 autowrap_mode = 2
 
 [node name="Instructions" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Thread smoke PASS requires browser cross-origin isolation plus a completed Godot WorkerThreadPool task. Orange marker crosses baked chunk boundaries while async requests become resident."
+text = "Thread smoke PASS proves browser worker support. Queued priority is nearest-first; one queued chunk may start per frame and at most two loads may be active at once."
 autowrap_mode = 2
 
 [node name="Buttons" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
