@@ -85,7 +85,7 @@ def main() -> None:
         },
         {
             "key": "streaming",
-            "name": "Chunk Streaming Demo",
+            "name": "Runtime Streaming Validation Demo",
             "releases": streaming_releases,
         },
     ]

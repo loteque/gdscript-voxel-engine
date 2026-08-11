@@ -59,6 +59,10 @@ jobs:
         run: godot --headless --path . --script tests/test_chunk_surface_nets_grid.gd
       - name: Run chunk streaming tests
         run: godot --headless --path . --script tests/test_chunk_streaming.gd
+      - name: Run chunk residency validation scene test
+        run: godot --headless --path . --script tests/test_chunk_residency_validation_scene.gd
+      - name: Start chunk residency validation scene headlessly
+        run: godot --headless --path . demo/ChunkStreamingValidationDemo.tscn --quit-after 4
       - name: Run chunk visualizer tests
         run: godot --headless --path . --script tests/test_chunk_visualizer.gd
       - name: Run chunk validation scene test

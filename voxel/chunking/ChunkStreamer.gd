@@ -17,13 +17,20 @@ signal chunk_load_failed(coordinate: Vector3i, error: Error)
 
 
 # [b]Configuration[/b]
-# Selects the precomputed asset catalog and default detail level.
+# Selects the precomputed asset catalog, detail level, and optional runtime target.
 
 ## Manifest used to resolve chunk coordinates to serialized assets.
 @export var manifest: TerrainChunkManifest
 
 ## LOD requested by coordinate-only load calls.
 @export var lod_level: int = 0
+
+## Radius, in chunk coordinates, maintained around the residency target.
+## A radius of one considers a 3 x 3 x 3 coordinate neighborhood.
+@export_range(0, 16, 1) var residency_radius: int = 1
+
+## Optional runtime target whose position drives automatic residency updates.
+@export var target: Node3D
 
 
 # [b]Runtime Storage[/b]
@@ -32,8 +39,16 @@ signal chunk_load_failed(coordinate: Vector3i, error: Error)
 var _loaded_chunks: Dictionary[Vector3i, MeshInstance3D] = {}
 
 
+# [b]Runtime Update[/b]
+# Converts an explicit scene target into streamer-local residency updates.
+
+func _process(_delta: float) -> void:
+	if target != null:
+		update_residency(to_local(target.global_position))
+
+
 # [b]Queries[/b]
-# Exposes residency without leaking the dictionary itself.
+# Exposes residency and deterministic chunk-space conversion.
 
 ## Returns whether [param coordinate] currently has a resident mesh instance.
 func is_chunk_loaded(coordinate: Vector3i) -> bool:
@@ -45,15 +60,62 @@ func get_chunk_instance(coordinate: Vector3i) -> MeshInstance3D:
 	return _loaded_chunks.get(coordinate) as MeshInstance3D
 
 
-## Returns all currently resident chunk coordinates.
+## Returns all currently resident chunk coordinates in deterministic x/y/z order.
 func get_loaded_coordinates() -> Array[Vector3i]:
 	var coordinates: Array[Vector3i] = []
 	coordinates.assign(_loaded_chunks.keys())
+	coordinates.sort_custom(_coordinate_less_than)
 	return coordinates
 
 
+## Converts a streamer-local terrain position to its containing chunk coordinate.
+##
+## Chunk extent is derived exclusively from manifest cell dimensions and sample
+## spacing. Floor conversion preserves correct behavior for negative positions.
+func position_to_chunk_coordinate(local_position: Vector3) -> Vector3i:
+	if not _has_valid_manifest_geometry():
+		return Vector3i.ZERO
+
+	var extent := _get_chunk_extent()
+	return Vector3i(
+		floori(local_position.x / extent.x),
+		floori(local_position.y / extent.y),
+		floori(local_position.z / extent.z)
+	)
+
+
 # [b]Residency[/b]
-# Loads and unloads precomputed mesh assets synchronously for the first slice.
+# Builds neighborhood policy on the existing explicit load/unload API.
+
+## Updates available baked-chunk residency around [param target_position].
+##
+## [param target_position] is expressed in this streamer's local terrain space.
+## Missing manifest coordinates are skipped cleanly. Existing explicit chunk APIs
+## remain authoritative for the actual load and unload operations.
+func update_residency(target_position: Vector3) -> void:
+	if not _has_valid_manifest_geometry():
+		return
+
+	var target_coordinate := position_to_chunk_coordinate(target_position)
+	var desired: Dictionary[Vector3i, bool] = {}
+	for z_offset in range(-residency_radius, residency_radius + 1):
+		for y_offset in range(-residency_radius, residency_radius + 1):
+			for x_offset in range(-residency_radius, residency_radius + 1):
+				var coordinate := target_coordinate + Vector3i(x_offset, y_offset, z_offset)
+				if manifest.has_entry(coordinate, lod_level):
+					desired[coordinate] = true
+
+	for coordinate in get_loaded_coordinates():
+		if not desired.has(coordinate):
+			unload_chunk(coordinate)
+
+	var desired_coordinates: Array[Vector3i] = []
+	desired_coordinates.assign(desired.keys())
+	desired_coordinates.sort_custom(_coordinate_less_than)
+	for coordinate in desired_coordinates:
+		if not is_chunk_loaded(coordinate):
+			load_chunk(coordinate)
+
 
 ## Loads one precomputed chunk and adds its mesh instance as a child.
 ##
@@ -109,6 +171,31 @@ func clear_chunks() -> void:
 	var coordinates := get_loaded_coordinates()
 	for coordinate in coordinates:
 		unload_chunk(coordinate)
+
+
+# [b]Manifest Geometry[/b]
+# Derives chunk-space geometry without duplicating configuration in the streamer.
+
+func _has_valid_manifest_geometry() -> bool:
+	return (
+		manifest != null
+		and manifest.chunk_cell_dimensions.x > 0
+		and manifest.chunk_cell_dimensions.y > 0
+		and manifest.chunk_cell_dimensions.z > 0
+		and manifest.sample_spacing > 0.0
+	)
+
+
+func _get_chunk_extent() -> Vector3:
+	return Vector3(manifest.chunk_cell_dimensions) * manifest.sample_spacing
+
+
+func _coordinate_less_than(a: Vector3i, b: Vector3i) -> bool:
+	if a.x != b.x:
+		return a.x < b.x
+	if a.y != b.y:
+		return a.y < b.y
+	return a.z < b.z
 
 
 # [b]Resource Loading[/b]

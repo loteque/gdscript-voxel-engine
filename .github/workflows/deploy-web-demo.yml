@@ -114,7 +114,7 @@ jobs:
       - name: Bake streaming demo terrain fixture
         run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
 
-      - name: Export chunk streaming demo
+      - name: Export runtime streaming validation demo
         shell: bash
         run: |
           set -euo pipefail
@@ -179,7 +179,7 @@ jobs:
             "$CURRENT_RELEASE_ID" \
             "$CURRENT_RELEASE_LABEL" \
             streaming \
-            "Chunk Streaming Demo" \
+            "Runtime Streaming Validation Demo" \
             "$STREAMING_MANIFEST_URL"
 
       - name: Preserve exported builds
