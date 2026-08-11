@@ -1,6 +1,6 @@
 extends Node3D
 
-## Runtime proof for target-relative residency using only baked chunk assets.
+## Runtime proof for target-relative residency and asynchronous baked-chunk loading.
 
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 
@@ -28,6 +28,8 @@ func _ready() -> void:
 	_streamer.manifest = manifest
 	_streamer.residency_radius = residency_radius
 	_streamer.target = _target
+	_streamer.chunk_load_queued.connect(_on_chunk_load_queued)
+	_streamer.chunk_load_started.connect(_on_chunk_load_started)
 	_streamer.chunk_loaded.connect(_on_residency_changed)
 	_streamer.chunk_unloaded.connect(_on_chunk_unloaded)
 	_streamer.chunk_load_failed.connect(_on_chunk_load_failed)
@@ -68,14 +70,31 @@ func _update_status(state: String) -> void:
 
 	var target_coordinate := _streamer.position_to_chunk_coordinate(_target.position)
 	var loaded_coordinates := _streamer.get_loaded_coordinates()
+	var pending_coordinates := _streamer.get_pending_coordinates()
 	_status_label.text = (
-		"Target chunk: %s\nResidency radius: %d\nLoaded chunks: %d\nLoaded coordinates: %s\nState: %s"
-		% [target_coordinate, residency_radius, loaded_coordinates.size(), loaded_coordinates, state]
+		"Target chunk: %s\nResidency radius: %d\nPending chunks: %d\nPending coordinates: %s\nResident chunks: %d\nResident coordinates: %s\nState: %s"
+		% [
+			target_coordinate,
+			residency_radius,
+			pending_coordinates.size(),
+			pending_coordinates,
+			loaded_coordinates.size(),
+			loaded_coordinates,
+			state,
+		]
 	)
 
 
+func _on_chunk_load_queued(_coordinate: Vector3i) -> void:
+	_update_status("chunk queued")
+
+
+func _on_chunk_load_started(_coordinate: Vector3i) -> void:
+	_update_status("chunk loading")
+
+
 func _on_residency_changed(_coordinate: Vector3i, _instance: MeshInstance3D) -> void:
-	_update_status("chunk loaded")
+	_update_status("chunk resident")
 
 
 func _on_chunk_unloaded(_coordinate: Vector3i) -> void:
