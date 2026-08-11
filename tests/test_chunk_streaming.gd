@@ -34,14 +34,8 @@ func _run_tests() -> void:
 
 func _test_manifest_lookup_contract() -> void:
 	var manifest := _make_manifest(Vector3i(3, -2, 7), VALID_ASSET_PATH)
-	_assert_true(
-		manifest.find_entry(Vector3i(3, -2, 7)) != null,
-		"Manifest lookup must resolve exact Vector3i chunk coordinates."
-	)
-	_assert_true(
-		manifest.find_entry(Vector3i(3, -2, 8)) == null,
-		"Manifest lookup must return null for missing chunk coordinates."
-	)
+	_assert_true(manifest.find_entry(Vector3i(3, -2, 7)) != null, "Manifest lookup must resolve exact Vector3i chunk coordinates.")
+	_assert_true(manifest.find_entry(Vector3i(3, -2, 8)) == null, "Manifest lookup must return null for missing chunk coordinates.")
 
 
 func _test_position_to_chunk_coordinate() -> void:
@@ -49,22 +43,9 @@ func _test_position_to_chunk_coordinate() -> void:
 	streamer.manifest = TERRAIN_CHUNK_MANIFEST.new()
 	streamer.manifest.chunk_cell_dimensions = Vector3i(4, 2, 8)
 	streamer.manifest.sample_spacing = 2.0
-
-	_assert_equal(
-		streamer.position_to_chunk_coordinate(Vector3(7.99, 3.99, 15.99)),
-		Vector3i.ZERO,
-		"Positions below positive non-cubic boundaries must remain in chunk zero."
-	)
-	_assert_equal(
-		streamer.position_to_chunk_coordinate(Vector3(8.0, 4.0, 16.0)),
-		Vector3i.ONE,
-		"Positions exactly on chunk boundaries must enter the next chunk."
-	)
-	_assert_equal(
-		streamer.position_to_chunk_coordinate(Vector3(-0.01, -0.01, -0.01)),
-		Vector3i(-1, -1, -1),
-		"Negative positions must use floor conversion instead of truncation."
-	)
+	_assert_equal(streamer.position_to_chunk_coordinate(Vector3(7.99, 3.99, 15.99)), Vector3i.ZERO, "Positions below positive non-cubic boundaries must remain in chunk zero.")
+	_assert_equal(streamer.position_to_chunk_coordinate(Vector3(8.0, 4.0, 16.0)), Vector3i.ONE, "Positions exactly on chunk boundaries must enter the next chunk.")
+	_assert_equal(streamer.position_to_chunk_coordinate(Vector3(-0.01, -0.01, -0.01)), Vector3i(-1, -1, -1), "Negative positions must use floor conversion instead of truncation.")
 	streamer.free()
 
 
@@ -78,17 +59,9 @@ func _test_request_lifecycle_and_successful_completion() -> void:
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.UNLOADED, "Chunks must begin unloaded.")
 	_assert_true(streamer.load_chunk(coordinate) == OK, "Valid baked chunk request must be accepted.")
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.QUEUED, "Accepted requests must enter queued state before I/O starts.")
-	_assert_true(streamer.is_chunk_pending(coordinate), "Queued chunks must be observable as pending.")
-
-	for _frame in range(8):
-		if start_count > 0:
-			break
-		await process_frame
+	streamer._process(0.0)
 	_assert_equal(start_count, 1, "Each accepted request must start threaded loading exactly once.")
-	_assert_true(
-		streamer.get_chunk_load_state(coordinate) in [CHUNK_STREAMER.ChunkLoadState.LOADING, CHUNK_STREAMER.ChunkLoadState.RESIDENT],
-		"Started requests must be loading or already resident if the cached resource completed immediately."
-	)
+	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.LOADING, "The execution stage must advance queued requests to loading.")
 	_assert_true(await _wait_for_idle(streamer), "Threaded loading must complete within the test frame budget.")
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.RESIDENT, "Successful threaded loads must become resident.")
 	_assert_true(streamer.get_chunk_instance(coordinate) != null, "Resident state must own a MeshInstance3D.")
@@ -117,12 +90,14 @@ func _test_unload_cancels_pending_load() -> void:
 	_assert_true(ResourceSaver.save(_make_valid_asset(coordinate), VALID_ASSET_PATH) == OK, "Cancellation fixture must save.")
 	var streamer := _make_streamer(_make_manifest(coordinate, VALID_ASSET_PATH))
 	_assert_true(streamer.load_chunk(coordinate) == OK, "Cancellation request must be accepted.")
-	_assert_true(streamer.is_chunk_pending(coordinate), "Cancellation test must begin from observable pending state.")
+	streamer._process(0.0)
+	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.LOADING, "Cancellation test must reach loading state before cancellation.")
 	_assert_true(streamer.unload_chunk(coordinate), "Unloading a pending chunk must logically cancel its request.")
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.UNLOADED, "Cancelled pending chunks must immediately return to unloaded state.")
 	for _frame in range(4):
+		streamer._process(0.0)
 		await process_frame
-	_assert_true(not streamer.is_chunk_loaded(coordinate), "Cancelled pending work must never create resident instances.")
+	_assert_true(not streamer.is_chunk_loaded(coordinate), "Cancelled threaded results must never create resident instances.")
 	streamer.queue_free()
 	await process_frame
 
@@ -134,13 +109,11 @@ func _test_failed_load_does_not_poison_state() -> void:
 	var streamer := _make_streamer(_make_manifest(coordinate, BROKEN_ASSET_PATH))
 	var failures: Array[Error] = []
 	streamer.chunk_load_failed.connect(func(_coordinate: Vector3i, error: Error) -> void: failures.append(error))
-
 	_assert_true(streamer.load_chunk(coordinate) == OK, "Existing but invalid resource should enter asynchronous loading.")
 	_assert_true(await _wait_for_idle(streamer), "Failed threaded loads must leave pending state.")
 	_assert_true(not streamer.is_chunk_loaded(coordinate), "Invalid resources must never become resident.")
 	_assert_equal(streamer.get_chunk_load_state(coordinate), CHUNK_STREAMER.ChunkLoadState.UNLOADED, "Failed loads must return to unloaded state so future requests remain possible.")
 	_assert_true(not failures.is_empty(), "Failed asynchronous loads must emit chunk_load_failed.")
-
 	streamer.manifest = _make_manifest(coordinate, "user://missing_chunk_asset.tres")
 	_assert_true(streamer.load_chunk(coordinate) != OK, "Missing asset paths must fail before queueing work.")
 	_assert_true(not streamer.is_chunk_pending(coordinate), "Immediate request failures must not poison pending state.")
@@ -160,9 +133,9 @@ func _test_residency_updates_while_pending() -> void:
 	manifest.set_entry(_make_entry(second, SECOND_ASSET_PATH))
 	var streamer := _make_streamer(manifest)
 	streamer.residency_radius = 0
-
 	streamer.update_residency(Vector3(0.5, 0.5, 0.5))
 	_assert_equal(streamer.get_pending_coordinates(), [first], "Initial residency must queue the first target chunk.")
+	streamer._process(0.0)
 	streamer.update_residency(Vector3(4.5, 0.5, 0.5))
 	_assert_true(not streamer.is_chunk_pending(first), "Pending chunks that stop being desired must be cancelled.")
 	_assert_true(not streamer.is_chunk_loaded(first), "Obsolete pending chunks must not become resident.")
@@ -211,6 +184,7 @@ func _test_runtime_streamer_does_not_depend_on_generation() -> void:
 
 func _wait_for_idle(streamer: ChunkStreamer, max_frames: int = 120) -> bool:
 	for _frame in range(max_frames):
+		streamer._process(0.0)
 		if streamer.get_pending_coordinates().is_empty():
 			return true
 		await process_frame
