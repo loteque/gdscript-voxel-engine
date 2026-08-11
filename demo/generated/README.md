@@ -1,0 +1,1 @@
+Streaming demo `.tres` files in this directory are generated offline by `demo/tools/BakeStreamingDemoFixture.gd` and are intentionally not committed. CI and the GitHub Pages build regenerate them deterministically before validation/export.
