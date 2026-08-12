@@ -23,10 +23,14 @@ class ChunkLoadRequest:
 	var asset_path: String
 	var state: ChunkLoadState = ChunkLoadState.QUEUED
 	var started_msec: int = 0
+	var completion_observed_msec: int = 0
 
 	func _init(request_coordinate: Vector3i, request_asset_path: String) -> void:
 		coordinate = request_coordinate
 		asset_path = request_asset_path
+
+
+const MAX_COMPLETED_LOAD_OBSERVATIONS := 512
 
 
 # [b]Signals[/b]
@@ -98,6 +102,11 @@ var _unload_count: int = 0
 var _cancelled_pending_load_count: int = 0
 var _total_load_latency_msec: int = 0
 var _maximum_load_latency_msec: int = 0
+var _total_background_wait_msec: int = 0
+var _maximum_background_wait_msec: int = 0
+var _total_residency_completion_msec: int = 0
+var _maximum_residency_completion_msec: int = 0
+var _completed_load_observations: Array[Dictionary] = []
 
 
 # [b]Runtime Update[/b]
@@ -174,14 +183,19 @@ func get_loading_coordinates() -> Array[Vector3i]:
 
 ## Returns a read-only snapshot of cumulative and current streaming observations.
 ##
-## Latency values measure threaded load execution from request start until the
-## serialized chunk asset is accepted as resident. Approximate mesh memory is a
-## lightweight estimate derived from resident ArrayMesh vertex/index counts; it
-## is intended for comparative validation rather than allocator-precise profiling.
+## Aggregate latency spans active loading until normal resident state is established.
+## Background wait ends when asynchronous completion is first observed during polling;
+## residency completion covers the remaining synchronous work before residency. These
+## observation boundaries are polling-cadence limited and are comparative rather than
+## profiler-precise. Approximate mesh memory remains a lightweight estimate.
 func get_streaming_metrics() -> Dictionary:
 	var average_latency_msec := 0.0
+	var average_background_wait_msec := 0.0
+	var average_residency_completion_msec := 0.0
 	if _completed_load_count > 0:
 		average_latency_msec = float(_total_load_latency_msec) / float(_completed_load_count)
+		average_background_wait_msec = float(_total_background_wait_msec) / float(_completed_load_count)
+		average_residency_completion_msec = float(_total_residency_completion_msec) / float(_completed_load_count)
 	return {
 		"resident_count": _loaded_chunks.size(),
 		"queued_count": get_queued_coordinates().size(),
@@ -194,8 +208,24 @@ func get_streaming_metrics() -> Dictionary:
 		"residency_churn_count": _unload_count + _cancelled_pending_load_count,
 		"average_load_latency_msec": average_latency_msec,
 		"maximum_load_latency_msec": _maximum_load_latency_msec,
+		"average_background_wait_msec": average_background_wait_msec,
+		"maximum_background_wait_msec": _maximum_background_wait_msec,
+		"average_residency_completion_msec": average_residency_completion_msec,
+		"maximum_residency_completion_msec": _maximum_residency_completion_msec,
+		"completed_observation_count": _completed_load_observations.size(),
 		"approximate_mesh_memory_bytes": _get_approximate_mesh_memory_bytes(),
 	}
+
+
+## Returns bounded per-load observations for analysis without exposing mutable storage.
+##
+## Each observation includes coordinate, aggregate/background/completion timings, and
+## immutable baked asset characteristics when available from the manifest.
+func get_completed_load_observations() -> Array[Dictionary]:
+	var observations: Array[Dictionary] = []
+	for observation in _completed_load_observations:
+		observations.append(observation.duplicate(true))
+	return observations
 
 
 ## Resets cumulative streaming metrics without changing residency or pending work.
@@ -207,6 +237,11 @@ func reset_streaming_metrics() -> void:
 	_cancelled_pending_load_count = 0
 	_total_load_latency_msec = 0
 	_maximum_load_latency_msec = 0
+	_total_background_wait_msec = 0
+	_maximum_background_wait_msec = 0
+	_total_residency_completion_msec = 0
+	_maximum_residency_completion_msec = 0
+	_completed_load_observations.clear()
 
 
 ## Converts a streamer-local terrain position to its containing chunk coordinate.
@@ -331,6 +366,7 @@ func _poll_loading_requests() -> void:
 			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 				continue
 			ResourceLoader.THREAD_LOAD_LOADED:
+				request.completion_observed_msec = Time.get_ticks_msec()
 				_complete_load_request(request)
 			ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 				_fail_load_request(request.coordinate, ERR_CANT_OPEN)
@@ -396,6 +432,10 @@ func _chunk_distance_squared(a: Vector3i, b: Vector3i) -> int:
 
 
 func _complete_load_request(request: ChunkLoadRequest) -> void:
+	var completion_observed_msec := request.completion_observed_msec
+	if completion_observed_msec <= 0:
+		completion_observed_msec = Time.get_ticks_msec()
+
 	var resource := ResourceLoader.load_threaded_get(request.asset_path)
 	var asset := resource as TerrainChunkAsset
 	if asset == null:
@@ -421,13 +461,52 @@ func _complete_load_request(request: ChunkLoadRequest) -> void:
 	add_child(instance)
 	_loaded_chunks[request.coordinate] = instance
 
+	var resident_msec := Time.get_ticks_msec()
 	_completed_load_count += 1
 	_peak_resident_count = maxi(_peak_resident_count, _loaded_chunks.size())
-	if request.started_msec > 0:
-		var latency_msec := maxi(Time.get_ticks_msec() - request.started_msec, 0)
-		_total_load_latency_msec += latency_msec
-		_maximum_load_latency_msec = maxi(_maximum_load_latency_msec, latency_msec)
+	_record_completed_load_observation(request, completion_observed_msec, resident_msec)
 	chunk_loaded.emit(request.coordinate, instance)
+
+
+func _record_completed_load_observation(
+	request: ChunkLoadRequest,
+	completion_observed_msec: int,
+	resident_msec: int
+) -> void:
+	var aggregate_latency_msec := 0
+	var background_wait_msec := 0
+	if request.started_msec > 0:
+		aggregate_latency_msec = maxi(resident_msec - request.started_msec, 0)
+		background_wait_msec = maxi(completion_observed_msec - request.started_msec, 0)
+	var residency_completion_msec := maxi(resident_msec - completion_observed_msec, 0)
+
+	_total_load_latency_msec += aggregate_latency_msec
+	_maximum_load_latency_msec = maxi(_maximum_load_latency_msec, aggregate_latency_msec)
+	_total_background_wait_msec += background_wait_msec
+	_maximum_background_wait_msec = maxi(_maximum_background_wait_msec, background_wait_msec)
+	_total_residency_completion_msec += residency_completion_msec
+	_maximum_residency_completion_msec = maxi(
+		_maximum_residency_completion_msec,
+		residency_completion_msec
+	)
+
+	var entry := manifest.find_entry(request.coordinate, lod_level) if manifest != null else null
+	var observation := {
+		"coordinate": request.coordinate,
+		"aggregate_latency_msec": aggregate_latency_msec,
+		"background_wait_msec": background_wait_msec,
+		"residency_completion_msec": residency_completion_msec,
+		"serialized_size_bytes": 0,
+		"mesh_vertex_count": 0,
+		"mesh_index_count": 0,
+	}
+	if entry != null:
+		observation["serialized_size_bytes"] = entry.serialized_size_bytes
+		observation["mesh_vertex_count"] = entry.mesh_vertex_count
+		observation["mesh_index_count"] = entry.mesh_index_count
+	_completed_load_observations.append(observation)
+	if _completed_load_observations.size() > MAX_COMPLETED_LOAD_OBSERVATIONS:
+		_completed_load_observations.pop_front()
 
 
 func _fail_load_request(coordinate: Vector3i, error: Error) -> void:
