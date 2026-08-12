@@ -138,9 +138,10 @@ current = true
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="Panel" type="PanelContainer" parent="UI"]
+anchor_right = 1.0
 offset_left = 24.0
 offset_top = 118.0
-offset_right = 1128.0
+offset_right = -24.0
 offset_bottom = 1010.0
 theme_override_styles/panel = SubResource("StyleOuter")
 
@@ -153,8 +154,10 @@ theme_override_constants/margin_bottom = 18
 [node name="Content" type="VBoxContainer" parent="UI/Panel/Margin"]
 theme_override_constants/separation = 16
 
-[node name="Summary" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
-theme_override_constants/separation = 12
+[node name="Summary" type="GridContainer" parent="UI/Panel/Margin/Content"]
+columns = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="ThreadCard" type="PanelContainer" parent="UI/Panel/Margin/Content/Summary"]
 custom_minimum_size = Vector2(0, 150)
@@ -172,7 +175,7 @@ theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox"]
 theme_override_font_sizes/font_size = 25
-text = "✓  Thread smoke"
+text = "Thread smoke"
 
 [node name="Value" type="Label" parent="UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox"]
 theme_override_colors/font_color = Color(0.36, 0.9, 0.43, 1)
@@ -196,10 +199,12 @@ theme_override_constants/separation = 8
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content/Summary/CacheCard/Margin/VBox"]
 theme_override_colors/font_color = Color(1, 0.76, 0.02, 1)
 theme_override_font_sizes/font_size = 25
-text = "◇  Cache"
+text = "Cache"
 
 [node name="Cache" type="OptionButton" parent="UI/Panel/Margin/Content/Summary/CacheCard/Margin/VBox"]
 custom_minimum_size = Vector2(0, 70)
+size_flags_horizontal = 3
+fit_to_longest_item = false
 theme_override_colors/font_color = Color(1, 0.76, 0.02, 1)
 theme_override_font_sizes/font_size = 25
 
@@ -220,15 +225,19 @@ theme_override_constants/separation = 8
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content/Summary/ConcurrencyCard/Margin/VBox"]
 theme_override_colors/font_color = Color(0.24, 0.56, 1, 1)
 theme_override_font_sizes/font_size = 25
-text = "●  Concurrency"
+text = "Concurrency"
 
 [node name="Concurrency" type="OptionButton" parent="UI/Panel/Margin/Content/Summary/ConcurrencyCard/Margin/VBox"]
 custom_minimum_size = Vector2(0, 70)
+size_flags_horizontal = 3
+fit_to_longest_item = false
 theme_override_colors/font_color = Color(0.24, 0.56, 1, 1)
 theme_override_font_sizes/font_size = 25
 
-[node name="Metrics" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
-theme_override_constants/separation = 12
+[node name="Metrics" type="GridContainer" parent="UI/Panel/Margin/Content"]
+columns = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
 [node name="TimingCard" type="PanelContainer" parent="UI/Panel/Margin/Content/Metrics"]
 custom_minimum_size = Vector2(0, 280)
@@ -247,7 +256,7 @@ theme_override_constants/separation = 12
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox"]
 theme_override_colors/font_color = Color(0.67, 0.34, 0.96, 1)
 theme_override_font_sizes/font_size = 28
-text = "◷  LOAD TIMING"
+text = "LOAD TIMING"
 
 [node name="Grid" type="GridContainer" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox"]
 columns = 2
@@ -307,7 +316,7 @@ theme_override_constants/separation = 10
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox"]
 theme_override_colors/font_color = Color(0.36, 0.9, 0.43, 1)
 theme_override_font_sizes/font_size = 28
-text = "⌁  RUN"
+text = "RUN"
 
 [node name="Grid" type="GridContainer" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox"]
 columns = 2
@@ -366,8 +375,10 @@ theme_override_font_sizes/font_size = 23
 text = "Target: loading"
 autowrap_mode = 2
 
-[node name="Buttons" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
-theme_override_constants/separation = 14
+[node name="Buttons" type="GridContainer" parent="UI/Panel/Margin/Content"]
+columns = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 12
 
 [node name="Load" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
 custom_minimum_size = Vector2(0, 72)
@@ -376,7 +387,7 @@ theme_override_font_sizes/font_size = 27
 theme_override_styles/normal = SubResource("StyleButtonBlue")
 theme_override_styles/hover = SubResource("StyleButtonBlueHover")
 theme_override_styles/pressed = SubResource("StyleButtonBlueHover")
-text = "⏸  Pause Target"
+text = "Pause Target"
 
 [node name="Unload" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
 custom_minimum_size = Vector2(0, 72)
@@ -385,7 +396,7 @@ theme_override_font_sizes/font_size = 27
 theme_override_styles/normal = SubResource("StyleButtonDark")
 theme_override_styles/hover = SubResource("StyleButtonDarkHover")
 theme_override_styles/pressed = SubResource("StyleButtonDarkHover")
-text = "↻  Reset Experiment"
+text = "Reset Experiment"
 
 [node name="DetailsToggle" type="Button" parent="UI/Panel/Margin/Content"]
 custom_minimum_size = Vector2(0, 66)
@@ -393,10 +404,15 @@ theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleButtonDark")
 theme_override_styles/hover = SubResource("StyleButtonDarkHover")
 theme_override_styles/pressed = SubResource("StyleButtonDarkHover")
-text = "⌄  Show streaming details"
+text = "Show streaming details"
 
-[node name="Details" type="Label" parent="UI/Panel/Margin/Content"]
+[node name="DetailsScroll" type="ScrollContainer" parent="UI/Panel/Margin/Content"]
 visible = false
+custom_minimum_size = Vector2(0, 260)
+horizontal_scroll_mode = 0
+
+[node name="Details" type="Label" parent="UI/Panel/Margin/Content/DetailsScroll"]
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
 text = "Streaming details"
 autowrap_mode = 2
@@ -413,5 +429,5 @@ theme_override_constants/margin_bottom = 12
 [node name="Instructions" type="Label" parent="UI/Panel/Margin/Content/InfoCard/Margin"]
 theme_override_colors/font_color = Color(0.86, 0.88, 0.91, 1)
 theme_override_font_sizes/font_size = 21
-text = "ⓘ  Set cache provenance before recording a run. Change concurrency only after pending work settles. Reset Experiment clears residency and metrics, not browser or ResourceLoader caches."
+text = "Set cache provenance before recording a run. Change concurrency only after pending work settles. Reset Experiment clears residency and metrics, not browser or ResourceLoader caches."
 autowrap_mode = 2
