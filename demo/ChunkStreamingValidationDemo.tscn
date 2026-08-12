@@ -57,59 +57,70 @@ current = true
 offset_left = 12.0
 offset_top = 12.0
 offset_right = 1078.0
-offset_bottom = 824.0
+offset_bottom = 790.0
 
 [node name="Margin" type="MarginContainer" parent="UI/Panel"]
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
 
 [node name="Content" type="VBoxContainer" parent="UI/Panel/Margin"]
-theme_override_constants/separation = 6
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="UI/Panel/Margin/Content"]
-theme_override_font_sizes/font_size = 22
-text = "Resource-Loading Analysis / Runtime Streaming Validation"
+theme_override_font_sizes/font_size = 26
+text = "Resource Loading Analysis"
 
 [node name="Status" type="Label" parent="UI/Panel/Margin/Content"]
-theme_override_font_sizes/font_size = 18
-text = "Dataset: loading\nWeb thread prerequisites: not checked\nThread smoke: not started\nRun cache label: unknown\nTarget chunk: loading\nTarget motion: waiting for streaming\nLoad radius: 2\nUnload radius: 3\nLoad budget: 2 starts/frame, 4 concurrent\nQueued chunks: 0\nLoading chunks: 0\nResident chunks: 0\nPeak resident chunks: 0\nCompleted loads: 0\nFailed loads: 0\nUnloads: 0\nCancelled pending: 0\nResidency churn: 0\nAverage aggregate latency: 0 ms\nMaximum aggregate latency: 0 ms\nAverage background wait: 0 ms\nMaximum background wait: 0 ms\nAverage residency completion: 0 ms\nMaximum residency completion: 0 ms\nCompleted observations: 0\nLast load: none\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: 0 MiB\nFrame time: 0 ms\nRecent max frame time: 0 ms\nStreaming state: not configured"
+theme_override_font_sizes/font_size = 21
+text = "Threading: checking\nCache: unknown\nConcurrency: 4\n\nLOAD TIMING\nBackground: 0 ms\nResidency: 0 ms\nTotal: 0 ms\n\nRUN\nCompleted: 0   Failed: 0\nFrame: 0 ms   Recent max: 0 ms\nTarget: loading"
+autowrap_mode = 2
+
+[node name="Experiment" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
+theme_override_constants/separation = 14
+
+[node name="ExperimentLabel" type="Label" parent="UI/Panel/Margin/Content/Experiment"]
+theme_override_font_sizes/font_size = 20
+text = "Concurrency"
+
+[node name="Concurrency" type="OptionButton" parent="UI/Panel/Margin/Content/Experiment"]
+custom_minimum_size = Vector2(210, 56)
+theme_override_font_sizes/font_size = 20
+
+[node name="CacheLabel" type="Label" parent="UI/Panel/Margin/Content/Experiment"]
+theme_override_font_sizes/font_size = 20
+text = "Cache"
+
+[node name="Cache" type="OptionButton" parent="UI/Panel/Margin/Content/Experiment"]
+custom_minimum_size = Vector2(230, 56)
+theme_override_font_sizes/font_size = 20
+
+[node name="Buttons" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
+theme_override_constants/separation = 14
+
+[node name="Load" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
+custom_minimum_size = Vector2(200, 58)
+theme_override_font_sizes/font_size = 20
+text = "Pause Target"
+
+[node name="Unload" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
+custom_minimum_size = Vector2(220, 58)
+theme_override_font_sizes/font_size = 20
+text = "Reset Experiment"
+
+[node name="DetailsToggle" type="Button" parent="UI/Panel/Margin/Content"]
+custom_minimum_size = Vector2(240, 54)
+theme_override_font_sizes/font_size = 19
+text = "Show streaming details"
+
+[node name="Details" type="Label" parent="UI/Panel/Margin/Content"]
+visible = false
+theme_override_font_sizes/font_size = 16
+text = "Streaming details"
 autowrap_mode = 2
 
 [node name="Instructions" type="Label" parent="UI/Panel/Margin/Content"]
 theme_override_font_sizes/font_size = 16
-text = "The orange target waits for streaming before advancing. Use the concurrency selector only after pending work settles; changing it restarts residency and metrics through the normal ChunkStreamer APIs. Label the browser cache condition manually before recording a run. The cache label is provenance only and does not alter browser cache state. Reset Experiment clears current residency and metrics but does not clear browser or ResourceLoader caches."
+text = "Set cache provenance before recording a run. Change concurrency only after pending work settles. Reset Experiment clears residency and metrics, not browser or ResourceLoader caches."
 autowrap_mode = 2
-
-[node name="Experiment" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
-theme_override_constants/separation = 12
-
-[node name="ExperimentLabel" type="Label" parent="UI/Panel/Margin/Content/Experiment"]
-theme_override_font_sizes/font_size = 18
-text = "Experiment:"
-
-[node name="Concurrency" type="OptionButton" parent="UI/Panel/Margin/Content/Experiment"]
-custom_minimum_size = Vector2(180, 48)
-theme_override_font_sizes/font_size = 18
-
-[node name="CacheLabel" type="Label" parent="UI/Panel/Margin/Content/Experiment"]
-theme_override_font_sizes/font_size = 18
-text = "Cache label:"
-
-[node name="Cache" type="OptionButton" parent="UI/Panel/Margin/Content/Experiment"]
-custom_minimum_size = Vector2(170, 48)
-theme_override_font_sizes/font_size = 18
-
-[node name="Buttons" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
-theme_override_constants/separation = 12
-
-[node name="Load" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
-custom_minimum_size = Vector2(170, 48)
-theme_override_font_sizes/font_size = 18
-text = "Pause Target"
-
-[node name="Unload" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
-custom_minimum_size = Vector2(190, 48)
-theme_override_font_sizes/font_size = 18
-text = "Reset Experiment"
