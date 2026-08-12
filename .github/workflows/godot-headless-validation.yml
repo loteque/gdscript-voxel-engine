@@ -76,6 +76,9 @@ jobs:
         run: godot --headless --path . --script tests/test_chunk_residency_hysteresis.gd
       - name: Run large single-LOD streaming validation tests
         run: godot --headless --path . --script tests/test_large_streaming_validation.gd
+      - name: Run streaming experiment matrix tests
+        timeout-minutes: 2
+        run: godot --headless --path . --script tests/test_streaming_experiment_matrix.gd
       - name: Run chunk residency validation scene test
         timeout-minutes: 2
         run: godot --headless --path . --script tests/test_chunk_residency_validation_scene.gd
