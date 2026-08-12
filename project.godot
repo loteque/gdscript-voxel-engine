@@ -19,6 +19,10 @@ boot_splash/use_filter=true
 boot_splash/image="res://assets/splash/voxel_terrain_splash.png"
 config/icon="res://icon.svg"
 
+[autoload]
+
+DemoOverlayController="*res://demo/DemoOverlayController.gd"
+
 [input]
 
 move_forward={
