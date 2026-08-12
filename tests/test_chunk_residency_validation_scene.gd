@@ -17,6 +17,8 @@ func _run() -> void:
 	var streamer := scene.get_node("ChunkStreamer") as ChunkStreamer
 	var target := scene.get_node("ResidencyTarget") as Node3D
 	var status_label := scene.get_node("UI/Panel/Margin/Content/Status") as Label
+	var details_label := scene.get_node("UI/Panel/Margin/Content/Details") as Label
+	var details_button := scene.get_node("UI/Panel/Margin/Content/DetailsToggle") as Button
 	var pause_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Load") as Button
 	var reset_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Unload") as Button
 	var concurrency_selector := scene.get_node("UI/Panel/Margin/Content/Experiment/Concurrency") as OptionButton
@@ -24,7 +26,9 @@ func _run() -> void:
 
 	_assert_true(streamer != null, "Streaming validation scene must contain ChunkStreamer.")
 	_assert_true(target != null, "Streaming validation scene must contain an explicit Node3D target.")
-	_assert_true(status_label != null, "Streaming validation UI must expose runtime scaling state.")
+	_assert_true(status_label != null, "Streaming validation UI must expose primary experiment state.")
+	_assert_true(details_label != null, "Streaming validation UI must retain expandable diagnostics.")
+	_assert_true(details_button != null, "Streaming validation UI must expose a diagnostics toggle.")
 	_assert_true(concurrency_selector != null, "Streaming validation UI must expose controlled concurrency selection.")
 	_assert_true(cache_selector != null, "Streaming validation UI must expose cache-provenance labeling.")
 	if streamer == null or target == null:
@@ -61,28 +65,40 @@ func _run() -> void:
 
 	if status_label != null:
 		scene.call("_update_status")
-		_assert_true(status_label.text.contains("Dataset: 169 single-LOD chunks"), "Validation UI must identify the large dataset.")
-		_assert_true(status_label.text.contains("Thread smoke: disabled"), "Headless scene wiring test must not depend on WorkerThreadPool completion.")
-		_assert_true(status_label.text.contains("Run cache label: unknown"), "Validation UI must preserve explicit unknown cache provenance by default.")
-		_assert_true(status_label.text.contains("Target motion: waiting for streaming"), "Validation UI must expose loader-gated automatic traversal.")
-		_assert_true(status_label.text.contains("Load radius: 2"), "Validation UI must display the admission radius.")
-		_assert_true(status_label.text.contains("Unload radius: 3"), "Validation UI must display the retention radius.")
-		_assert_true(status_label.text.contains("Load budget: 2 starts/frame, 4 concurrent"), "Validation UI must display scheduler budgets.")
-		_assert_true(status_label.text.contains("Peak resident chunks:"), "Validation UI must expose peak residency.")
-		_assert_true(status_label.text.contains("Completed loads:"), "Validation UI must expose completed load count.")
-		_assert_true(status_label.text.contains("Average aggregate latency:"), "Validation UI must expose aggregate load latency.")
-		_assert_true(status_label.text.contains("Average background wait:"), "Validation UI must expose polling-observed background wait.")
-		_assert_true(status_label.text.contains("Average residency completion:"), "Validation UI must expose post-background residency completion.")
-		_assert_true(status_label.text.contains("Completed observations:"), "Validation UI must expose bounded load-observation count.")
-		_assert_true(status_label.text.contains("Last load:"), "Validation UI must expose asset-size and mesh-complexity correlation context.")
-		_assert_true(status_label.text.contains("Timing boundary: polling-cadence observed"), "Validation UI must state the timing-resolution limitation.")
-		_assert_true(status_label.text.contains("Approx. resident mesh memory:"), "Validation UI must expose approximate mesh memory.")
-		_assert_true(status_label.text.contains("Recent max frame time:"), "Validation UI must expose recent frame-time observation.")
+		_assert_true(status_label.text.contains("Threading: disabled"), "Primary dashboard must expose thread-smoke state.")
+		_assert_true(status_label.text.contains("Cache: unknown"), "Primary dashboard must expose cache provenance.")
+		_assert_true(status_label.text.contains("Concurrency: 4"), "Primary dashboard must expose current concurrency.")
+		_assert_true(status_label.text.contains("LOAD TIMING"), "Primary dashboard must foreground load timing.")
+		_assert_true(status_label.text.contains("Background:"), "Primary dashboard must expose background wait.")
+		_assert_true(status_label.text.contains("Residency:"), "Primary dashboard must expose residency completion.")
+		_assert_true(status_label.text.contains("Total:"), "Primary dashboard must expose aggregate latency.")
+		_assert_true(status_label.text.contains("Completed:"), "Primary dashboard must expose completed loads.")
+		_assert_true(status_label.text.contains("Failed:"), "Primary dashboard must expose failed loads.")
+		_assert_true(status_label.text.contains("Frame:"), "Primary dashboard must expose current frame time.")
+		_assert_true(not status_label.text.contains("Resident coordinates:"), "Primary mobile dashboard must not be dominated by verbose coordinate lists.")
+
+	if details_label != null:
+		_assert_true(not details_label.visible, "Verbose streaming diagnostics must be collapsed by default.")
+		_assert_true(details_label.text.contains("Dataset: 169 single-LOD chunks"), "Expanded diagnostics must identify the large dataset.")
+		_assert_true(details_label.text.contains("Load radius: 2 | Unload radius: 3"), "Expanded diagnostics must display residency policy.")
+		_assert_true(details_label.text.contains("Load budget: 2 starts/frame, 4 concurrent"), "Expanded diagnostics must display scheduler budgets.")
+		_assert_true(details_label.text.contains("Peak resident chunks:"), "Expanded diagnostics must retain peak residency.")
+		_assert_true(details_label.text.contains("Completed observations:"), "Expanded diagnostics must retain observation count.")
+		_assert_true(details_label.text.contains("Last load:"), "Expanded diagnostics must retain asset-size and mesh-complexity context.")
+		_assert_true(details_label.text.contains("Timing boundary: polling-cadence observed"), "Expanded diagnostics must state the timing-resolution limitation.")
+		_assert_true(details_label.text.contains("Resident coordinates:"), "Expanded diagnostics must retain coordinate-level debugging.")
+
+	if details_button != null and details_label != null:
+		details_button.pressed.emit()
+		_assert_true(details_label.visible, "Details control must reveal verbose streaming diagnostics.")
+		_assert_equal(details_button.text, "Hide streaming details", "Details control must clearly describe the expanded state.")
+		details_button.pressed.emit()
+		_assert_true(not details_label.visible, "Details control must collapse verbose streaming diagnostics again.")
 
 	if pause_button != null:
 		pause_button.pressed.emit()
 		scene.call("_update_status")
-		_assert_true(status_label.text.contains("Target motion: paused"), "Manual pause must remain distinct from streaming backpressure.")
+		_assert_true(status_label.text.contains("paused"), "Manual pause must remain visible in primary target state.")
 
 	await _finish(scene)
 
