@@ -26,18 +26,38 @@ def main() -> None:
 <style id="voxel-demo-selector-style">
   #voxel-demo-selector {{
     position: fixed;
-    top: 12px;
-    right: 12px;
+    top: 16px;
+    right: 16px;
     z-index: 2147483647;
-    width: 380px;
-    max-width: calc(100vw - 24px);
-    padding: 7px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 6px;
-    background: rgba(7, 21, 34, 0.9);
-    color: #f3f5f7;
-    font: 12px/1.2 monospace;
-    backdrop-filter: blur(4px);
+    width: 520px;
+    max-width: calc(100vw - 32px);
+    min-height: 62px;
+    padding: 12px 48px 12px 18px;
+    border: 2px solid rgba(115, 130, 145, 0.55);
+    border-radius: 16px;
+    background: rgba(4, 17, 29, 0.96);
+    color: #f4f6f8;
+    font: 600 18px/1.25 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(8px);
+  }}
+
+  #voxel-demo-selector:focus-visible {{
+    outline: 3px solid #3d8cff;
+    outline-offset: 3px;
+  }}
+
+  @media (max-width: 720px) {{
+    #voxel-demo-selector {{
+      left: 16px;
+      right: 16px;
+      width: calc(100vw - 32px);
+      max-width: none;
+      min-height: 68px;
+      padding: 14px 46px 14px 18px;
+      border-radius: 18px;
+      font-size: 19px;
+    }}
   }}
 </style>
 <select id="voxel-demo-selector" aria-label="Select demo and version">
