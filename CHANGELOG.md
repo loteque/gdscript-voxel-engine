@@ -2,6 +2,18 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.14.0
+
+### Added
+- Added polling-cadence-aware resource-loading observations that separate active background wait from the synchronous interval required to establish normal resident chunk state.
+- Added bounded read-only per-load observations carrying aggregate/background/completion timing together with immutable baked asset size, vertex count, and index count for correlation analysis.
+- Added offline manifest metadata for serialized chunk size and mesh complexity so runtime analysis does not perform diagnostic asset file I/O.
+- Added deterministic large-streaming coverage for observation accounting, immutable snapshot behavior, reset/failure semantics, baked metadata consistency, and continued runtime separation from procedural generation.
+
+### Changed
+- The existing Chunk Streaming Validation Demo now exposes aggregate latency, observed background wait, residency-completion time, bounded observation count, and the latest asset-size/mesh-complexity sample while explicitly labeling the completion boundary as polling-cadence observed.
+- The stable `streaming` Integration Preview remains the human-validation surface for the resource-loading analysis milestone.
+
 ## 0.13.2
 
 ### Fixed
