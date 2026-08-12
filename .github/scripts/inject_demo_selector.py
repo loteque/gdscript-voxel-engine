@@ -4,6 +4,7 @@ from pathlib import Path
 
 INTEGRATION_PREVIEW_ID = "integration"
 INTEGRATION_PREVIEW_LABEL = "Integration Preview"
+MOBILE_STREAMING_LABEL = "Runtime Streaming Validation"
 
 
 def main() -> None:
@@ -26,18 +27,19 @@ def main() -> None:
 <style id="voxel-demo-selector-style">
   #voxel-demo-selector {{
     position: fixed;
-    top: 16px;
+    top: 12px;
     right: 16px;
     z-index: 2147483647;
     width: 520px;
     max-width: calc(100vw - 32px);
-    min-height: 62px;
-    padding: 12px 48px 12px 18px;
+    height: 56px;
+    padding: 8px 44px 8px 16px;
     border: 2px solid rgba(115, 130, 145, 0.55);
     border-radius: 16px;
     background: rgba(4, 17, 29, 0.96);
     color: #f4f6f8;
-    font: 600 18px/1.25 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font: 600 18px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    white-space: nowrap;
     box-shadow: 0 8px 26px rgba(0, 0, 0, 0.28);
     backdrop-filter: blur(8px);
   }}
@@ -53,10 +55,10 @@ def main() -> None:
       right: 16px;
       width: calc(100vw - 32px);
       max-width: none;
-      min-height: 68px;
-      padding: 14px 46px 14px 18px;
-      border-radius: 18px;
-      font-size: 19px;
+      height: 52px;
+      padding: 6px 42px 6px 14px;
+      border-radius: 16px;
+      font-size: 17px;
     }}
   }}
 </style>
@@ -70,39 +72,57 @@ def main() -> None:
     const manifestRelativeUrl = {args.manifest_relative_url!r};
     const selector = document.getElementById('voxel-demo-selector');
     const manifestUrl = new URL(manifestRelativeUrl, window.location.href);
+    const mobileQuery = window.matchMedia('(max-width: 720px)');
 
+    const displayDemoName = (demo) => {{
+      if (mobileQuery.matches && demo.key === 'streaming') {{
+        return {MOBILE_STREAMING_LABEL!r};
+      }}
+      return demo.name || demo.key;
+    }};
+
+    const populateSelector = (data) => {{
+      const demos = Array.isArray(data.demos) ? data.demos : [];
+      selector.replaceChildren();
+
+      for (const demo of demos) {{
+        const releases = Array.isArray(demo.releases) ? demo.releases : [];
+        if (releases.length === 0) continue;
+
+        const group = document.createElement('optgroup');
+        group.label = demo.name || demo.key;
+
+        for (const release of releases) {{
+          const option = document.createElement('option');
+          const releaseId = release.id || release.version;
+          const releaseLabel = releaseId === 'integration'
+            ? 'Integration Preview'
+            : release.label || (release.version ? `v${{release.version}}` : releaseId);
+          option.value = release.path;
+          option.textContent = `${{displayDemoName(demo)}} · ${{releaseLabel}}`;
+          option.selected = demo.key === currentDemoKey && releaseId === currentReleaseId;
+          group.appendChild(option);
+        }}
+
+        selector.appendChild(group);
+      }}
+    }};
+
+    let manifestData = null;
     fetch(manifestUrl, {{ cache: 'no-store' }})
       .then(response => {{
         if (!response.ok) throw new Error('HTTP ' + response.status);
         return response.json();
       }})
       .then(data => {{
-        const demos = Array.isArray(data.demos) ? data.demos : [];
-        selector.replaceChildren();
-
-        for (const demo of demos) {{
-          const releases = Array.isArray(demo.releases) ? demo.releases : [];
-          if (releases.length === 0) continue;
-
-          const group = document.createElement('optgroup');
-          group.label = demo.name || demo.key;
-
-          for (const release of releases) {{
-            const option = document.createElement('option');
-            const releaseId = release.id || release.version;
-            const releaseLabel = releaseId === 'integration'
-              ? 'Integration Preview'
-              : release.label || (release.version ? `v${{release.version}}` : releaseId);
-            option.value = release.path;
-            option.textContent = `${{demo.name || demo.key}} · ${{releaseLabel}}`;
-            option.selected = demo.key === currentDemoKey && releaseId === currentReleaseId;
-            group.appendChild(option);
-          }}
-
-          selector.appendChild(group);
-        }}
+        manifestData = data;
+        populateSelector(data);
       }})
       .catch(error => console.warn('Unable to load demo catalog:', error));
+
+    mobileQuery.addEventListener('change', () => {{
+      if (manifestData) populateSelector(manifestData);
+    }});
 
     selector.addEventListener('change', () => {{
       if (!selector.value) return;
