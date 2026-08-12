@@ -5,6 +5,12 @@ extends Node3D
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 const THREAD_SMOKE_TIMEOUT_MSEC := 5000
 const RECENT_FRAME_WINDOW := 120
+const CONCURRENCY_OPTIONS := [1, 2, 4, 8]
+const CACHE_PROVENANCE_OPTIONS := [
+	"unknown",
+	"first-load / cold-ish",
+	"repeated / warm",
+]
 
 @export var manifest: TerrainChunkManifest
 @export_file("*.tres") var manifest_path: String = DEFAULT_MANIFEST_PATH
@@ -24,6 +30,8 @@ const RECENT_FRAME_WINDOW := 120
 @onready var _status_label: Label = $UI/Panel/Margin/Content/Status
 @onready var _pause_button: Button = $UI/Panel/Margin/Content/Buttons/Load
 @onready var _reset_button: Button = $UI/Panel/Margin/Content/Buttons/Unload
+@onready var _concurrency_selector: OptionButton = $UI/Panel/Margin/Content/Experiment/Concurrency
+@onready var _cache_selector: OptionButton = $UI/Panel/Margin/Content/Experiment/Cache
 
 var _motion_direction: float = 1.0
 var _motion_enabled: bool = true
@@ -34,6 +42,7 @@ var _thread_smoke_state: String = "not started"
 var _thread_smoke_web_prerequisites: String = "not checked"
 var _thread_smoke_timed_out: bool = false
 var _recent_frame_times_msec: Array[float] = []
+var _cache_provenance: String = "unknown"
 
 
 func _ready() -> void:
@@ -50,7 +59,8 @@ func _ready() -> void:
 	_streamer.chunk_unloaded.connect(_on_chunk_unloaded)
 	_streamer.chunk_load_failed.connect(_on_chunk_load_failed)
 	_pause_button.pressed.connect(_toggle_motion)
-	_reset_button.pressed.connect(_reset_target)
+	_reset_button.pressed.connect(_reset_experiment)
+	_configure_experiment_controls()
 	if thread_smoke_enabled:
 		_start_thread_smoke_test()
 	else:
@@ -86,6 +96,11 @@ func get_recent_max_frame_time_msec() -> float:
 	for frame_time in _recent_frame_times_msec:
 		maximum = maxf(maximum, frame_time)
 	return maximum
+
+
+## Returns the manually recorded cache-provenance label for this validation run.
+func get_cache_provenance() -> String:
+	return _cache_provenance
 
 
 func _can_advance_target() -> bool:
@@ -135,12 +150,49 @@ func _toggle_motion() -> void:
 	_update_status()
 
 
-func _reset_target() -> void:
+func _configure_experiment_controls() -> void:
+	_concurrency_selector.clear()
+	var selected_concurrency_index := 0
+	for option_index in CONCURRENCY_OPTIONS.size():
+		var concurrency: int = CONCURRENCY_OPTIONS[option_index]
+		_concurrency_selector.add_item("%d concurrent" % concurrency, concurrency)
+		if concurrency == _streamer.max_concurrent_loads:
+			selected_concurrency_index = option_index
+	_concurrency_selector.select(selected_concurrency_index)
+	_concurrency_selector.item_selected.connect(_on_concurrency_selected)
+
+	_cache_selector.clear()
+	for option_index in CACHE_PROVENANCE_OPTIONS.size():
+		_cache_selector.add_item(CACHE_PROVENANCE_OPTIONS[option_index], option_index)
+	_cache_selector.select(0)
+	_cache_selector.item_selected.connect(_on_cache_selected)
+
+
+func _on_concurrency_selected(index: int) -> void:
+	if not _streamer.get_pending_coordinates().is_empty():
+		return
+	_streamer.max_concurrent_loads = _concurrency_selector.get_item_id(index)
+	_restart_experiment("concurrency changed to %d" % _streamer.max_concurrent_loads)
+
+
+func _on_cache_selected(index: int) -> void:
+	_cache_provenance = CACHE_PROVENANCE_OPTIONS[index]
+	_set_streaming_state("cache provenance labeled %s" % _cache_provenance)
+
+
+func _reset_experiment() -> void:
+	_restart_experiment("experiment reset")
+
+
+func _restart_experiment(state: String) -> void:
+	if not _streamer.get_pending_coordinates().is_empty():
+		return
+	_streamer.clear_chunks()
 	_target.position = Vector3(target_min_x, _target.position.y, target_min_z)
 	_motion_direction = 1.0
 	_streamer.reset_streaming_metrics()
 	_streamer.update_residency(_target.position)
-	_set_streaming_state("target and metrics reset")
+	_set_streaming_state(state)
 
 
 func _set_streaming_state(state: String) -> void:
@@ -234,14 +286,18 @@ func _update_status() -> void:
 			last_observation["background_wait_msec"],
 			last_observation["residency_completion_msec"],
 		]
+	var has_pending := not _streamer.get_pending_coordinates().is_empty()
+	_reset_button.disabled = has_pending
+	_concurrency_selector.disabled = has_pending
 	_status_label.text = (
-		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nPeak resident chunks: %d\nResident surfaces: %d\nCompleted loads: %d\nFailed loads: %d\nUnloads: %d\nCancelled pending: %d\nResidency churn: %d\nAverage aggregate latency: %.2f ms\nMaximum aggregate latency: %d ms\nAverage background wait: %.2f ms\nMaximum background wait: %d ms\nAverage residency completion: %.2f ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nFrame time: %.2f ms\nRecent max frame time: %.2f ms\nResident coordinates: %s\nStreaming state: %s"
+		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nThread smoke: %s\nRun cache label: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nPeak resident chunks: %d\nResident surfaces: %d\nCompleted loads: %d\nFailed loads: %d\nUnloads: %d\nCancelled pending: %d\nResidency churn: %d\nAverage aggregate latency: %.2f ms\nMaximum aggregate latency: %d ms\nAverage background wait: %.2f ms\nMaximum background wait: %d ms\nAverage residency completion: %.2f ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nFrame time: %.2f ms\nRecent max frame time: %.2f ms\nResident coordinates: %s\nStreaming state: %s"
 		% [
 			manifest.entries.size(),
 			manifest.chunk_cell_dimensions,
 			manifest.sample_spacing,
 			_thread_smoke_web_prerequisites,
 			_thread_smoke_state,
+			_cache_provenance,
 			target_coordinate,
 			_get_target_motion_state(),
 			_streamer.load_radius,
