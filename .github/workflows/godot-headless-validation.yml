@@ -45,6 +45,19 @@ jobs:
       - name: Bake streaming demo terrain fixture
         run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
 
+      - name: Run controlled resource-loading experiment
+        timeout-minutes: 12
+        run: python demo/tools/run_resource_loading_experiment.py
+
+      - name: Upload resource-loading experiment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resource-loading-analysis-headless
+          path: artifacts/performance/resource-loading-analysis/
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Run surface orientation tests
         run: godot --headless --path . --script tests/test_surface_orientation.gd
       - name: Run point field state tests
