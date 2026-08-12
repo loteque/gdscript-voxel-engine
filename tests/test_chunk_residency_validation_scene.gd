@@ -54,7 +54,12 @@ func _run() -> void:
 		_assert_true(status_label.text.contains("Load budget: 2 starts/frame, 4 concurrent"), "Validation UI must display scheduler budgets.")
 		_assert_true(status_label.text.contains("Peak resident chunks:"), "Validation UI must expose peak residency.")
 		_assert_true(status_label.text.contains("Completed loads:"), "Validation UI must expose completed load count.")
-		_assert_true(status_label.text.contains("Average load latency:"), "Validation UI must expose load latency observation.")
+		_assert_true(status_label.text.contains("Average aggregate latency:"), "Validation UI must expose aggregate load latency.")
+		_assert_true(status_label.text.contains("Average background wait:"), "Validation UI must expose polling-observed background wait.")
+		_assert_true(status_label.text.contains("Average residency completion:"), "Validation UI must expose post-background residency completion.")
+		_assert_true(status_label.text.contains("Completed observations:"), "Validation UI must expose bounded load-observation count.")
+		_assert_true(status_label.text.contains("Last load:"), "Validation UI must expose asset-size and mesh-complexity correlation context.")
+		_assert_true(status_label.text.contains("Timing boundary: polling-cadence observed"), "Validation UI must state the timing-resolution limitation.")
 		_assert_true(status_label.text.contains("Approx. resident mesh memory:"), "Validation UI must expose approximate mesh memory.")
 		_assert_true(status_label.text.contains("Recent max frame time:"), "Validation UI must expose recent frame-time observation.")
 
