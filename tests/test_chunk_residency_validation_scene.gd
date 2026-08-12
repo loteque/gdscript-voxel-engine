@@ -18,10 +18,15 @@ func _run() -> void:
 	var target := scene.get_node("ResidencyTarget") as Node3D
 	var status_label := scene.get_node("UI/Panel/Margin/Content/Status") as Label
 	var pause_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Load") as Button
+	var reset_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Unload") as Button
+	var concurrency_selector := scene.get_node("UI/Panel/Margin/Content/Experiment/Concurrency") as OptionButton
+	var cache_selector := scene.get_node("UI/Panel/Margin/Content/Experiment/Cache") as OptionButton
 
 	_assert_true(streamer != null, "Streaming validation scene must contain ChunkStreamer.")
 	_assert_true(target != null, "Streaming validation scene must contain an explicit Node3D target.")
 	_assert_true(status_label != null, "Streaming validation UI must expose runtime scaling state.")
+	_assert_true(concurrency_selector != null, "Streaming validation UI must expose controlled concurrency selection.")
+	_assert_true(cache_selector != null, "Streaming validation UI must expose cache-provenance labeling.")
 	if streamer == null or target == null:
 		await _finish(scene)
 		return
@@ -34,6 +39,12 @@ func _run() -> void:
 	_assert_equal(streamer.max_load_starts_per_frame, 2, "Large validation must expose the two-start scheduling budget.")
 	_assert_equal(streamer.max_concurrent_loads, 4, "Large validation must expose four concurrent loads.")
 	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(-4, 0, -4), "Initial large validation target must begin in chunk (-4, 0, -4).")
+	_assert_equal(scene.call("get_cache_provenance"), "unknown", "Validation cache provenance must default to unknown rather than imply a cache state.")
+	if concurrency_selector != null:
+		_assert_equal(concurrency_selector.item_count, 4, "Validation concurrency selector must expose the controlled 1/2/4/8 matrix.")
+		_assert_equal(concurrency_selector.get_item_id(concurrency_selector.selected), 4, "Validation concurrency selector must begin at the production demo default of four.")
+	if cache_selector != null:
+		_assert_equal(cache_selector.item_count, 3, "Validation cache selector must expose unknown, cold-ish, and warm provenance labels.")
 
 	streamer.process_mode = Node.PROCESS_MODE_DISABLED
 	_assert_equal(streamer.get_queued_coordinates().size(), 25, "Initial large validation admission must create a 25-chunk queue.")
@@ -43,11 +54,16 @@ func _run() -> void:
 	var target_before_pending_update := target.position
 	scene.call("_process", 1.0)
 	_assert_equal(target.position, target_before_pending_update, "Automatic validation traversal must wait while residency work is pending.")
+	if reset_button != null:
+		_assert_true(reset_button.disabled, "Experiment reset must be disabled while pending work exists.")
+	if concurrency_selector != null:
+		_assert_true(concurrency_selector.disabled, "Concurrency changes must be disabled while pending work exists.")
 
 	if status_label != null:
 		scene.call("_update_status")
 		_assert_true(status_label.text.contains("Dataset: 169 single-LOD chunks"), "Validation UI must identify the large dataset.")
 		_assert_true(status_label.text.contains("Thread smoke: disabled"), "Headless scene wiring test must not depend on WorkerThreadPool completion.")
+		_assert_true(status_label.text.contains("Run cache label: unknown"), "Validation UI must preserve explicit unknown cache provenance by default.")
 		_assert_true(status_label.text.contains("Target motion: waiting for streaming"), "Validation UI must expose loader-gated automatic traversal.")
 		_assert_true(status_label.text.contains("Load radius: 2"), "Validation UI must display the admission radius.")
 		_assert_true(status_label.text.contains("Unload radius: 3"), "Validation UI must display the retention radius.")
