@@ -5,6 +5,7 @@ extends Node3D
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 const THREAD_SMOKE_TIMEOUT_MSEC := 5000
 const RECENT_FRAME_WINDOW := 120
+const NARROW_LAYOUT_WIDTH := 900.0
 const CONCURRENCY_OPTIONS := [1, 2, 4, 8]
 const CACHE_PROVENANCE_OPTIONS := [
 	"unknown",
@@ -30,6 +31,9 @@ const COLOR_PENDING := Color(0.24, 0.56, 1.0, 1.0)
 @onready var _streamer: ChunkStreamer = $ChunkStreamer
 @onready var _target: Node3D = $ResidencyTarget
 @onready var _camera: Camera3D = $Camera
+@onready var _summary_grid: GridContainer = $UI/Panel/Margin/Content/Summary
+@onready var _metrics_grid: GridContainer = $UI/Panel/Margin/Content/Metrics
+@onready var _buttons_grid: GridContainer = $UI/Panel/Margin/Content/Buttons
 @onready var _thread_value: Label = $UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox/Value
 @onready var _background_value: Label = $UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/BackgroundValue
 @onready var _residency_value: Label = $UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/ResidencyValue
@@ -39,7 +43,8 @@ const COLOR_PENDING := Color(0.24, 0.56, 1.0, 1.0)
 @onready var _frame_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/FrameValue
 @onready var _recent_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/RecentValue
 @onready var _target_label: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Target
-@onready var _details_label: Label = $UI/Panel/Margin/Content/Details
+@onready var _details_scroll: ScrollContainer = $UI/Panel/Margin/Content/DetailsScroll
+@onready var _details_label: Label = $UI/Panel/Margin/Content/DetailsScroll/Details
 @onready var _details_button: Button = $UI/Panel/Margin/Content/DetailsToggle
 @onready var _pause_button: Button = $UI/Panel/Margin/Content/Buttons/Load
 @onready var _reset_button: Button = $UI/Panel/Margin/Content/Buttons/Unload
@@ -74,7 +79,9 @@ func _ready() -> void:
 	_pause_button.pressed.connect(_toggle_motion)
 	_reset_button.pressed.connect(_reset_experiment)
 	_details_button.pressed.connect(_toggle_details)
+	get_viewport().size_changed.connect(_update_responsive_layout)
 	_configure_experiment_controls()
+	_update_responsive_layout()
 	if thread_smoke_enabled:
 		_start_thread_smoke_test()
 	else:
@@ -158,15 +165,26 @@ func _record_frame_time(delta: float) -> void:
 		_recent_frame_times_msec.pop_front()
 
 
+func _update_responsive_layout() -> void:
+	_apply_responsive_layout(get_viewport().get_visible_rect().size.x)
+
+
+func _apply_responsive_layout(viewport_width: float) -> void:
+	var narrow_layout := viewport_width < NARROW_LAYOUT_WIDTH
+	_summary_grid.columns = 1 if narrow_layout else 3
+	_metrics_grid.columns = 1 if narrow_layout else 2
+	_buttons_grid.columns = 1 if narrow_layout else 2
+
+
 func _toggle_motion() -> void:
 	_motion_enabled = not _motion_enabled
-	_pause_button.text = "⏸  Pause Target" if _motion_enabled else "▶  Resume Target"
+	_pause_button.text = "Pause Target" if _motion_enabled else "Resume Target"
 	_update_status()
 
 
 func _toggle_details() -> void:
-	_details_label.visible = not _details_label.visible
-	_details_button.text = "⌃  Hide streaming details" if _details_label.visible else "⌄  Show streaming details"
+	_details_scroll.visible = not _details_scroll.visible
+	_details_button.text = "Hide streaming details" if _details_scroll.visible else "Show streaming details"
 
 
 func _configure_experiment_controls() -> void:
