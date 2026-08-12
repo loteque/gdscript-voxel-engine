@@ -28,6 +28,8 @@ const CACHE_PROVENANCE_OPTIONS := [
 @onready var _target: Node3D = $ResidencyTarget
 @onready var _camera: Camera3D = $Camera
 @onready var _status_label: Label = $UI/Panel/Margin/Content/Status
+@onready var _details_label: Label = $UI/Panel/Margin/Content/Details
+@onready var _details_button: Button = $UI/Panel/Margin/Content/DetailsToggle
 @onready var _pause_button: Button = $UI/Panel/Margin/Content/Buttons/Load
 @onready var _reset_button: Button = $UI/Panel/Margin/Content/Buttons/Unload
 @onready var _concurrency_selector: OptionButton = $UI/Panel/Margin/Content/Experiment/Concurrency
@@ -60,6 +62,7 @@ func _ready() -> void:
 	_streamer.chunk_load_failed.connect(_on_chunk_load_failed)
 	_pause_button.pressed.connect(_toggle_motion)
 	_reset_button.pressed.connect(_reset_experiment)
+	_details_button.pressed.connect(_toggle_details)
 	_configure_experiment_controls()
 	if thread_smoke_enabled:
 		_start_thread_smoke_test()
@@ -148,6 +151,11 @@ func _toggle_motion() -> void:
 	_motion_enabled = not _motion_enabled
 	_pause_button.text = "Pause Target" if _motion_enabled else "Resume Target"
 	_update_status()
+
+
+func _toggle_details() -> void:
+	_details_label.visible = not _details_label.visible
+	_details_button.text = "Hide streaming details" if _details_label.visible else "Show streaming details"
 
 
 func _configure_experiment_controls() -> void:
@@ -255,10 +263,11 @@ func _run_thread_smoke_worker() -> void:
 
 func _update_status() -> void:
 	if manifest == null:
-		_status_label.text = (
-			"Manifest: missing\nWeb thread prerequisites: %s\nThread smoke: %s\nStreaming state: %s"
-			% [_thread_smoke_web_prerequisites, _thread_smoke_state, _streaming_state]
-		)
+		_status_label.text = "Threading: %s\nManifest: missing\nState: %s" % [
+			_thread_smoke_state,
+			_streaming_state,
+		]
+		_details_label.text = "Web thread prerequisites: %s" % _thread_smoke_web_prerequisites
 		return
 
 	var target_coordinate := _streamer.position_to_chunk_coordinate(_target.position)
@@ -289,25 +298,38 @@ func _update_status() -> void:
 	var has_pending := not _streamer.get_pending_coordinates().is_empty()
 	_reset_button.disabled = has_pending
 	_concurrency_selector.disabled = has_pending
+
 	_status_label.text = (
-		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nThread smoke: %s\nRun cache label: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nPeak resident chunks: %d\nResident surfaces: %d\nCompleted loads: %d\nFailed loads: %d\nUnloads: %d\nCancelled pending: %d\nResidency churn: %d\nAverage aggregate latency: %.2f ms\nMaximum aggregate latency: %d ms\nAverage background wait: %.2f ms\nMaximum background wait: %d ms\nAverage residency completion: %.2f ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nFrame time: %.2f ms\nRecent max frame time: %.2f ms\nResident coordinates: %s\nStreaming state: %s"
+		"Threading: %s\nCache: %s\nConcurrency: %d\n\nLOAD TIMING\nBackground: %.2f ms\nResidency: %.2f ms\nTotal: %.2f ms\n\nRUN\nCompleted: %d   Failed: %d\nFrame: %.2f ms   Recent max: %.2f ms\nTarget: %s (%s)"
+		% [
+			_thread_smoke_state,
+			_cache_provenance,
+			_streamer.max_concurrent_loads,
+			metrics["average_background_wait_msec"],
+			metrics["average_residency_completion_msec"],
+			metrics["average_load_latency_msec"],
+			metrics["completed_load_count"],
+			metrics["failed_load_count"],
+			current_frame_msec,
+			get_recent_max_frame_time_msec(),
+			target_coordinate,
+			_get_target_motion_state(),
+		]
+	)
+
+	_details_label.text = (
+		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nLoad radius: %d | Unload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d | Loading chunks: %d | Resident chunks: %d\nPeak resident chunks: %d | Resident surfaces: %d\nCompleted loads: %d | Failed loads: %d | Unloads: %d\nCancelled pending: %d | Residency churn: %d\nMaximum aggregate latency: %d ms\nMaximum background wait: %d ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nQueued coordinates: %s\nLoading coordinates: %s\nResident coordinates: %s\nStreaming state: %s"
 		% [
 			manifest.entries.size(),
 			manifest.chunk_cell_dimensions,
 			manifest.sample_spacing,
 			_thread_smoke_web_prerequisites,
-			_thread_smoke_state,
-			_cache_provenance,
-			target_coordinate,
-			_get_target_motion_state(),
 			_streamer.load_radius,
 			_streamer.unload_radius,
 			_streamer.max_load_starts_per_frame,
 			_streamer.max_concurrent_loads,
 			queued_coordinates.size(),
-			queued_coordinates,
 			loading_coordinates.size(),
-			loading_coordinates,
 			loaded_coordinates.size(),
 			metrics["peak_resident_count"],
 			surface_count,
@@ -316,17 +338,14 @@ func _update_status() -> void:
 			metrics["unload_count"],
 			metrics["cancelled_pending_load_count"],
 			metrics["residency_churn_count"],
-			metrics["average_load_latency_msec"],
 			metrics["maximum_load_latency_msec"],
-			metrics["average_background_wait_msec"],
 			metrics["maximum_background_wait_msec"],
-			metrics["average_residency_completion_msec"],
 			metrics["maximum_residency_completion_msec"],
 			metrics["completed_observation_count"],
 			last_asset_summary,
 			approximate_mesh_mib,
-			current_frame_msec,
-			get_recent_max_frame_time_msec(),
+			queued_coordinates,
+			loading_coordinates,
 			loaded_coordinates,
 			_streaming_state,
 		]
