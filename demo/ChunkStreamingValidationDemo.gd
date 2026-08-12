@@ -11,6 +11,9 @@ const CACHE_PROVENANCE_OPTIONS := [
 	"first-load / cold-ish",
 	"repeated / warm",
 ]
+const COLOR_SUCCESS := Color(0.36, 0.9, 0.43, 1.0)
+const COLOR_FAILURE := Color(1.0, 0.28, 0.3, 1.0)
+const COLOR_PENDING := Color(0.24, 0.56, 1.0, 1.0)
 
 @export var manifest: TerrainChunkManifest
 @export_file("*.tres") var manifest_path: String = DEFAULT_MANIFEST_PATH
@@ -27,13 +30,21 @@ const CACHE_PROVENANCE_OPTIONS := [
 @onready var _streamer: ChunkStreamer = $ChunkStreamer
 @onready var _target: Node3D = $ResidencyTarget
 @onready var _camera: Camera3D = $Camera
-@onready var _status_label: Label = $UI/Panel/Margin/Content/Status
+@onready var _thread_value: Label = $UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox/Value
+@onready var _background_value: Label = $UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/BackgroundValue
+@onready var _residency_value: Label = $UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/ResidencyValue
+@onready var _total_value: Label = $UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/TotalRow/Value
+@onready var _completed_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/CompletedValue
+@onready var _failed_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/FailedValue
+@onready var _frame_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/FrameValue
+@onready var _recent_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/RecentValue
+@onready var _target_label: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Target
 @onready var _details_label: Label = $UI/Panel/Margin/Content/Details
 @onready var _details_button: Button = $UI/Panel/Margin/Content/DetailsToggle
 @onready var _pause_button: Button = $UI/Panel/Margin/Content/Buttons/Load
 @onready var _reset_button: Button = $UI/Panel/Margin/Content/Buttons/Unload
-@onready var _concurrency_selector: OptionButton = $UI/Panel/Margin/Content/Experiment/Concurrency
-@onready var _cache_selector: OptionButton = $UI/Panel/Margin/Content/Experiment/Cache
+@onready var _concurrency_selector: OptionButton = $UI/Panel/Margin/Content/Summary/ConcurrencyCard/Margin/VBox/Concurrency
+@onready var _cache_selector: OptionButton = $UI/Panel/Margin/Content/Summary/CacheCard/Margin/VBox/Cache
 
 var _motion_direction: float = 1.0
 var _motion_enabled: bool = true
@@ -149,13 +160,13 @@ func _record_frame_time(delta: float) -> void:
 
 func _toggle_motion() -> void:
 	_motion_enabled = not _motion_enabled
-	_pause_button.text = "Pause Target" if _motion_enabled else "Resume Target"
+	_pause_button.text = "⏸  Pause Target" if _motion_enabled else "▶  Resume Target"
 	_update_status()
 
 
 func _toggle_details() -> void:
 	_details_label.visible = not _details_label.visible
-	_details_button.text = "Hide streaming details" if _details_label.visible else "Show streaming details"
+	_details_button.text = "⌃  Hide streaming details" if _details_label.visible else "⌄  Show streaming details"
 
 
 func _configure_experiment_controls() -> void:
@@ -262,12 +273,20 @@ func _run_thread_smoke_worker() -> void:
 
 
 func _update_status() -> void:
+	_update_thread_status()
 	if manifest == null:
-		_status_label.text = "Threading: %s\nManifest: missing\nState: %s" % [
-			_thread_smoke_state,
+		_background_value.text = "—"
+		_residency_value.text = "—"
+		_total_value.text = "—"
+		_completed_value.text = "0"
+		_failed_value.text = "0"
+		_frame_value.text = "—"
+		_recent_value.text = "—"
+		_target_label.text = "Target: manifest missing"
+		_details_label.text = "Web thread prerequisites: %s\nStreaming state: %s" % [
+			_thread_smoke_web_prerequisites,
 			_streaming_state,
 		]
-		_details_label.text = "Web thread prerequisites: %s" % _thread_smoke_web_prerequisites
 		return
 
 	var target_coordinate := _streamer.position_to_chunk_coordinate(_target.position)
@@ -299,31 +318,23 @@ func _update_status() -> void:
 	_reset_button.disabled = has_pending
 	_concurrency_selector.disabled = has_pending
 
-	_status_label.text = (
-		"Threading: %s\nCache: %s\nConcurrency: %d\n\nLOAD TIMING\nBackground: %.2f ms\nResidency: %.2f ms\nTotal: %.2f ms\n\nRUN\nCompleted: %d   Failed: %d\nFrame: %.2f ms   Recent max: %.2f ms\nTarget: %s (%s)"
-		% [
-			_thread_smoke_state,
-			_cache_provenance,
-			_streamer.max_concurrent_loads,
-			metrics["average_background_wait_msec"],
-			metrics["average_residency_completion_msec"],
-			metrics["average_load_latency_msec"],
-			metrics["completed_load_count"],
-			metrics["failed_load_count"],
-			current_frame_msec,
-			get_recent_max_frame_time_msec(),
-			target_coordinate,
-			_get_target_motion_state(),
-		]
-	)
+	_background_value.text = "%.2f ms" % float(metrics["average_background_wait_msec"])
+	_residency_value.text = "%.2f ms" % float(metrics["average_residency_completion_msec"])
+	_total_value.text = "%.2f ms" % float(metrics["average_load_latency_msec"])
+	_completed_value.text = str(metrics["completed_load_count"])
+	_failed_value.text = str(metrics["failed_load_count"])
+	_frame_value.text = "%.2f ms" % current_frame_msec
+	_recent_value.text = "%.2f ms" % get_recent_max_frame_time_msec()
+	_target_label.text = "Target: %s (%s)" % [target_coordinate, _get_target_motion_state()]
 
 	_details_label.text = (
-		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nLoad radius: %d | Unload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d | Loading chunks: %d | Resident chunks: %d\nPeak resident chunks: %d | Resident surfaces: %d\nCompleted loads: %d | Failed loads: %d | Unloads: %d\nCancelled pending: %d | Residency churn: %d\nMaximum aggregate latency: %d ms\nMaximum background wait: %d ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nQueued coordinates: %s\nLoading coordinates: %s\nResident coordinates: %s\nStreaming state: %s"
+		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nRun cache label: %s\nLoad radius: %d | Unload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d | Loading chunks: %d | Resident chunks: %d\nPeak resident chunks: %d | Resident surfaces: %d\nCompleted loads: %d | Failed loads: %d | Unloads: %d\nCancelled pending: %d | Residency churn: %d\nMaximum aggregate latency: %d ms\nMaximum background wait: %d ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nQueued coordinates: %s\nLoading coordinates: %s\nResident coordinates: %s\nStreaming state: %s"
 		% [
 			manifest.entries.size(),
 			manifest.chunk_cell_dimensions,
 			manifest.sample_spacing,
 			_thread_smoke_web_prerequisites,
+			_cache_provenance,
 			_streamer.load_radius,
 			_streamer.unload_radius,
 			_streamer.max_load_starts_per_frame,
@@ -350,6 +361,16 @@ func _update_status() -> void:
 			_streaming_state,
 		]
 	)
+
+
+func _update_thread_status() -> void:
+	_thread_value.text = _thread_smoke_state.to_upper()
+	if _thread_smoke_state.begins_with("PASS") or _thread_smoke_state == "disabled":
+		_thread_value.add_theme_color_override("font_color", COLOR_SUCCESS)
+	elif _thread_smoke_state.begins_with("FAIL"):
+		_thread_value.add_theme_color_override("font_color", COLOR_FAILURE)
+	else:
+		_thread_value.add_theme_color_override("font_color", COLOR_PENDING)
 
 
 func _on_chunk_load_queued(_coordinate: Vector3i) -> void:
