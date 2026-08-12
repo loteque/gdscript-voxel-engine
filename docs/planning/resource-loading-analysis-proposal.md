@@ -6,7 +6,7 @@
 
 The current roadmap identifies precomputed resource-loading throughput as the first material scaling pressure observed by the large single-LOD validation. This proposal defines an investigation intended to determine where material latency is introduced in the runtime asset-loading path and to produce evidence for the subsequent loading-architecture decision.
 
-This milestone is diagnostic. It should not begin from the assumption that `ChunkStreamer`, `ResourceLoader`, the serialized asset representation, Web deployment, scheduler configuration, or LOD is the cause or solution.
+This milestone is diagnostic. It should not begin from the assumption that `ChunkStreamer`, Godot's supported resource-loading facilities, the serialized asset representation, Web deployment, scheduler configuration, or LOD is the cause or solution.
 
 ## Architectural constraints
 
@@ -33,63 +33,83 @@ In particular:
 
 The accepted 0.13.0 mobile-Web observation records approximately 2.22 seconds average load latency and 5.43 seconds maximum observed latency while corrected backpressured traversal produced zero failed loads and zero cancelled pending loads. Resident mesh memory did not emerge as the dominant observed constraint, and residency/scheduling behavior remained functionally coherent.
 
-The current `ChunkStreamer` measures load latency from the successful start of `ResourceLoader.load_threaded_request()` until the loaded `TerrainChunkAsset` has been validated and accepted as a resident `MeshInstance3D`. That aggregate measurement is useful as a baseline but does not isolate which portion of the loading path dominates.
+The current aggregate load-latency observation spans the period from active loading beginning until the precomputed chunk has been accepted into normal resident state. That baseline is useful but does not isolate whether the dominant cost is background resource loading, later completion work, asset-dependent work, platform overhead, or another factor.
 
 ## Questions this work should answer
 
-1. Where is material latency introduced between starting a threaded resource request and establishing normal resident chunk state?
+1. Where is material observable time introduced between beginning an active precomputed chunk load and establishing normal resident chunk state?
 2. How much of the observed latency and throughput is specific to Web, mobile Web, or a particular browser/device rather than the general runtime architecture?
 3. How does configured loading concurrency affect completion throughput, latency, frame-time behavior, and scheduler utilization?
-4. Is post-load resource validation and resident-instance creation material compared with waiting for the threaded resource load?
-5. Does the evidence justify changing loading architecture, asset representation, scheduler policy, or platform strategy before LOD?
-6. Which remaining uncertainties would materially affect the subsequent loading-architecture decision?
+4. Is work after the background load becomes observable as complete material compared with the preceding loading wait?
+5. Does load latency correlate materially with serialized chunk-asset size and/or mesh complexity?
+6. For Web observations, how materially do first-load, repeated-load, or unknown cache conditions affect the measurements?
+7. Does the evidence justify changing loading architecture, asset representation, scheduler policy, platform strategy, or the timing of LOD work?
+8. Which remaining uncertainties would materially affect the subsequent loading-architecture decision?
 
 ## Proposed investigation
 
-### 1. Establish lifecycle measurement boundaries
+### 1. Establish discriminating observable boundaries
 
-Extend runtime observability only enough to separate meaningful phases already present in the production loading lifecycle. Candidate observations are:
+Collect only enough additional evidence to distinguish meaningful phases already present in the production loading lifecycle.
+
+The investigation should be able to distinguish, where the runtime permits meaningful observation:
 
 ```text
-queued
-  -> threaded request accepted
-  -> ResourceLoader reports loaded/failed
-  -> loaded resource retrieved and validated
-  -> MeshInstance3D established as resident
+request waiting to start
+        ↓
+active background loading
+        ↓
+background completion becomes observable to the streamer
+        ↓
+normal resident state established
 ```
 
-The exact representation should be chosen after implementation review. Prefer a small extension of the existing read-only metrics/snapshot surface over a telemetry framework or mutable diagnostic state exposed to validation code.
+These are evidence requirements, not a prescribed instrumentation design. The implementing engineer should inspect the current code and platform constraints and choose the smallest reliable measurement mechanism that preserves production ownership and does not create an alternate loading path.
 
-The measurements should preserve the current public residency contract. Instrumentation should observe loading execution rather than become responsible for scheduling it.
+If a boundary cannot be observed independently with useful precision, record that limitation rather than introducing artificial structure solely to make the measurement possible.
 
-### 2. Separate waiting time from completion work
+### 2. Determine whether completion work is material
 
-The current aggregate load-latency metric spans both background resource loading and the synchronous completion path. Add enough observation to determine whether significant time is spent:
+Establish whether a material portion of aggregate latency occurs after background loading has become observably complete but before the chunk reaches normal resident state.
 
-- waiting for `ResourceLoader.load_threaded_get_status()` to report completion;
-- retrieving/validating the resulting `TerrainChunkAsset`;
-- creating and attaching the resident `MeshInstance3D` and assigning its mesh.
+The investigation should answer whether that interval is negligible, material, or not meaningfully isolatable with the available runtime interfaces. It should not assume which completion sub-step is responsible unless the evidence actually discriminates between them.
 
-Where a phase is too small or platform APIs do not permit meaningful isolation, record that limitation rather than manufacturing precision.
+### 3. Correlate latency with serialized asset size and mesh complexity
 
-### 3. Run controlled concurrency experiments
+Treat asset-dependent cost as required evidence rather than assuming every chunk load has equivalent work.
 
-Use the existing deterministic large single-LOD fixture and production streamer. Compare a small set of concurrency configurations while holding dataset, residency policy, traversal behavior, and per-frame start policy controlled where practical.
+For observed chunk loads, record enough immutable asset characteristics to evaluate whether latency or throughput correlates materially with factors such as:
+
+- serialized chunk-asset size;
+- mesh vertex count;
+- mesh index/triangle count;
+- another existing mesh-complexity measure if it better represents the current serialized assets.
+
+The purpose is correlation, not asset-format optimization during this milestone.
+
+This evidence is important to the later LOD decision. If materially smaller or simpler baked assets consistently load faster, LOD may influence streaming throughput as well as rendering cost. If latency is dominated by largely fixed or platform-specific overhead, that would point toward a different architectural response.
+
+Do not infer causation from correlation alone.
+
+### 4. Run controlled concurrency experiments
+
+Use the existing deterministic large single-LOD fixture and production streamer. Compare a small set of concurrency configurations while holding dataset, residency policy, traversal behavior, and other relevant scheduling conditions controlled where practical.
 
 The experiment should observe at least:
 
-- completed loads over an observation interval or equivalent throughput evidence;
+- completion throughput or equivalent completed-load evidence over a defined observation;
 - average and maximum aggregate load latency;
-- separated lifecycle timing introduced by this milestone;
+- any discriminating lifecycle observations supported by the selected instrumentation;
 - queued/loading/resident counts;
 - loading-capacity utilization;
 - failures and logical cancellations;
 - frame-time behavior;
-- residency churn.
+- residency churn;
+- asset-size and mesh-complexity correlation.
 
-The purpose is to identify trends and saturation behavior, not to choose the largest concurrency value that produces the best isolated number.
+The purpose is to identify trends and saturation behavior, not to select the largest concurrency value that produces the best isolated number.
 
-### 4. Compare representative runtime environments
+### 5. Compare representative runtime environments
 
 Where practical, repeat equivalent observations across:
 
@@ -97,32 +117,51 @@ Where practical, repeat equivalent observations across:
 - desktop Web;
 - mobile Web.
 
-Record browser, device/platform, build/version, fixture configuration, residency radii, scheduler budgets, and relevant runtime conditions with each accepted observation.
+Record browser, device/platform, build/version, fixture configuration, residency radii, scheduler budgets, and other runtime conditions needed to interpret the observation.
+
+For Web observations, also record cache provenance as one of:
+
+- first-load / cold-ish condition;
+- repeated / warm condition;
+- unknown cache condition.
+
+The investigation does not prescribe cache-clearing mechanics. The requirement is to preserve the condition so measurements collected under materially different cache states are not treated as directly equivalent.
 
 Environment-specific measurements must remain labeled as such. If an environment cannot be measured comparably, preserve that limitation in the report.
 
-### 5. Preserve the existing human-validation surface
+The initial environment/concurrency matrix should remain intentionally small. Do not broaden it unless the observations reveal a question that materially requires another axis.
+
+### 6. Preserve timing-resolution limitations
+
+Any timing boundary inferred from periodic observation of asynchronous loading is measured at the observer's cadence, not necessarily at the exact instant background work completed.
+
+Accepted measurements and the final report must state the effective timing-resolution limitation of the chosen observation method. Do not imply finer precision than the runtime exposes.
+
+At the current multi-second mobile-Web baseline this may be a minor source of error, but it becomes more important if later observations become substantially shorter.
+
+### 7. Preserve the existing human-validation surface
 
 Evolve `ChunkStreamingValidationDemo` and the stable `/streaming/` Integration Preview rather than creating a feature-specific Pages category.
 
-The validation UI should expose only diagnostics needed to understand the investigation, such as current scheduler configuration, queue/loading/resident state, aggregate latency, newly separated loading-phase observations, and frame-time observations.
+The validation UI should expose only enough diagnostic state for a human to understand the experiment and distinguish the important observations. The exact presentation and metrics surface should be selected during implementation after the instrumentation design is chosen.
 
 The existing Web thread/runtime smoke diagnostics and backpressured traversal behavior should remain intact unless the investigation establishes a reason to change them.
 
 ## Automated validation strategy
 
-Tests should prove instrumentation and lifecycle accounting, not performance thresholds.
+Tests should prove instrumentation/accounting correctness and unchanged streaming contracts, not performance thresholds.
 
 Expected contract coverage includes:
 
-- new metrics begin in a coherent initial state;
-- successful loads update the appropriate lifecycle observations exactly once;
-- failures do not count as successful completions and free scheduler capacity as before;
+- new observations begin in a coherent initial state;
+- successful loads update each relevant accounting value exactly once;
+- failures do not count as successful completions and continue freeing scheduler capacity correctly;
 - logical cancellation does not later produce resident state;
-- metric snapshots do not mutate runtime state;
-- reset behavior is coherent for any new cumulative metrics;
+- read-only observations do not mutate runtime state;
+- reset behavior is coherent for any new cumulative observations;
+- asset characteristics used for correlation are reported consistently without changing runtime asset ownership;
 - existing nearest-first scheduling, load-start budgets, concurrency limits, hysteresis, and idempotency remain unchanged;
-- the validation scene exposes the expected diagnostic state through production APIs;
+- the validation scene exposes the intended diagnostic state through production APIs;
 - runtime continues to have no dependency on point-field generation, Surface Nets, or procedural runtime mesh generation.
 
 Avoid brittle wall-clock performance assertions in CI. Timing tests should validate accounting relationships and non-negative/ordered observations where deterministic, not demand machine-specific latency ceilings.
@@ -139,7 +178,11 @@ engineering inference
 architectural implication
 ```
 
-Do not infer a bottleneck merely because one aggregate metric is large. Do not compare measurements collected under materially different configurations without recording the difference.
+Do not infer a bottleneck merely because one aggregate metric is large. Do not compare measurements collected under materially different configurations or cache states without recording the difference.
+
+Record relevant asset size/complexity alongside latency observations so later analysis can test whether the relationship is meaningful rather than relying on intuition.
+
+Preserve the timing precision actually supported by the measurement method. If a boundary is polling-cadence limited, state that explicitly.
 
 The existing 0.13.0 report remains the baseline rather than being rewritten after new measurements are available.
 
@@ -147,13 +190,14 @@ The existing 0.13.0 report remains the baseline rather than being rewritten afte
 
 If this proposal is accepted, the implementation milestone should deliver:
 
-1. narrowly scoped production-path instrumentation sufficient to decompose the current loading observation;
-2. deterministic headless contract coverage for that instrumentation and unchanged streaming behavior;
-3. an updated `ChunkStreamingValidationDemo` using the production metrics surface;
-4. the updated stable `/streaming/` Integration Preview;
-5. manually verified observations from representative environments where practical;
-6. a new report under `docs/performance/` recording configuration, provenance, measurements, limitations, inference, and open questions;
-7. a loading-architecture recommendation based on the evidence.
+1. narrowly scoped production-path observability sufficient to discriminate the material loading intervals that the runtime can reliably expose;
+2. evidence relating load behavior to serialized asset size and mesh complexity;
+3. deterministic headless contract coverage for the observations and unchanged streaming behavior;
+4. an updated `ChunkStreamingValidationDemo` using production observability;
+5. the updated stable `/streaming/` Integration Preview;
+6. manually verified observations from representative environments where practical, including Web cache-state provenance;
+7. a new report under `docs/performance/` recording configuration, provenance, measurements, timing limitations, inference, and open questions;
+8. a loading-architecture recommendation based on the evidence.
 
 If that recommendation establishes or changes a durable engine contract, it should be recorded as an ADR. If the evidence materially changes development order, `ROADMAP.md` and roadmap history should be updated according to the repository planning discipline.
 
@@ -163,22 +207,24 @@ This proposal does not authorize:
 
 - LOD architecture or implementation;
 - runtime procedural generation or meshing;
-- speculative replacement of Godot's resource loader;
+- speculative replacement of Godot's supported resource-loading path;
 - custom worker-thread infrastructure without evidence that the supported loading path is inadequate;
 - asset-format redesign before measurements justify it;
 - predictive, velocity, or frustum-weighted scheduling;
 - broad extraction of `ChunkStreamer` responsibilities solely for aesthetic reasons;
-- performance claims based on CI wall-clock timing.
+- performance claims based on CI wall-clock timing;
+- implementation structures introduced only to manufacture measurement boundaries.
 
 ## Decision requested from architecture review
 
-Please review whether this investigation provides enough discrimination to support the roadmap's subsequent **Loading Architecture Decision** without prematurely prescribing a solution.
+Please review whether this revised investigation provides enough discrimination to support the roadmap's subsequent **Loading Architecture Decision** without prematurely prescribing a solution.
 
 In particular, feedback is requested on:
 
-- whether the proposed lifecycle boundaries are sufficient or too implementation-specific;
-- whether the environment/concurrency matrix is adequate to distinguish platform behavior from architecture behavior;
-- whether any measurement would materially improve the later LOD decision and is missing here;
-- whether any proposed instrumentation risks weakening subsystem ownership or the accepted offline/runtime boundary.
+- whether the required observable boundaries are sufficiently discriminating without prescribing instrumentation design;
+- whether serialized asset size / mesh-complexity correlation is framed at the right level for the later LOD decision;
+- whether the environment/concurrency matrix and Web cache provenance are adequate;
+- whether the timing-resolution limitations are stated strongly enough;
+- whether any remaining requirement risks weakening subsystem ownership or the accepted offline/runtime boundary.
 
 No production implementation should begin from this proposal until the investigation scope is accepted or revised through review.
