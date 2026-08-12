@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="StreamingExperimentMatrix" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://demo/experiments/StreamingExperimentMatrix.gd" id="1_matrix"]
+
+[resource]
+script = ExtResource("1_matrix")
+matrix_name = "mobile-web-warm-resource-loading"
+description = "Controlled repeated/warm Web resource-loading matrix. Uses the same 11 chunk-coordinate waypoints as the native headless resource-loading experiment so concurrency effects can be compared without changing residency or traversal semantics. Browser cache state is operator-provided provenance and is not modified by the matrix runner."
+cache_provenance = "repeated / warm"
+concurrency_values = PackedInt32Array(1, 2, 4, 8)
+repetitions_per_concurrency = 3
+load_radius = 2
+unload_radius = 3
+max_load_starts_per_frame = 2
+waypoint_coordinates = [Vector3i(-4, 0, -4), Vector3i(-2, 0, -4), Vector3i(0, 0, -4), Vector3i(2, 0, -4), Vector3i(4, 0, -4), Vector3i(4, 0, 0), Vector3i(0, 0, 0), Vector3i(-4, 0, 0), Vector3i(-4, 0, 4), Vector3i(0, 0, 4), Vector3i(4, 0, 4)]
+settle_frames = 2
