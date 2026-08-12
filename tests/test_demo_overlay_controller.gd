@@ -10,12 +10,18 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	var overlay_controller := root.get_node_or_null("DemoOverlayController")
+	_assert_true(overlay_controller != null, "Demo overlay controller autoload must be available.")
+	if overlay_controller == null:
+		quit(1)
+		return
+
 	_assert_true(
-		DemoOverlayController.is_demo_scene_path("res://demo/FutureValidationDemo.tscn"),
+		overlay_controller.call("is_demo_scene_path", "res://demo/FutureValidationDemo.tscn"),
 		"Every scene under res://demo/ must participate in the collapsible overlay convention."
 	)
 	_assert_true(
-		not DemoOverlayController.is_demo_scene_path("res://voxel/chunking/ChunkStreamer.gd"),
+		not overlay_controller.call("is_demo_scene_path", "res://voxel/chunking/ChunkStreamer.gd"),
 		"Production/runtime paths must not be treated as demo scenes."
 	)
 
@@ -27,7 +33,7 @@ func _run() -> void:
 
 	var instructions := scene.get_node("Instructions") as CanvasLayer
 	var mobile_controls := scene.get_node("MobileControlsLayer") as CanvasLayer
-	var toggle_button := DemoOverlayController.get_node(
+	var toggle_button := overlay_controller.get_node(
 		"DemoOverlayToggleLayer/DemoOverlayToggleButton"
 	) as Button
 
@@ -42,13 +48,13 @@ func _run() -> void:
 	_assert_true(toggle_button.custom_minimum_size.y >= 70.0, "Demo overlay toggle must remain accessibility-sized.")
 	_assert_equal(toggle_button.text, "Hide UI", "Expanded demos must offer an explicit Hide UI action.")
 
-	DemoOverlayController.set_overlays_visible(false)
+	overlay_controller.call("set_overlays_visible", false)
 	_assert_true(not instructions.visible, "Collapsing demo UI must hide instruction overlays.")
 	_assert_true(not mobile_controls.visible, "Collapsing demo UI must hide mobile-control overlays.")
 	_assert_true(toggle_button.visible, "Restore control must remain visible while demo overlays are collapsed.")
 	_assert_equal(toggle_button.text, "Show UI", "Collapsed demos must expose an explicit Show UI action.")
 
-	DemoOverlayController.set_overlays_visible(true)
+	overlay_controller.call("set_overlays_visible", true)
 	_assert_true(instructions.visible, "Restoring demo UI must restore instruction overlays.")
 	_assert_true(mobile_controls.visible, "Restoring demo UI must restore mobile-control overlays.")
 	_assert_equal(toggle_button.text, "Hide UI", "Restored demos must return to the Hide UI action.")
