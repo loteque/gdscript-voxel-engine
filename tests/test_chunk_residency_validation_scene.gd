@@ -64,7 +64,7 @@ func _run() -> void:
 	_assert_equal(scene.call("get_cache_provenance"), "unknown", "Validation cache provenance must default to unknown rather than imply a cache state.")
 
 	if panel != null:
-		_assert_true(panel.offset_top >= 100.0, "Accessible dashboard must reserve vertical space for the injected Pages selector.")
+		_assert_true(panel.offset_top >= 180.0, "Accessible dashboard must reserve enough scaled canvas space for the injected mobile Pages selector.")
 		_assert_equal(panel.anchor_right, 1.0, "Accessible dashboard must size against the viewport rather than a fixed right edge.")
 		_assert_true(panel.offset_right < 0.0, "Accessible dashboard must preserve a viewport-relative right margin.")
 	if thread_value != null:
