@@ -16,21 +16,34 @@ func _run() -> void:
 
 	var streamer := scene.get_node("ChunkStreamer") as ChunkStreamer
 	var target := scene.get_node("ResidencyTarget") as Node3D
-	var status_label := scene.get_node("UI/Panel/Margin/Content/Status") as Label
+	var panel := scene.get_node("UI/Panel") as PanelContainer
+	var thread_value := scene.get_node("UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox/Value") as Label
+	var background_value := scene.get_node("UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/BackgroundValue") as Label
+	var residency_value := scene.get_node("UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/ResidencyValue") as Label
+	var total_value := scene.get_node("UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/TotalRow/Value") as Label
+	var completed_value := scene.get_node("UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/CompletedValue") as Label
+	var failed_value := scene.get_node("UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/FailedValue") as Label
+	var target_label := scene.get_node("UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Target") as Label
 	var details_label := scene.get_node("UI/Panel/Margin/Content/Details") as Label
 	var details_button := scene.get_node("UI/Panel/Margin/Content/DetailsToggle") as Button
 	var pause_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Load") as Button
 	var reset_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Unload") as Button
-	var concurrency_selector := scene.get_node("UI/Panel/Margin/Content/Experiment/Concurrency") as OptionButton
-	var cache_selector := scene.get_node("UI/Panel/Margin/Content/Experiment/Cache") as OptionButton
+	var concurrency_selector := scene.get_node("UI/Panel/Margin/Content/Summary/ConcurrencyCard/Margin/VBox/Concurrency") as OptionButton
+	var cache_selector := scene.get_node("UI/Panel/Margin/Content/Summary/CacheCard/Margin/VBox/Cache") as OptionButton
+	var instructions := scene.get_node("UI/Panel/Margin/Content/InfoCard/Margin/Instructions") as Label
 
 	_assert_true(streamer != null, "Streaming validation scene must contain ChunkStreamer.")
 	_assert_true(target != null, "Streaming validation scene must contain an explicit Node3D target.")
-	_assert_true(status_label != null, "Streaming validation UI must expose primary experiment state.")
+	_assert_true(panel != null, "Streaming validation UI must expose its accessible dashboard panel.")
+	_assert_true(thread_value != null, "Streaming validation UI must expose thread-smoke status prominently.")
+	_assert_true(background_value != null and residency_value != null and total_value != null, "Streaming validation UI must expose separated loading timings.")
+	_assert_true(completed_value != null and failed_value != null, "Streaming validation UI must expose run completion state.")
+	_assert_true(target_label != null, "Streaming validation UI must expose target state.")
 	_assert_true(details_label != null, "Streaming validation UI must retain expandable diagnostics.")
 	_assert_true(details_button != null, "Streaming validation UI must expose a diagnostics toggle.")
 	_assert_true(concurrency_selector != null, "Streaming validation UI must expose controlled concurrency selection.")
 	_assert_true(cache_selector != null, "Streaming validation UI must expose cache-provenance labeling.")
+	_assert_true(instructions != null, "Streaming validation UI must retain experiment guidance.")
 	if streamer == null or target == null:
 		await _finish(scene)
 		return
@@ -44,6 +57,19 @@ func _run() -> void:
 	_assert_equal(streamer.max_concurrent_loads, 4, "Large validation must expose four concurrent loads.")
 	_assert_equal(streamer.position_to_chunk_coordinate(target.position), Vector3i(-4, 0, -4), "Initial large validation target must begin in chunk (-4, 0, -4).")
 	_assert_equal(scene.call("get_cache_provenance"), "unknown", "Validation cache provenance must default to unknown rather than imply a cache state.")
+
+	if panel != null:
+		_assert_true(panel.offset_top >= 100.0, "Accessible dashboard must reserve vertical space for the injected Pages selector.")
+	if thread_value != null:
+		_assert_true(thread_value.get_theme_font_size("font_size") >= 30, "Primary status values must use accessibility-sized typography.")
+	if total_value != null:
+		_assert_true(total_value.get_theme_font_size("font_size") >= 30, "Primary timing total must use accessibility-sized typography.")
+	if instructions != null:
+		_assert_true(instructions.get_theme_font_size("font_size") >= 20, "Experiment guidance must remain readable on mobile.")
+	if pause_button != null and reset_button != null:
+		_assert_true(pause_button.custom_minimum_size.y >= 70.0, "Primary controls must provide large touch targets.")
+		_assert_true(reset_button.custom_minimum_size.y >= 70.0, "Reset control must provide a large touch target.")
+
 	if concurrency_selector != null:
 		_assert_equal(concurrency_selector.item_count, 4, "Validation concurrency selector must expose the controlled 1/2/4/8 matrix.")
 		_assert_equal(concurrency_selector.get_item_id(concurrency_selector.selected), 4, "Validation concurrency selector must begin at the production demo default of four.")
@@ -63,19 +89,18 @@ func _run() -> void:
 	if concurrency_selector != null:
 		_assert_true(concurrency_selector.disabled, "Concurrency changes must be disabled while pending work exists.")
 
-	if status_label != null:
-		scene.call("_update_status")
-		_assert_true(status_label.text.contains("Threading: disabled"), "Primary dashboard must expose thread-smoke state.")
-		_assert_true(status_label.text.contains("Cache: unknown"), "Primary dashboard must expose cache provenance.")
-		_assert_true(status_label.text.contains("Concurrency: 4"), "Primary dashboard must expose current concurrency.")
-		_assert_true(status_label.text.contains("LOAD TIMING"), "Primary dashboard must foreground load timing.")
-		_assert_true(status_label.text.contains("Background:"), "Primary dashboard must expose background wait.")
-		_assert_true(status_label.text.contains("Residency:"), "Primary dashboard must expose residency completion.")
-		_assert_true(status_label.text.contains("Total:"), "Primary dashboard must expose aggregate latency.")
-		_assert_true(status_label.text.contains("Completed:"), "Primary dashboard must expose completed loads.")
-		_assert_true(status_label.text.contains("Failed:"), "Primary dashboard must expose failed loads.")
-		_assert_true(status_label.text.contains("Frame:"), "Primary dashboard must expose current frame time.")
-		_assert_true(not status_label.text.contains("Resident coordinates:"), "Primary mobile dashboard must not be dominated by verbose coordinate lists.")
+	scene.call("_update_status")
+	if thread_value != null:
+		_assert_equal(thread_value.text, "DISABLED", "Primary thread card must expose thread-smoke state.")
+	if background_value != null:
+		_assert_true(background_value.text.ends_with("ms"), "Load timing card must expose background wait.")
+	if residency_value != null:
+		_assert_true(residency_value.text.ends_with("ms"), "Load timing card must expose residency completion.")
+	if total_value != null:
+		_assert_true(total_value.text.ends_with("ms"), "Load timing card must expose aggregate latency.")
+	if completed_value != null and failed_value != null:
+		_assert_true(completed_value.text.is_valid_int(), "Run card must expose completed load count.")
+		_assert_true(failed_value.text.is_valid_int(), "Run card must expose failed load count.")
 
 	if details_label != null:
 		_assert_true(not details_label.visible, "Verbose streaming diagnostics must be collapsed by default.")
@@ -91,14 +116,15 @@ func _run() -> void:
 	if details_button != null and details_label != null:
 		details_button.pressed.emit()
 		_assert_true(details_label.visible, "Details control must reveal verbose streaming diagnostics.")
-		_assert_equal(details_button.text, "Hide streaming details", "Details control must clearly describe the expanded state.")
+		_assert_true(details_button.text.contains("Hide streaming details"), "Details control must clearly describe the expanded state.")
 		details_button.pressed.emit()
 		_assert_true(not details_label.visible, "Details control must collapse verbose streaming diagnostics again.")
 
 	if pause_button != null:
 		pause_button.pressed.emit()
 		scene.call("_update_status")
-		_assert_true(status_label.text.contains("paused"), "Manual pause must remain visible in primary target state.")
+		_assert_true(target_label.text.contains("paused"), "Manual pause must remain visible in primary target state.")
+		_assert_true(pause_button.text.contains("Resume Target"), "Pause control must clearly expose its resumed action.")
 
 	await _finish(scene)
 
