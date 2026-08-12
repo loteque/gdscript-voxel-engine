@@ -1,6 +1,6 @@
 extends Node3D
 
-## Runtime proof for large single-LOD streaming, hysteresis, scheduling, and async loading.
+## Runtime proof for large single-LOD streaming, hysteresis, scheduling, async loading, and loading analysis.
 
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
 const THREAD_SMOKE_TIMEOUT_MSEC := 5000
@@ -57,7 +57,7 @@ func _ready() -> void:
 		_thread_smoke_state = "disabled"
 		_thread_smoke_web_prerequisites = "disabled"
 	_streamer.update_residency(_target.position)
-	_set_streaming_state("large single-LOD streaming active")
+	_set_streaming_state("resource-loading analysis active")
 
 
 func _process(delta: float) -> void:
@@ -214,6 +214,8 @@ func _update_status() -> void:
 	var loading_coordinates := _streamer.get_loading_coordinates()
 	var loaded_coordinates := _streamer.get_loaded_coordinates()
 	var metrics := _streamer.get_streaming_metrics()
+	var observations := _streamer.get_completed_load_observations()
+	var last_observation: Dictionary = {} if observations.is_empty() else observations.back()
 	var surface_count := 0
 	for coordinate in loaded_coordinates:
 		var instance := _streamer.get_chunk_instance(coordinate)
@@ -221,8 +223,19 @@ func _update_status() -> void:
 			surface_count += instance.mesh.get_surface_count()
 	var current_frame_msec: float = 0.0 if _recent_frame_times_msec.is_empty() else float(_recent_frame_times_msec.back())
 	var approximate_mesh_mib := float(metrics["approximate_mesh_memory_bytes"]) / (1024.0 * 1024.0)
+	var last_asset_summary := "none"
+	if not last_observation.is_empty():
+		last_asset_summary = "%s | %d B | %d verts | %d indices | %d/%d/%d ms" % [
+			last_observation["coordinate"],
+			last_observation["serialized_size_bytes"],
+			last_observation["mesh_vertex_count"],
+			last_observation["mesh_index_count"],
+			last_observation["aggregate_latency_msec"],
+			last_observation["background_wait_msec"],
+			last_observation["residency_completion_msec"],
+		]
 	_status_label.text = (
-		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nPeak resident chunks: %d\nResident surfaces: %d\nCompleted loads: %d\nFailed loads: %d\nUnloads: %d\nCancelled pending: %d\nResidency churn: %d\nAverage load latency: %.2f ms\nMaximum load latency: %d ms\nApprox. resident mesh memory: %.2f MiB\nFrame time: %.2f ms\nRecent max frame time: %.2f ms\nResident coordinates: %s\nStreaming state: %s"
+		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nPeak resident chunks: %d\nResident surfaces: %d\nCompleted loads: %d\nFailed loads: %d\nUnloads: %d\nCancelled pending: %d\nResidency churn: %d\nAverage aggregate latency: %.2f ms\nMaximum aggregate latency: %d ms\nAverage background wait: %.2f ms\nMaximum background wait: %d ms\nAverage residency completion: %.2f ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nFrame time: %.2f ms\nRecent max frame time: %.2f ms\nResident coordinates: %s\nStreaming state: %s"
 		% [
 			manifest.entries.size(),
 			manifest.chunk_cell_dimensions,
@@ -249,6 +262,12 @@ func _update_status() -> void:
 			metrics["residency_churn_count"],
 			metrics["average_load_latency_msec"],
 			metrics["maximum_load_latency_msec"],
+			metrics["average_background_wait_msec"],
+			metrics["maximum_background_wait_msec"],
+			metrics["average_residency_completion_msec"],
+			metrics["maximum_residency_completion_msec"],
+			metrics["completed_observation_count"],
+			last_asset_summary,
 			approximate_mesh_mib,
 			current_frame_msec,
 			get_recent_max_frame_time_msec(),
