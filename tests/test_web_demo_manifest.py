@@ -55,9 +55,9 @@ class WebDemoManifestTests(unittest.TestCase):
 
     def test_current_streaming_feature_branch_publishes_existing_integration_preview(self) -> None:
         workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn("      - large-asteroid-validation", workflow)
+        self.assertIn("      - resource-loading-analysis", workflow)
         self.assertIn(
-            'elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "large-asteroid-validation" ]; then',
+            'elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "large-asteroid-validation" ] || [ "$GITHUB_REF_NAME" = "resource-loading-analysis" ]; then',
             workflow,
         )
         self.assertIn('echo "archive_path=preview/integration"', workflow)
