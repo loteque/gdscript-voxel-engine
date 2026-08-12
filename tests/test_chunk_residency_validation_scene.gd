@@ -17,6 +17,9 @@ func _run() -> void:
 	var streamer := scene.get_node("ChunkStreamer") as ChunkStreamer
 	var target := scene.get_node("ResidencyTarget") as Node3D
 	var panel := scene.get_node("UI/Panel") as PanelContainer
+	var summary_grid := scene.get_node("UI/Panel/Margin/Content/Summary") as GridContainer
+	var metrics_grid := scene.get_node("UI/Panel/Margin/Content/Metrics") as GridContainer
+	var buttons_grid := scene.get_node("UI/Panel/Margin/Content/Buttons") as GridContainer
 	var thread_value := scene.get_node("UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox/Value") as Label
 	var background_value := scene.get_node("UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/BackgroundValue") as Label
 	var residency_value := scene.get_node("UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/ResidencyValue") as Label
@@ -24,7 +27,8 @@ func _run() -> void:
 	var completed_value := scene.get_node("UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/CompletedValue") as Label
 	var failed_value := scene.get_node("UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/FailedValue") as Label
 	var target_label := scene.get_node("UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Target") as Label
-	var details_label := scene.get_node("UI/Panel/Margin/Content/Details") as Label
+	var details_scroll := scene.get_node("UI/Panel/Margin/Content/DetailsScroll") as ScrollContainer
+	var details_label := scene.get_node("UI/Panel/Margin/Content/DetailsScroll/Details") as Label
 	var details_button := scene.get_node("UI/Panel/Margin/Content/DetailsToggle") as Button
 	var pause_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Load") as Button
 	var reset_button := scene.get_node("UI/Panel/Margin/Content/Buttons/Unload") as Button
@@ -35,11 +39,12 @@ func _run() -> void:
 	_assert_true(streamer != null, "Streaming validation scene must contain ChunkStreamer.")
 	_assert_true(target != null, "Streaming validation scene must contain an explicit Node3D target.")
 	_assert_true(panel != null, "Streaming validation UI must expose its accessible dashboard panel.")
+	_assert_true(summary_grid != null and metrics_grid != null and buttons_grid != null, "Streaming validation dashboard must use responsive grid layout containers.")
 	_assert_true(thread_value != null, "Streaming validation UI must expose thread-smoke status prominently.")
 	_assert_true(background_value != null and residency_value != null and total_value != null, "Streaming validation UI must expose separated loading timings.")
 	_assert_true(completed_value != null and failed_value != null, "Streaming validation UI must expose run completion state.")
 	_assert_true(target_label != null, "Streaming validation UI must expose target state.")
-	_assert_true(details_label != null, "Streaming validation UI must retain expandable diagnostics.")
+	_assert_true(details_scroll != null and details_label != null, "Streaming validation UI must retain bounded expandable diagnostics.")
 	_assert_true(details_button != null, "Streaming validation UI must expose a diagnostics toggle.")
 	_assert_true(concurrency_selector != null, "Streaming validation UI must expose controlled concurrency selection.")
 	_assert_true(cache_selector != null, "Streaming validation UI must expose cache-provenance labeling.")
@@ -60,6 +65,8 @@ func _run() -> void:
 
 	if panel != null:
 		_assert_true(panel.offset_top >= 100.0, "Accessible dashboard must reserve vertical space for the injected Pages selector.")
+		_assert_equal(panel.anchor_right, 1.0, "Accessible dashboard must size against the viewport rather than a fixed right edge.")
+		_assert_true(panel.offset_right < 0.0, "Accessible dashboard must preserve a viewport-relative right margin.")
 	if thread_value != null:
 		_assert_true(thread_value.get_theme_font_size("font_size") >= 30, "Primary status values must use accessibility-sized typography.")
 	if total_value != null:
@@ -69,6 +76,21 @@ func _run() -> void:
 	if pause_button != null and reset_button != null:
 		_assert_true(pause_button.custom_minimum_size.y >= 70.0, "Primary controls must provide large touch targets.")
 		_assert_true(reset_button.custom_minimum_size.y >= 70.0, "Reset control must provide a large touch target.")
+	if details_scroll != null:
+		_assert_true(details_scroll.custom_minimum_size.y > 0.0 and details_scroll.custom_minimum_size.y <= 300.0, "Expanded diagnostics must remain vertically bounded and scrollable.")
+	if concurrency_selector != null and cache_selector != null:
+		_assert_true(not concurrency_selector.fit_to_longest_item, "Concurrency selector must not force the dashboard wider than the viewport.")
+		_assert_true(not cache_selector.fit_to_longest_item, "Cache selector must not force the dashboard wider than the viewport.")
+
+	if summary_grid != null and metrics_grid != null and buttons_grid != null:
+		scene.call("_apply_responsive_layout", 700.0)
+		_assert_equal(summary_grid.columns, 1, "Narrow layout must stack summary cards instead of overflowing horizontally.")
+		_assert_equal(metrics_grid.columns, 1, "Narrow layout must stack metric cards instead of overflowing horizontally.")
+		_assert_equal(buttons_grid.columns, 1, "Narrow layout must stack primary controls instead of overflowing horizontally.")
+		scene.call("_apply_responsive_layout", 1200.0)
+		_assert_equal(summary_grid.columns, 3, "Wide layout must preserve the three-card summary row.")
+		_assert_equal(metrics_grid.columns, 2, "Wide layout must preserve the two-card metric row.")
+		_assert_equal(buttons_grid.columns, 2, "Wide layout must preserve paired primary controls.")
 
 	if concurrency_selector != null:
 		_assert_equal(concurrency_selector.item_count, 4, "Validation concurrency selector must expose the controlled 1/2/4/8 matrix.")
@@ -102,8 +124,8 @@ func _run() -> void:
 		_assert_true(completed_value.text.is_valid_int(), "Run card must expose completed load count.")
 		_assert_true(failed_value.text.is_valid_int(), "Run card must expose failed load count.")
 
-	if details_label != null:
-		_assert_true(not details_label.visible, "Verbose streaming diagnostics must be collapsed by default.")
+	if details_scroll != null and details_label != null:
+		_assert_true(not details_scroll.visible, "Verbose streaming diagnostics must be collapsed by default.")
 		_assert_true(details_label.text.contains("Dataset: 169 single-LOD chunks"), "Expanded diagnostics must identify the large dataset.")
 		_assert_true(details_label.text.contains("Load radius: 2 | Unload radius: 3"), "Expanded diagnostics must display residency policy.")
 		_assert_true(details_label.text.contains("Load budget: 2 starts/frame, 4 concurrent"), "Expanded diagnostics must display scheduler budgets.")
@@ -113,18 +135,18 @@ func _run() -> void:
 		_assert_true(details_label.text.contains("Timing boundary: polling-cadence observed"), "Expanded diagnostics must state the timing-resolution limitation.")
 		_assert_true(details_label.text.contains("Resident coordinates:"), "Expanded diagnostics must retain coordinate-level debugging.")
 
-	if details_button != null and details_label != null:
+	if details_button != null and details_scroll != null:
 		details_button.pressed.emit()
-		_assert_true(details_label.visible, "Details control must reveal verbose streaming diagnostics.")
-		_assert_true(details_button.text.contains("Hide streaming details"), "Details control must clearly describe the expanded state.")
+		_assert_true(details_scroll.visible, "Details control must reveal bounded streaming diagnostics.")
+		_assert_equal(details_button.text, "Hide streaming details", "Details control must clearly describe the expanded state.")
 		details_button.pressed.emit()
-		_assert_true(not details_label.visible, "Details control must collapse verbose streaming diagnostics again.")
+		_assert_true(not details_scroll.visible, "Details control must collapse verbose streaming diagnostics again.")
 
 	if pause_button != null:
 		pause_button.pressed.emit()
 		scene.call("_update_status")
 		_assert_true(target_label.text.contains("paused"), "Manual pause must remain visible in primary target state.")
-		_assert_true(pause_button.text.contains("Resume Target"), "Pause control must clearly expose its resumed action.")
+		_assert_equal(pause_button.text, "Resume Target", "Pause control must clearly expose its resumed action without unsupported decorative glyphs.")
 
 	await _finish(scene)
 
