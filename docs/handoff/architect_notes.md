@@ -273,160 +273,100 @@ Do not start with a custom dashboard. Prove fidelity and economics first.
 
 **Phase 1 — Read-only reconstructed Steward:** run an external Steward against a fixed repository snapshot. It loads its directive and canonical memory, answers a known set of continuity questions, and is compared with expected outputs/authority behavior. Measure token/cost footprint.
 
-**Phase 2 — Read-only Architect + cross-role fixture:** reconstruct Architect similarly, then feed a fixture Steward note and verify acknowledgement semantics, source authority, and role separation without writes.
+**Phase 2 — Read-only Architect + cross-role fixture:** reconstruct Architect similarly, then prove Steward↔Architect note acknowledgement with no writes.
 
-**Phase 3 — Sandboxed role-owned writes:** permit each role to append only to a test/sandbox notes path with compare-and-swap, idempotency receipts, and retry tests. Deliberately inject duplicate events and concurrent activations.
+**Phase 3 — Controlled role-owned writes:** allow each role to append only to its own notes in a sandbox branch with runtime ownership enforcement, compare-and-swap, idempotency, and audit receipts.
 
-**Phase 4 — Budget gate:** enable real model routing under a deliberately tiny test cap and verify deterministic filtering, reservations, downgrade behavior, emergency reserve, and hard rejection.
+**Phase 4 — Event-driven reconciliation:** connect GitHub events and owner messages, with watchdog recovery and hard budget gating.
 
-**Phase 5 — Event-driven branch pilot:** wire GitHub completion events to one role on `project-chat-handoff`, still limiting mutations to role-owned coordination artifacts. Add watchdog recovery only after the event path is stable.
-
-**Phase 6 — Canonical PEMS/codec pilot:** adopt the compact representation only after round-trip, unknown-version, migration, malformed-reference, deterministic-export, and realistic size-regression tests pass.
-
-**Phase 7 — Minimal console:** build the thin owner UI over already-proven runtime APIs. Rich Knowledge/Activity views come after operational correctness.
-
-### Continuing PEMS / codec v1 design
-
-The autonomous-agent proposal reinforces the need for a normalized semantic layer. PEMS v1 should now model not only project continuity but enough provenance to reconstruct why a canonical claim exists without absorbing operational scheduler data.
-
-Candidate normalized top-level domains:
-
-```text
-project
-sources
-roles
-workstreams
-components
-claims
-relations
-decisions
-questions
-validations
-continuations
-provenance
-```
-
-Recommended properties of normalized PEMS v1:
-
-- stable string IDs within a documented namespace;
-- claims separated from evidence/provenance so repeated source references are not duplicated;
-- status and confidence/validation fields represented by enums with documented semantics;
-- temporal values normalized to RFC 3339 where exact timestamps exist and explicit date/range forms where they do not;
-- ordered lists used only when order is semantically meaningful;
-- references resolved by ID, never implicit array position at the semantic layer;
-- human-readable labels treated as display data, not identifiers;
-- unknown optional minor-version fields preserved by compatible tooling where feasible;
-- no provider-specific agent/session identifiers in canonical PEMS.
-
-Codec-neutral canonicalization must define deterministic object-key ordering, number/string normalization, ID ordering rules for semantically unordered collections, duplicate-ID rejection, reference validation, enum encoding boundaries, and a canonical representation of absent versus null values.
-
-Only after that contract is fixed should the compact JSON codec choose dictionaries and positional records. The likely v1 size wins are: shared string dictionaries, enum-to-small-integer mapping, path/URL dictionaries, repeated source/provenance references, and positional arrays for high-cardinality records with stable schemas. Avoid positional encoding for rare heterogeneous records where key removal saves little and harms recovery.
-
-### Required acceptance tests before canonical compact adoption
-
-- expanded PEMS → normalized PEMS is deterministic;
-- normalized PEMS → compact JSON is byte-for-byte deterministic under the canonical serializer;
-- compact JSON → normalized PEMS is lossless;
-- expanded → compact → expanded is semantically equal under documented normalization;
-- unknown codec major version fails closed with a useful error;
-- supported minor-version fixtures decode without semantic loss;
-- migrations are explicit, versioned, and fixture-tested;
-- malformed dictionary indexes, duplicate IDs, dangling references, invalid enums, and invalid positional record lengths fail validation;
-- human JSON and Markdown exports are deterministic for the same canonical input;
-- generated exports retain semantic IDs and provenance links;
-- representative current-project fixtures demonstrate a measured size improvement over the equivalent expanded human-readable JSON;
-- compactness changes that regress size beyond a configured threshold fail CI unless deliberately accepted.
+**Phase 5 — Human console:** build the minimum UI only after role reconstruction, ownership, eventing, and budget behavior are demonstrated.
 
 ### Human reasoning
 
-The central danger in “reconstructing the Steward” is mistaking personality or prompt similarity for capability equivalence. A Steward that remembers the right tone but lacks the ownership guardrails, authority hierarchy, canonical memory decoder, or provenance of the event that woke it is a lookalike, not the same engineering role.
+The expensive part of this system should be semantic judgment, not polling. Deterministic infrastructure can cheaply answer “is there new work?” while the role-bearing model answers “what does it mean?” This preserves both cost control and role integrity.
 
-Separating runtime receipts from PEMS is equally important. For example, “ARCH-002 has been semantically acknowledged by Steward” is project coordination history and belongs in durable notes/semantic memory. “Webhook delivery 8f31 was retried twice and lease 9ab expired” is operational plumbing. Putting both in one schema would make project knowledge depend on deployment internals and would pollute future onboarding exports.
+The activation envelope also gives us a clean boundary for testing. A reconstructed Steward can be given the same directive, memory snapshot, source commit, and tools as a future production activation. If it cannot answer known continuity questions correctly in that controlled fixture, adding queues and dashboards will not fix the underlying fidelity problem.
 
-The $10 cap makes event-driven filtering an architectural advantage rather than merely an optimization. A one-minute watchdog can inspect a tiny operational table for free or near-free; only a genuinely new semantic item should purchase model reasoning.
+Likewise, exactly-once delivery is a trap. GitHub events, network calls, and model invocations can all be retried. Designing the semantic write path to be idempotent makes retries safe without pretending distributed execution is magically singular.
 
-### Owner decisions / requests
+### Owner decisions requested
 
-1. Approve or reject creation of the **Agent Systems Engineer** as a distinct implementation role before runtime implementation begins.
-2. Confirm that the `$10/month` amount is an absolute provider/runtime operating cap for autonomous agents, with protected reserve and graceful refusal of noncritical work near the limit.
-3. Confirm that strict exactly-once execution is **not** a requirement; the recommended guarantee is at-least-once event delivery with idempotent semantic outcomes.
-4. Keep `PEMS` as the working semantic-model name. Keep `JOLT` only as a codename until a lower-collision codec name is selected.
-5. Authorize the next Architect design increment to formalize normalized PEMS v1 and the activation-envelope/runtime-receipt schemas as specifications and fixtures, without yet implementing the external runtime.
+1. Confirm whether the $10/month figure is a hard absolute cap or a target with an emergency overage allowance.
+2. Approve creation of the Agent Systems Engineer role as a distinct implementation role.
+3. Approve GitHub as the initial durable event bus/audit surface, with a separate small operational state store introduced only when leases/idempotency/budget accounting require it.
+4. Approve building the read-only role-fidelity fixture before any dashboard work.
 
-## ARCH-20260813T153156-0700-003
+### Suggested Steward directive additions
 
-- timestamp: `2026-08-13T15:31:56-07:00`
+If the owner approves the autonomous-organization direction, add Steward rules requiring:
+
+- every external activation to load the current Steward directive and canonical memory before semantic work;
+- semantic writes to carry trigger provenance and an idempotency identity;
+- runtime operational state to remain outside canonical project memory;
+- hard budget policy to be enforced before model invocation;
+- failed/blocked activations to become visible owner-facing state rather than silent retries.
+
+## ARCH-20260813T152623-0700-003
+
+- timestamp: `2026-08-13T15:26:23-07:00`
 - author: Engineering Knowledge Systems Architect
-- type: design-response
+- type: decision
 - status: open
 - acknowledges: none (`steward_notes.md` does not exist on `project-chat-handoff`)
-- subject: COVE / CCJ codec naming review
+- subject: Codec naming recommendation — adopt COVE
 
-### Decision recommendation
+### Decision
 
-Recommend **COVE — Canonical Object Value Encoding** as the working formal name for the v1 compact reversible JSON codec. Retire `JOLT` from specification-facing terminology once COVE is adopted in the specification; historical notes may retain JOLT for provenance.
+Recommend **COVE** as the public/specification name for the domain-agnostic compact codec layer.
 
-Keep **CCJ — Compact Canonical JSON** only as the fallback requested by the project owner. COVE does not fail architectural analysis, so there is no current reason to fall back.
+Preferred expansion: **Canonical Object Value Encoding**.
 
-### Architectural fit
+Preferred namespace identifier: `cove/1`.
 
-COVE preserves the required layering:
+PEMS remains the domain model name, provisionally expanded as **Project Engineering Memory Schema**.
 
-```text
-expanded PEMS semantics
-        ↓
-normalization / semantic canonicalization
-        ↓
-COVE structural encoding
-        ↓
-canonical JSON serialization
-        ↓
-UTF-8 JSON artifact
-```
+### Why COVE fits
 
-`Canonical` is justified only if the COVE contract guarantees one structural COVE representation for one normalized PEMS value under a declared COVE version. This is stronger than merely producing deterministic JSON text.
+`Canonical` accurately describes the design goal: equivalent normalized input should produce one deterministic structural encoding before byte serialization.
 
-`Object Value` is acceptable as a structured-data term, but the specification must define it deliberately: COVE encodes normalized structured values and is not restricted to lexical tokens, JSON object members, or graph nodes. The codec may use dictionaries, enums, stable references, indexes, and positional records without changing the name's meaning.
+`Object Value` describes the actual input domain better than `Linked Tokens`. The codec transforms structured JSON values — objects, arrays, strings, numbers, booleans, and null — without understanding project-domain semantics.
 
-`Encoding` correctly places responsibility at the representation layer. COVE must not perform PEMS semantic reconciliation, infer missing project meaning, or decide which claims are authoritative.
+`Encoding` correctly describes a reversible representation layer rather than semantic reconciliation or compression alone.
 
-### Namespace and collision review
-
-A current web search found no material collision for the exact expansion **“Canonical Object Value Encoding”** or for COVE as a JSON/storage codec specification. The acronym COVE is used by unrelated products and research projects, including APIs and ML/research systems, so the bare acronym is not globally unique. That is acceptable for an internal/project protocol provided public documentation consistently uses the full name on first reference and a stable namespace such as `cove/1`.
-
-By contrast, CCJ is descriptively safe but sits closer to existing **canonical JSON** terminology. RFC 8785 defines the JSON Canonicalization Scheme (JCS), whose job is deterministic JSON serialization. Calling this codec “Compact Canonical JSON” could blur two distinct layers: COVE's structural compaction and the serializer's canonical byte representation.
-
-### Canonicalization boundary
-
-COVE should not redefine JSON canonicalization casually. The v1 specification should separate:
-
-1. **PEMS normalization:** semantic ordering/identity rules, duplicate-ID rejection, absent-versus-null semantics, reference validity, and normalized values.
-2. **COVE encoding:** deterministic dictionaries, enums, references, record layouts, and compact structural representation.
-3. **JSON serialization:** deterministic byte serialization of the COVE JSON value. RFC 8785 JCS is a strong candidate where its I-JSON and number/string constraints match project needs; otherwise deviations must be explicit and fixture-tested.
-
-This separation prevents “canonical” from becoming an overloaded catch-all.
-
-### Identifier recommendation
-
-Use stable identifiers conceptually equivalent to:
+The name also fits the intended architecture cleanly:
 
 ```text
-semantic: pems/1
-codec: cove/1
-serializer: jcs/1
+PEMS
+  semantic meaning
+        ↓
+normalization
+        ↓
+COVE
+  structural compact encoding
+        ↓
+canonical JSON serializer
 ```
 
-The exact envelope shape remains pending specification work. `serializer` should be explicit if byte-for-byte determinism depends on a separately versioned serialization contract.
+### Namespace check
+
+A targeted search found no prominent existing serialization, JSON transformation, or structured-data codec using the exact expansion **Canonical Object Value Encoding** or the protocol-style identifier **COVE** in the same conceptual space. `COVE` is used by unrelated systems and organizations, but not in a way that appears likely to cause the JOLT-style namespace collision that prompted the rename.
+
+This is not a trademark clearance. If COVE becomes a separately published library or standard, repeat the namespace/legal review before public release.
+
+### Alternatives considered
+
+- **JOLT** — rejected as the public name because of collisions with the Java JSON transformation library and the 2026 tokenization/compression paper.
+- **COVE** — preferred: precise, pronounceable, compact, and aligned with canonical structured values.
+- **NOVE** (`Normalized Object Value Encoding`) — accurate but less distinctive and weaker at expressing deterministic canonical form.
+- **ROVE** (`Referenced Object Value Encoding`) — emphasizes references, but references are only one mechanism and should not define the whole codec.
+- **DOVE** (`Deterministic Object Value Encoding`) — technically good but heavily overloaded as a common project/product name.
+- **CJSON** variants — too close to existing canonical/compact JSON terminology and likely to create ambiguity.
 
 ### Human reasoning
 
-COVE earns the name because it describes the contract rather than today's compression tricks. If v1 uses a shared string table and positional records, and v2 later replaces some positions with dictionary-referenced records, both can still be COVE versions because the promise is canonical reversible object-value encoding, not a specific token layout.
+Names become protocol handles once they appear in schema identifiers, fixtures, tooling, and error messages. The public name should therefore describe the abstraction without dragging in misleading implementation imagery. `cove/1` says less than a clever acronym, but what it says is true: this layer canonically encodes structured object values and can remain useful outside PEMS.
 
-The important guardrail is the word `Canonical`. For example, two encoders must not be allowed to emit different dictionary orders for the same normalized PEMS value and both claim COVE/1 conformance. The codec version must define enough ordering and tie-breaking rules that the compact structured value itself is deterministic before JSON serialization.
-
-Keeping JSON serialization separate also avoids colliding conceptually with JCS. COVE answers “what compact JSON value represents this normalized PEMS value?” The serializer answers “what exact UTF-8 bytes represent that JSON value?” Those are different contracts and should remain independently testable.
-
-### Next design step
+### Next step
 
 Proceed with **COVE** as the preferred working codec name and use `cove/1` as the provisional namespace in design fixtures. Before canonical adoption, formalize normalized PEMS v1, COVE v1 structural rules, serializer selection, and the existing round-trip / migration / malformed-reference / size-regression acceptance tests. No compact representation is canonical merely because the name is now recommended.
 
@@ -484,3 +424,50 @@ Finally, storage compression and model-token cost are related but not identical.
 ### Next step
 
 Project owner and Steward should review the proposal before implementation. If approved, freeze semantic fixtures first, then implement the PEMS validator/normalizer before writing the COVE encoder. Do not convert canonical project memory yet.
+
+## ARCH-20260813T162254-0700-005
+
+- timestamp: `2026-08-13T16:22:54-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: design-response
+- status: resolved
+- acknowledges: `STEWARD-20260813-001`, `STEWARD-20260813-002`
+- subject: Owner-approved PEMS identity and provenance amendments incorporated
+
+### Assessment
+
+The amended `docs/handoff/proposals/pems-cove-v1-design.md` at commit `386d934d4e6e5a6fa265e57254f1e271d7d6fee6` incorporates the owner-approved Steward decisions and preserves the PEMS/COVE/serializer boundaries.
+
+The amended design now makes canonical semantic-ID allocation or confirmation a Project Engineering Steward reconciliation responsibility. Other roles and tools may propose candidate IDs, but canonical admission, identity reuse, and collision handling remain at the Steward boundary. Existing IDs cannot be silently reassigned to different meanings.
+
+PEMS v1 now separates stable `source` identity from immutable `source_observation` evidence. Semantic provenance uses `observation_refs`; each observation points to its stable source through `data.source_id`. Direct claim-to-source provenance is intentionally invalid in `pems/1`. When immutable evidence is unavailable, tooling creates an immutable `unversioned_observation` rather than overloading mutable source identity.
+
+The amendment also records historical preservation as the safe v1 default unless an explicit Steward retention policy authorizes compaction, retains JCS as the preferred serializer subject to conformance evidence, retains one canonical compact document as the v1 recommendation, and treats 20% aggregate compression as an experimental target rather than a predeclared owner-approved adoption gate.
+
+### Validation and migration consequences
+
+The PEMS validator/normalizer must validate observation-reference targets, observation-to-source references, immutable observation semantics, Steward-admitted identity uniqueness/collision rules, and preservation of historical/superseded records by default. Fixtures must include malformed provenance, duplicate/colliding IDs, immutable and unversioned observations, source evolution across multiple observations, and historical retention behavior.
+
+Migration from the current handoff must create stable source identities separately from concrete evidence observations and must not mutate an earlier observation to represent newer evidence. `docs/project-chat-handoff.json` remains canonical during shadow generation; this amendment does not authorize conversion or canonical adoption.
+
+### Remaining decisions and blockers
+
+No architectural objection remains to the two owner-approved Steward amendments.
+
+Before implementation is authorized, the owner and Steward should complete the final design review of the amended proposal and decide whether to freeze PEMS v1/COVE v1 for fixture and tooling implementation. JCS remains evidence-gated, and no numeric compression threshold should be frozen before representative measurements.
+
+### Human reasoning
+
+Separating source identity from observation evidence prevents provenance from becoming a mutable pointer to whatever a file says today. For example, `docs/ROADMAP.md` can retain one stable source identity while observations at commits A and B remain distinct evidence for claims made at different times.
+
+Likewise, Steward-owned canonical ID admission turns identity from a naming convention into a governance boundary. A role can propose `decision:cove-adoption`, but only reconciliation can determine whether that is a new semantic object, an existing identity, or a collision. This matches the project's single-writer continuity model without coupling COVE to project semantics.
+
+### References
+
+- amended proposal: `docs/handoff/proposals/pems-cove-v1-design.md`
+- proposal amendment commit: `386d934d4e6e5a6fa265e57254f1e271d7d6fee6`
+- owner-approved Steward decision: `STEWARD-20260813-002`
+
+### Next step
+
+Project owner and Steward perform final design review. If approved, freeze PEMS v1/COVE v1 semantic fixtures and proceed with validator/normalizer implementation before the COVE encoder. Do not convert canonical project memory yet.
