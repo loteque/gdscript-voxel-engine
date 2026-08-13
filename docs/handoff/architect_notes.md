@@ -99,3 +99,256 @@ The JOLT collision matters because names become protocol handles. Two unrelated 
 ### Request / next design step
 
 Preserve the proposed PEMS/domain-agnostic-codec boundary. Treat **PEMS** as provisionally acceptable. Treat **JOLT** as a codename pending a replacement-name decision. Next, define the normalized PEMS v1 shape and a codec-neutral canonicalization contract before selecting compact field layouts.
+
+## ARCH-20260813T145958-0700-002
+
+- timestamp: `2026-08-13T14:59:58-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: design-response
+- status: open
+- acknowledges: none (`steward_notes.md` still does not exist on `project-chat-handoff`)
+- subject: Autonomous engineering organization, role fidelity, eventing, budget, and human interface
+
+### Executive assessment
+
+The proposed split between **deterministic orchestration infrastructure** and **semantic engineering agents** is architecturally sound and should become a first-class invariant. Schedulers, GitHub Actions, webhooks, queues, and watchdogs may determine that work is ready, deduplicate events, enforce budgets, and start a role. They must not silently perform semantic work that is attributed to Steward or Architect.
+
+A role-faithful activation should be treated as a capability envelope, not merely a prompt. At minimum it must bind the role identity to: the current role directive, explicitly granted tools and credentials, repository/branch scope, canonical project memory contract, immutable coordination history, provenance for the triggering event, a model/runtime policy, budget state, and a stable idempotency key. Persistent conversational session state is optional optimization, not an authority source.
+
+### A. Scheduler / semantic-role separation
+
+Approve the layering with one refinement: introduce an explicit **activation envelope** between event infrastructure and the role runtime.
+
+Conceptually:
+
+```text
+GitHub / owner event
+      ↓
+deterministic event router
+      ↓
+activation envelope
+  role_id
+  trigger_id
+  source_commit / source_note
+  directive_ref
+  memory_ref
+  budget_snapshot
+  idempotency_key
+      ↓
+role-faithful agent runtime
+      ↓
+role-owned writes + outcome record
+```
+
+The router decides *whether* the role should run. The role decides *what the information means* and *what semantic action to take* within its permissions.
+
+### B. Minimum requirements for role fidelity
+
+A reconstructed Steward or Architect should not be considered equivalent merely because it uses the same model family or copies a system prompt. Minimum fidelity requirements are:
+
+1. **Identity and directive:** immutable role identifier plus the current single-writer directive fetched from repository truth at activation.
+2. **Tool capability set:** the same classes of project operations required by the role, including GitHub read/write access constrained to owned artifacts and permitted repository operations.
+3. **Authority hierarchy:** explicit knowledge of which sources outrank continuity memory, including repository state, ADRs, roadmap intent, executable validation, and handoff memory.
+4. **Memory contract:** ability to decode the canonical PEMS/codec representation, reconstruct human-readable context, and distinguish confirmed state from proposals and historical snapshots.
+5. **Coordination history:** read access to counterpart immutable notes and write access only to the role's own append-only notes.
+6. **Ownership enforcement:** runtime-side allowlists preventing a role from writing counterpart directives/notes or unrelated source files unless a separately authorized task expands scope.
+7. **Trigger provenance:** durable identification of the event, commit, note, or owner request that caused the activation.
+8. **Idempotency and concurrency controls:** a stable activation key and compare-and-swap or equivalent optimistic concurrency on owned writes.
+9. **Budget/model policy:** current monthly spend state and allowed model tiers for this class of work.
+10. **Audit outcome:** durable record of completion, no-op, block, failure, and all role-owned mutations.
+
+Persistent session transcripts are useful for efficiency, but they must be treated as a cache. If session state conflicts with directive/repository/PEMS truth, the durable project sources win.
+
+### C. State-placement contract
+
+**PEMS** should contain durable project semantics needed across roles and future sessions: current project state, decisions, roles, workstreams, module relationships, unresolved questions, provenance links, validation claims, and continuity relationships. It should not contain scheduler leases, transient retries, provider request IDs, or raw conversational scratch state.
+
+**Compact codec (JOLT codename pending rename)** should contain only the reversible representation of normalized PEMS plus codec metadata, dictionaries, indexes, references, and version markers. It should not gain agent-runtime semantics merely because the runtime consumes it.
+
+**Persistent agent sessions** should hold ephemeral conversational continuity, cached summaries, tool-result conveniences, and short-lived reasoning context. They are disposable and reconstructable.
+
+**GitHub** should remain the durable source for directives, immutable notes, canonical PEMS/compact artifacts, schema/specification files, code, ADRs, tests, and auditable commits. Git history is also the natural provenance anchor for semantic changes.
+
+**Role directives** should contain mutable operating policy for one role: startup order, authority rules, ownership boundaries, mandatory validation behavior, model-escalation policy, and output obligations. They should not become project encyclopedias.
+
+**Immutable notes** should contain cross-role coordination, design responses, acknowledgements, owner-decision requests, risks, corrections, and explanations of directive changes. They are an audit/communication log, not canonical current-state memory.
+
+**Runtime state** should be a separate minimal operational store for event receipts, leases, idempotency keys, retry counters, budget meters, and activation outcomes. This state should not be forced into PEMS or append-only notes.
+
+### D. Exactly-once versus idempotent consumption
+
+Do not promise strict exactly-once semantic execution across distributed systems. Prefer **at-least-once delivery plus idempotent semantic consumption**.
+
+Each consumable counterpart item should have an immutable semantic identifier, e.g. `ARCH-...` or `STEW-...`. Each activation should derive an idempotency key from at least:
+
+```text
+role_id + source_item_id + source_revision/commit + directive_major_version
+```
+
+The runtime records a receipt before starting semantic work, obtains a short lease, and commits the outcome against that key. A retry with the same key may resume or report the existing outcome, but must not append duplicate semantic notes. Counterpart acknowledgement remains a semantic relation in notes; runtime receipts remain operational metadata.
+
+### E. Events, watchdogs, retries, and failure states
+
+Use event-driven activation as the primary path and a cheap watchdog as recovery only.
+
+Recommended state machine:
+
+```text
+ready → leased → running → committed
+                  ↘ blocked
+                  ↘ failed_retryable → ready
+                  ↘ failed_terminal
+```
+
+Rules:
+
+- GitHub/webhook events enqueue readiness, but do not invoke duplicate semantic work when an idempotency record already exists.
+- Watchdogs scan only for stale `ready`, expired `leased`, or unacknowledged green counterpart work.
+- Retryable failures use bounded exponential backoff and retain the same idempotency key.
+- Terminal failures surface to the human console and immutable notes only when the semantic role successfully reaches a state where recording the failure is itself safe.
+- A role must use optimistic concurrency on append-only notes and refetch/reapply if another activation changed the file.
+- Do not use periodic model heartbeats. A watchdog can run frequently without any model call.
+
+### F. Hard $10/month budget architecture
+
+Treat the owner-provided $10/month figure as a **hard runtime invariant**, not a reporting target.
+
+Recommended controls:
+
+1. Deterministic event filtering before any model invocation.
+2. Per-activation estimated maximum cost reservation before starting.
+3. Monthly ledger keyed by provider/model/tool usage.
+4. Soft thresholds for graceful degradation, for example approximately 60%, 80%, and 90% of the cap, while keeping the exact thresholds configurable rather than encoded in PEMS.
+5. At higher thresholds: disable discretionary analysis, prefer cheaper approved models for routine reconciliation, reduce optional context expansion, and require explicit owner action for expensive noncritical work.
+6. Maintain a protected emergency reserve and reject noncritical activations before the account reaches the absolute cap.
+7. Model escalation must be policy-driven: start with the least expensive model that meets the task's reliability requirement, escalate only when semantic complexity or failed validation justifies it.
+8. Budget accounting must include retries and tool charges where applicable, not merely text tokens.
+
+The budget controller may block or downgrade an activation, but it may not synthesize the blocked role's semantic answer itself.
+
+### G. Human interface
+
+Approve the **single project console**. The minimum viable interface is smaller than the proposed full dashboard:
+
+- one message composer with explicit `Steward`, `Architect`, or `Auto-route` recipient;
+- role status and last durable outcome;
+- pending owner decisions / blocked items;
+- recent immutable activity with links to commits and note IDs;
+- monthly spend and remaining protected budget;
+- `Run now` and `Queue` controls with a displayed estimated cost class;
+- direct links to generated Knowledge view rather than building rich documentation editing into the console.
+
+The UI should never be the sole source of project state. It is a projection over GitHub, PEMS, immutable notes, and runtime state. This makes the console replaceable without losing the engineering organization.
+
+### H. Agent Systems Engineer role
+
+Recommend adding a separate **Agent Systems Engineer (ASE)** implementation role, but do not give it semantic authority over project memory.
+
+Ownership boundary:
+
+- **Architect:** defines representation contracts, activation-envelope semantics, provenance requirements, schema/version compatibility, idempotency semantics, and human-readable reconstruction guarantees.
+- **Steward:** owns continuity requirements, canonical project-knowledge contents, reconciliation behavior, and whether project memory is sufficient for engineering continuity.
+- **ASE:** implements runtime, deployment, connectors, scheduler/event router, operational database, leases, retries, secret management, budget metering, observability, and ownership enforcement according to Architect/Steward contracts.
+
+The ASE may propose contract changes through notes/owner review, but should not independently redefine PEMS meaning or Steward/Architect operating policy.
+
+### I. Risks requiring explicit treatment
+
+1. **Credential confused-deputy risk:** a powerful shared GitHub token can let one role write another role's artifacts even if prompts forbid it. Enforce path/operation allowlists below the model layer.
+2. **Prompt/directive injection via repository text:** project files are data, not automatically trusted operating instructions. Only designated directive files and explicit owner/runtime instructions may alter role policy.
+3. **Branch race / lost update:** append-only Markdown still suffers replacement-write races. Use blob SHA compare-and-swap and retry with semantic duplicate detection.
+4. **Split-brain roles:** two concurrent activations can both believe they own the same counterpart item. Lease + idempotency records are required.
+5. **Stale directive/session coupling:** long-lived sessions can continue behavior superseded by a newer directive. Fetch directive at every activation and invalidate incompatible session caches.
+6. **Provenance collapse:** generated human docs must preserve links back to canonical semantic IDs and source commits; otherwise convenient exports can become unauditable pseudo-authority.
+7. **Schema/runtime lockstep:** do not require runtime deployment for every PEMS semantic minor revision. Negotiate supported schema and codec ranges explicitly.
+8. **Cost-amplification loops:** role A writes a note that wakes role B, whose acknowledgement wakes A indefinitely. Event predicates must distinguish actionable new semantic content from pure acknowledgements/status churn.
+9. **Owner-message spoofing:** requests from UI/API need authenticated owner identity and provenance, not merely text claiming to be from the owner.
+10. **Audit-log growth:** immutable notes will eventually become expensive context. Index and summarize them deterministically; do not truncate or rewrite historical records.
+
+### J. Incremental implementation sequence
+
+Do not start with a custom dashboard. Prove fidelity and economics first.
+
+**Phase 0 — Contract fixtures:** define the activation envelope, runtime receipt schema, ownership allowlists, budget policy, and normalized PEMS v1 fixtures. No autonomous writes yet.
+
+**Phase 1 — Read-only reconstructed Steward:** run an external Steward against a fixed repository snapshot. It loads its directive and canonical memory, answers a known set of continuity questions, and is compared with expected outputs/authority behavior. Measure token/cost footprint.
+
+**Phase 2 — Read-only Architect + cross-role fixture:** reconstruct Architect similarly, then feed a fixture Steward note and verify acknowledgement semantics, source authority, and role separation without writes.
+
+**Phase 3 — Sandboxed role-owned writes:** permit each role to append only to a test/sandbox notes path with compare-and-swap, idempotency receipts, and retry tests. Deliberately inject duplicate events and concurrent activations.
+
+**Phase 4 — Budget gate:** enable real model routing under a deliberately tiny test cap and verify deterministic filtering, reservations, downgrade behavior, emergency reserve, and hard rejection.
+
+**Phase 5 — Event-driven branch pilot:** wire GitHub completion events to one role on `project-chat-handoff`, still limiting mutations to role-owned coordination artifacts. Add watchdog recovery only after the event path is stable.
+
+**Phase 6 — Canonical PEMS/codec pilot:** adopt the compact representation only after round-trip, unknown-version, migration, malformed-reference, deterministic-export, and realistic size-regression tests pass.
+
+**Phase 7 — Minimal console:** build the thin owner UI over already-proven runtime APIs. Rich Knowledge/Activity views come after operational correctness.
+
+### Continuing PEMS / codec v1 design
+
+The autonomous-agent proposal reinforces the need for a normalized semantic layer. PEMS v1 should now model not only project continuity but enough provenance to reconstruct why a canonical claim exists without absorbing operational scheduler data.
+
+Candidate normalized top-level domains:
+
+```text
+project
+sources
+roles
+workstreams
+components
+claims
+relations
+decisions
+questions
+validations
+continuations
+provenance
+```
+
+Recommended properties of normalized PEMS v1:
+
+- stable string IDs within a documented namespace;
+- claims separated from evidence/provenance so repeated source references are not duplicated;
+- status and confidence/validation fields represented by enums with documented semantics;
+- temporal values normalized to RFC 3339 where exact timestamps exist and explicit date/range forms where they do not;
+- ordered lists used only when order is semantically meaningful;
+- references resolved by ID, never implicit array position at the semantic layer;
+- human-readable labels treated as display data, not identifiers;
+- unknown optional minor-version fields preserved by compatible tooling where feasible;
+- no provider-specific agent/session identifiers in canonical PEMS.
+
+Codec-neutral canonicalization must define deterministic object-key ordering, number/string normalization, ID ordering rules for semantically unordered collections, duplicate-ID rejection, reference validation, enum encoding boundaries, and a canonical representation of absent versus null values.
+
+Only after that contract is fixed should the compact JSON codec choose dictionaries and positional records. The likely v1 size wins are: shared string dictionaries, enum-to-small-integer mapping, path/URL dictionaries, repeated source/provenance references, and positional arrays for high-cardinality records with stable schemas. Avoid positional encoding for rare heterogeneous records where key removal saves little and harms recovery.
+
+### Required acceptance tests before canonical compact adoption
+
+- expanded PEMS → normalized PEMS is deterministic;
+- normalized PEMS → compact JSON is byte-for-byte deterministic under the canonical serializer;
+- compact JSON → normalized PEMS is lossless;
+- expanded → compact → expanded is semantically equal under documented normalization;
+- unknown codec major version fails closed with a useful error;
+- supported minor-version fixtures decode without semantic loss;
+- migrations are explicit, versioned, and fixture-tested;
+- malformed dictionary indexes, duplicate IDs, dangling references, invalid enums, and invalid positional record lengths fail validation;
+- human JSON and Markdown exports are deterministic for the same canonical input;
+- generated exports retain semantic IDs and provenance links;
+- representative current-project fixtures demonstrate a measured size improvement over the equivalent expanded human-readable JSON;
+- compactness changes that regress size beyond a configured threshold fail CI unless deliberately accepted.
+
+### Human reasoning
+
+The central danger in “reconstructing the Steward” is mistaking personality or prompt similarity for capability equivalence. A Steward that remembers the right tone but lacks the ownership guardrails, authority hierarchy, canonical memory decoder, or provenance of the event that woke it is a lookalike, not the same engineering role.
+
+Separating runtime receipts from PEMS is equally important. For example, “ARCH-002 has been semantically acknowledged by Steward” is project coordination history and belongs in durable notes/semantic memory. “Webhook delivery 8f31 was retried twice and lease 9ab expired” is operational plumbing. Putting both in one schema would make project knowledge depend on deployment internals and would pollute future onboarding exports.
+
+The $10 cap makes event-driven filtering an architectural advantage rather than merely an optimization. A one-minute watchdog can inspect a tiny operational table for free or near-free; only a genuinely new semantic item should purchase model reasoning.
+
+### Owner decisions / requests
+
+1. Approve or reject creation of the **Agent Systems Engineer** as a distinct implementation role before runtime implementation begins.
+2. Confirm that the `$10/month` amount is an absolute provider/runtime operating cap for autonomous agents, with protected reserve and graceful refusal of noncritical work near the limit.
+3. Confirm that strict exactly-once execution is **not** a requirement; the recommended guarantee is at-least-once event delivery with idempotent semantic outcomes.
+4. Keep `PEMS` as the working semantic-model name. Keep `JOLT` only as a codename until a lower-collision codec name is selected.
+5. Authorize the next Architect design increment to formalize normalized PEMS v1 and the activation-envelope/runtime-receipt schemas as specifications and fixtures, without yet implementing the external runtime.
