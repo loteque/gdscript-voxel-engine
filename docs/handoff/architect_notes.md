@@ -471,3 +471,45 @@ Likewise, Steward-owned canonical ID admission turns identity from a naming conv
 ### Next step
 
 Project owner and Steward perform final design review. If approved, freeze PEMS v1/COVE v1 semantic fixtures and proceed with validator/normalizer implementation before the COVE encoder. Do not convert canonical project memory yet.
+
+## ARCH-20260813T164932-0700-006
+
+- timestamp: `2026-08-13T16:49:32-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: `STEWARD-20260813-003`
+- subject: PEMS v1 Phase 1 normative schemas and fixtures complete
+
+### Assessment
+
+PEMS v1 Phase 1 is complete. The owner-approved frozen design is now represented by a human-readable normative contract, a machine-readable JSON Schema 2020-12 structural contract, a full-vocabulary success fixture, and deterministic failure/admission/retention fixtures.
+
+The machine-readable schema is now durable at `docs/handoff/pems/pems-v1.schema.json`. It closes every admitted pems/1 record `data` object, covers the closed 20-kind vocabulary, common record/relation envelopes, lifecycle and type-specific state enums, nullability, source/source-observation structural provenance, and secret-safe environment-variable disposition. Cross-record graph integrity, Steward semantic-ID admission, observation immutability, deterministic ordering, and retention authorization remain explicit Phase 2 semantic-validator responsibilities rather than being falsely delegated to JSON Schema.
+
+### Phase 1 artifacts
+
+- normative semantic contract: `docs/handoff/pems/README.md` at commit `b6e9d6966b699a1f848c2f335b59fd60a6e7c574`
+- full-project success fixture: `docs/handoff/pems/fixtures/success/full-project.json` at commit `fd8b18c3d6c4608023127d5d079222f0acae7266`
+- failure/admission/retention fixtures: `docs/handoff/pems/fixtures/failure-cases.json` at commit `c25757bd6792922cd04f7ca787ed2404d175c259`
+- machine-readable schema: `docs/handoff/pems/pems-v1.schema.json` at commit `c08e2406453f580d5ea220423d39d4f755d2a616`
+
+### Schema refinements within the frozen design
+
+No frozen semantic boundary was changed. Phase 1 makes the proposal's previously near-normative record vocabulary executable by assigning each admitted kind a closed structural `data` shape. The JSON Schema deliberately limits itself to structural validity; named fixtures preserve semantic failures that require graph context or Steward reconciliation.
+
+The relation payload is also closed in v1, with an optional `qualifier` as the only relation-local descriptive field currently required by fixtures. Additional relation payload semantics require a later PEMS schema revision rather than arbitrary free-form data.
+
+### Open risks and owner decisions
+
+No new owner decision is required for Phase 1 completion. The exact JCS implementation remains evidence-gated for the later serializer phase, the numeric compression threshold remains deferred until measurements exist, and destructive historical compaction remains future Steward policy work.
+
+One implementation risk should be kept visible in Phase 2: JSON Schema validators vary in format enforcement for RFC 3339 `date-time`. The PEMS validator must explicitly enforce the timestamp contract rather than assuming every schema library treats `format` as an assertion.
+
+### Human reasoning
+
+The important outcome of Phase 1 is that implementation convenience can no longer silently redefine PEMS. A `module`, `decision`, `source_observation`, or other admitted kind now has a closed documented structural shape, while identity reconciliation and graph truth remain owned by the semantic validator and Steward boundary. This keeps schema validation honest and prevents a permissive `data` object from becoming a back door around the frozen model.
+
+### Next step
+
+Proceed to Phase 2 only after the owner/Steward accepts this Phase 1 completion record. Phase 2 should implement deterministic PEMS validation/normalization and the Steward ID-admission contracts against these frozen artifacts. Do not implement COVE or migrate canonical project memory as part of Phase 2.
