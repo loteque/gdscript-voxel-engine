@@ -22,17 +22,26 @@ class ChunkLoadRequest:
 	var coordinate: Vector3i
 	var asset_path: String
 	var state: ChunkLoadState = ChunkLoadState.QUEUED
+	var desired_usec: int = 0
 	var queued_usec: int = 0
 	var started_usec: int = 0
+	var first_status_poll_usec: int = 0
 	var completion_observed_usec: int = 0
+	var desired_frame: int = 0
+	var queued_frame: int = 0
 	var started_frame: int = 0
+	var first_status_poll_frame: int = 0
 	var completion_observed_frame: int = 0
 	var in_progress_poll_count: int = 0
+	var queued_state: Dictionary = {}
+	var started_state: Dictionary = {}
+	var completion_observed_state: Dictionary = {}
 
-	func _init(request_coordinate: Vector3i, request_asset_path: String) -> void:
+	func _init(request_coordinate: Vector3i, request_asset_path: String, request_desired_usec: int, request_desired_frame: int) -> void:
 		coordinate = request_coordinate
 		asset_path = request_asset_path
-		queued_usec = Time.get_ticks_usec()
+		desired_usec = request_desired_usec
+		desired_frame = request_desired_frame
 
 
 const MAX_COMPLETED_LOAD_OBSERVATIONS := 512
@@ -239,11 +248,17 @@ func update_residency(target_position: Vector3) -> void:
 
 func load_chunk(coordinate: Vector3i) -> Error:
 	if is_chunk_loaded(coordinate) or is_chunk_pending(coordinate): return OK
+	var desired_usec := Time.get_ticks_usec()
+	var desired_frame := _process_frame_index
 	if manifest == null: return _report_load_failure(coordinate, ERR_UNCONFIGURED)
 	var entry := manifest.find_entry(coordinate, lod_level)
 	if entry == null or not entry.is_valid(): return _report_load_failure(coordinate, ERR_DOES_NOT_EXIST)
 	if not ResourceLoader.exists(entry.asset_path): return _report_load_failure(coordinate, ERR_CANT_OPEN)
-	_load_requests[coordinate] = ChunkLoadRequest.new(coordinate, entry.asset_path)
+	var request := ChunkLoadRequest.new(coordinate, entry.asset_path, desired_usec, desired_frame)
+	request.queued_usec = Time.get_ticks_usec()
+	request.queued_frame = _process_frame_index
+	_load_requests[coordinate] = request
+	request.queued_state = _capture_state_counts()
 	chunk_load_queued.emit(coordinate)
 	return OK
 
@@ -267,6 +282,9 @@ func _poll_loading_requests() -> void:
 	for coordinate in get_loading_coordinates():
 		var request := _load_requests.get(coordinate) as ChunkLoadRequest
 		if request == null: continue
+		if request.first_status_poll_usec <= 0:
+			request.first_status_poll_usec = Time.get_ticks_usec()
+			request.first_status_poll_frame = _process_frame_index
 		var status := ResourceLoader.load_threaded_get_status(request.asset_path)
 		match status:
 			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
@@ -275,6 +293,7 @@ func _poll_loading_requests() -> void:
 			ResourceLoader.THREAD_LOAD_LOADED:
 				request.completion_observed_usec = Time.get_ticks_usec()
 				request.completion_observed_frame = _process_frame_index
+				request.completion_observed_state = _capture_state_counts()
 				_complete_load_request(request)
 			ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 				_fail_load_request(request.coordinate, ERR_CANT_OPEN)
@@ -295,6 +314,7 @@ func _start_queued_loads() -> void:
 		request.state = ChunkLoadState.LOADING
 		request.started_usec = Time.get_ticks_usec()
 		request.started_frame = _process_frame_index
+		request.started_state = _capture_state_counts()
 		started += 1
 		chunk_load_started.emit(coordinate)
 
@@ -304,6 +324,20 @@ func _get_loading_count() -> int:
 		var request := request_value as ChunkLoadRequest
 		if request != null and request.state == ChunkLoadState.LOADING: count += 1
 	return count
+
+func _get_queued_count() -> int:
+	var count := 0
+	for request_value in _load_requests.values():
+		var request := request_value as ChunkLoadRequest
+		if request != null and request.state == ChunkLoadState.QUEUED: count += 1
+	return count
+
+func _capture_state_counts() -> Dictionary:
+	return {
+		"queued_count": _get_queued_count(),
+		"loading_count": _get_loading_count(),
+		"resident_count": _loaded_chunks.size(),
+	}
 
 func _get_prioritized_queued_coordinates() -> Array[Vector3i]:
 	var coordinates: Array[Vector3i] = []
@@ -351,11 +385,15 @@ func _complete_load_request(request: ChunkLoadRequest) -> void:
 	_completed_load_count += 1
 	_peak_resident_count = maxi(_peak_resident_count, _loaded_chunks.size())
 	var resident_commit_finished_usec := Time.get_ticks_usec()
-	_record_completed_load_observation(request, completion_observed_usec, resource_get_started_usec, resource_get_finished_usec, validation_started_usec, validation_finished_usec, instance_setup_started_usec, instance_setup_finished_usec, scene_attach_started_usec, scene_attach_finished_usec, resident_commit_started_usec, resident_commit_finished_usec)
+	var resident_state := _capture_state_counts()
+	_record_completed_load_observation(request, completion_observed_usec, resource_get_started_usec, resource_get_finished_usec, validation_started_usec, validation_finished_usec, instance_setup_started_usec, instance_setup_finished_usec, scene_attach_started_usec, scene_attach_finished_usec, resident_commit_started_usec, resident_commit_finished_usec, resident_state)
 	chunk_loaded.emit(request.coordinate, instance)
 
-func _record_completed_load_observation(request: ChunkLoadRequest, completion_observed_usec: int, resource_get_started_usec: int, resource_get_finished_usec: int, validation_started_usec: int, validation_finished_usec: int, instance_setup_started_usec: int, instance_setup_finished_usec: int, scene_attach_started_usec: int, scene_attach_finished_usec: int, resident_commit_started_usec: int, resident_commit_finished_usec: int) -> void:
+func _record_completed_load_observation(request: ChunkLoadRequest, completion_observed_usec: int, resource_get_started_usec: int, resource_get_finished_usec: int, validation_started_usec: int, validation_finished_usec: int, instance_setup_started_usec: int, instance_setup_finished_usec: int, scene_attach_started_usec: int, scene_attach_finished_usec: int, resident_commit_started_usec: int, resident_commit_finished_usec: int, resident_state: Dictionary) -> void:
+	var desired_to_queued_usec := maxi(request.queued_usec - request.desired_usec, 0)
 	var queue_wait_usec := maxi(request.started_usec - request.queued_usec, 0)
+	var request_to_first_poll_usec := maxi(request.first_status_poll_usec - request.started_usec, 0)
+	var first_poll_to_completion_usec := maxi(completion_observed_usec - request.first_status_poll_usec, 0)
 	var loader_wait_usec := maxi(completion_observed_usec - request.started_usec, 0)
 	var resource_get_usec := maxi(resource_get_finished_usec - resource_get_started_usec, 0)
 	var asset_validation_usec := maxi(validation_finished_usec - validation_started_usec, 0)
@@ -365,6 +403,7 @@ func _record_completed_load_observation(request: ChunkLoadRequest, completion_ob
 	var residency_completion_usec := maxi(resident_commit_finished_usec - completion_observed_usec, 0)
 	var aggregate_latency_usec := maxi(resident_commit_finished_usec - request.started_usec, 0)
 	var total_request_usec := maxi(resident_commit_finished_usec - request.queued_usec, 0)
+	var total_desired_to_resident_usec := maxi(resident_commit_finished_usec - request.desired_usec, 0)
 	_total_queue_wait_usec += queue_wait_usec
 	_maximum_queue_wait_usec = maxi(_maximum_queue_wait_usec, queue_wait_usec)
 	_total_load_latency_usec += aggregate_latency_usec
@@ -386,7 +425,23 @@ func _record_completed_load_observation(request: ChunkLoadRequest, completion_ob
 	var entry := manifest.find_entry(request.coordinate, lod_level) if manifest != null else null
 	var observation := {
 		"coordinate": request.coordinate,
+		"desired_usec": request.desired_usec,
+		"queued_usec": request.queued_usec,
+		"started_usec": request.started_usec,
+		"first_status_poll_usec": request.first_status_poll_usec,
+		"completion_observed_usec": request.completion_observed_usec,
+		"resource_get_started_usec": resource_get_started_usec,
+		"resident_commit_usec": resident_commit_finished_usec,
+		"desired_frame": request.desired_frame,
+		"queued_frame": request.queued_frame,
+		"started_frame": request.started_frame,
+		"first_status_poll_frame": request.first_status_poll_frame,
+		"completion_observed_frame": request.completion_observed_frame,
+		"resident_frame": _process_frame_index,
+		"desired_to_queued_msec": _usec_to_msec(desired_to_queued_usec),
 		"queue_wait_msec": _usec_to_msec(queue_wait_usec),
+		"request_to_first_poll_msec": _usec_to_msec(request_to_first_poll_usec),
+		"first_poll_to_completion_msec": _usec_to_msec(first_poll_to_completion_usec),
 		"loader_wait_msec": _usec_to_msec(loader_wait_usec),
 		"resource_get_msec": _usec_to_msec(resource_get_usec),
 		"asset_validation_msec": _usec_to_msec(asset_validation_usec),
@@ -396,10 +451,12 @@ func _record_completed_load_observation(request: ChunkLoadRequest, completion_ob
 		"residency_completion_msec": _usec_to_msec(residency_completion_usec),
 		"aggregate_latency_msec": _usec_to_msec(aggregate_latency_usec),
 		"total_request_msec": _usec_to_msec(total_request_usec),
+		"total_desired_to_resident_msec": _usec_to_msec(total_desired_to_resident_usec),
 		"in_progress_poll_count": request.in_progress_poll_count,
-		"started_frame": request.started_frame,
-		"completion_observed_frame": request.completion_observed_frame,
-		"resident_frame": _process_frame_index,
+		"queued_state": request.queued_state.duplicate(true),
+		"started_state": request.started_state.duplicate(true),
+		"completion_observed_state": request.completion_observed_state.duplicate(true),
+		"resident_state": resident_state.duplicate(true),
 		"serialized_size_bytes": 0,
 		"mesh_vertex_count": 0,
 		"mesh_index_count": 0,
