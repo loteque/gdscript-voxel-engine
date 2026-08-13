@@ -60,6 +60,9 @@ func save_asset(
 		entry.lod_level = asset.lod_level
 		entry.asset_path = asset_path
 		entry.bounds = asset.bounds
+		entry.serialized_size_bytes = _get_serialized_size_bytes(asset_path)
+		entry.mesh_vertex_count = _get_mesh_vertex_count(asset.mesh)
+		entry.mesh_index_count = _get_mesh_index_count(asset.mesh)
 		manifest.set_entry(entry)
 	return OK
 
@@ -72,3 +75,31 @@ func save_manifest(manifest: TerrainChunkManifest, manifest_path: String) -> Err
 	if manifest_path.is_empty():
 		return ERR_INVALID_PARAMETER
 	return ResourceSaver.save(manifest, manifest_path)
+
+
+# [b]Baked Characteristics[/b]
+# Captures immutable asset measurements while the offline baker already owns the data.
+
+func _get_serialized_size_bytes(asset_path: String) -> int:
+	var file := FileAccess.open(asset_path, FileAccess.READ)
+	if file == null:
+		return 0
+	return file.get_length()
+
+
+func _get_mesh_vertex_count(mesh: ArrayMesh) -> int:
+	if mesh == null:
+		return 0
+	var count := 0
+	for surface_index in mesh.get_surface_count():
+		count += mesh.surface_get_array_len(surface_index)
+	return count
+
+
+func _get_mesh_index_count(mesh: ArrayMesh) -> int:
+	if mesh == null:
+		return 0
+	var count := 0
+	for surface_index in mesh.get_surface_count():
+		count += mesh.surface_get_array_index_len(surface_index)
+	return count

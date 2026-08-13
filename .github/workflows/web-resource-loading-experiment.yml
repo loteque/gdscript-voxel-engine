@@ -1,0 +1,81 @@
+name: Web Resource Loading Experiment
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - resource-loading-analysis
+
+permissions:
+  contents: read
+
+jobs:
+  experiment:
+    name: Headless Chromium / threaded Godot Web
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Setup Godot with Web templates
+        uses: solarlabyrinth/action-setup-godot@v3
+        with:
+          version: 4.7-stable
+          export-templates: true
+
+      - name: Import project
+        run: godot --headless --path . --import
+
+      - name: Bake production streaming fixture
+        run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
+
+      - name: Run microbenchmark contract test
+        run: godot --headless --path . --script tests/test_web_resource_loading_experiment.gd
+
+      - name: Run browser harness regression test
+        run: python tests/test_web_resource_loading_runner.py
+
+      - name: Export diagnostic Web scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp project.godot "$RUNNER_TEMP/project.godot.original"
+          trap 'cp "$RUNNER_TEMP/project.godot.original" project.godot' EXIT
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("project.godot")
+          lines = path.read_text(encoding="utf-8").splitlines()
+          prefix = "run/main_scene="
+          for index, line in enumerate(lines):
+              if line.startswith(prefix):
+                  lines[index] = 'run/main_scene="res://demo/experiments/WebResourceLoadingExperiment.tscn"'
+                  break
+          else:
+              raise SystemExit("project.godot does not define run/main_scene")
+          path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+          mkdir -p build/web-resource-loading
+          godot --headless --path . --export-release "Web Threads" build/web-resource-loading/index.html
+
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser || sudo apt-get install -y chromium
+          if ! command -v chromium >/dev/null 2>&1 && command -v chromium-browser >/dev/null 2>&1; then
+            sudo ln -s "$(command -v chromium-browser)" /usr/local/bin/chromium
+          fi
+          chromium --version
+
+      - name: Run browser-headless resource-loading experiment
+        run: python demo/tools/run_web_resource_loading_experiment.py
+
+      - name: Upload browser-headless evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-resource-loading-microbenchmark
+          path: artifacts/performance/web-resource-loading-experiment.json
+          if-no-files-found: error
+          retention-days: 30

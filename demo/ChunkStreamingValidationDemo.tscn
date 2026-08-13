@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://demo/ChunkStreamingValidationDemo.gd" id="1_demo"]
 [ext_resource type="Script" path="res://voxel/chunking/ChunkStreamer.gd" id="2_streamer"]
@@ -20,6 +20,90 @@ emission_energy_multiplier = 2.0
 material = SubResource("TargetMaterial")
 radius = 0.75
 height = 1.5
+
+[sub_resource type="StyleBoxFlat" id="StyleOuter"]
+bg_color = Color(0.018, 0.035, 0.055, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.23, 0.27, 0.31, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleCard"]
+bg_color = Color(0.025, 0.052, 0.075, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.22, 0.26, 0.3, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleButtonBlue"]
+bg_color = Color(0.035, 0.22, 0.52, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.05, 0.38, 0.88, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleButtonBlueHover"]
+bg_color = Color(0.05, 0.3, 0.68, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.18, 0.52, 1, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleButtonDark"]
+bg_color = Color(0.08, 0.105, 0.135, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.24, 0.28, 0.33, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleButtonDarkHover"]
+bg_color = Color(0.12, 0.15, 0.19, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.34, 0.4, 0.46, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleInfo"]
+bg_color = Color(0.025, 0.05, 0.075, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.12, 0.3, 0.52, 0.9)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [node name="ChunkStreamingValidationDemo" type="Node3D"]
 script = ExtResource("1_demo")
@@ -54,36 +138,296 @@ current = true
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="Panel" type="PanelContainer" parent="UI"]
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 1010.0
-offset_bottom = 650.0
+anchor_right = 1.0
+offset_left = 24.0
+offset_top = 190.0
+offset_right = -24.0
+offset_bottom = 1082.0
+theme_override_styles/panel = SubResource("StyleOuter")
 
 [node name="Margin" type="MarginContainer" parent="UI/Panel"]
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
 
 [node name="Content" type="VBoxContainer" parent="UI/Panel/Margin"]
+theme_override_constants/separation = 16
+
+[node name="Summary" type="GridContainer" parent="UI/Panel/Margin/Content"]
+columns = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+
+[node name="ThreadCard" type="PanelContainer" parent="UI/Panel/Margin/Content/Summary"]
+custom_minimum_size = Vector2(0, 150)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleCard")
+
+[node name="Margin" type="MarginContainer" parent="UI/Panel/Margin/Content/Summary/ThreadCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="VBox" type="VBoxContainer" parent="UI/Panel/Margin/Content/Summary/ThreadCard/Margin"]
 theme_override_constants/separation = 8
 
-[node name="Title" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Large Single-LOD Streaming Validation"
+[node name="Title" type="Label" parent="UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox"]
+theme_override_font_sizes/font_size = 25
+text = "Thread smoke"
 
-[node name="Status" type="Label" parent="UI/Panel/Margin/Content"]
-text = "Dataset: loading\nWeb thread prerequisites: not checked\nThread smoke: not started\nTarget chunk: loading\nTarget motion: waiting for streaming\nLoad radius: 2\nUnload radius: 3\nLoad budget: 2 starts/frame, 4 concurrent\nQueued chunks: 0\nLoading chunks: 0\nResident chunks: 0\nPeak resident chunks: 0\nCompleted loads: 0\nFailed loads: 0\nUnloads: 0\nCancelled pending: 0\nResidency churn: 0\nAverage load latency: 0 ms\nMaximum load latency: 0 ms\nApprox. resident mesh memory: 0 MiB\nFrame time: 0 ms\nRecent max frame time: 0 ms\nStreaming state: not configured"
-autowrap_mode = 2
+[node name="Value" type="Label" parent="UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox"]
+theme_override_colors/font_color = Color(0.36, 0.9, 0.43, 1)
+theme_override_font_sizes/font_size = 32
+text = "CHECKING"
 
-[node name="Instructions" type="Label" parent="UI/Panel/Margin/Content"]
-text = "The orange target sweeps the 13 x 13 baked single-LOD region, but waits whenever queued or loading work is pending so slower browsers cannot outrun residency. Each boundary crossing still demonstrates nearest-first queueing, bounded threaded loads, the load-2/unload-3 hysteresis band, memory estimate, latency, churn, and frame-time observation. Pause to inspect state; Reset Target also resets cumulative metrics."
-autowrap_mode = 2
+[node name="CacheCard" type="PanelContainer" parent="UI/Panel/Margin/Content/Summary"]
+custom_minimum_size = Vector2(0, 150)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleCard")
 
-[node name="Buttons" type="HBoxContainer" parent="UI/Panel/Margin/Content"]
+[node name="Margin" type="MarginContainer" parent="UI/Panel/Margin/Content/Summary/CacheCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="VBox" type="VBoxContainer" parent="UI/Panel/Margin/Content/Summary/CacheCard/Margin"]
 theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="UI/Panel/Margin/Content/Summary/CacheCard/Margin/VBox"]
+theme_override_colors/font_color = Color(1, 0.76, 0.02, 1)
+theme_override_font_sizes/font_size = 25
+text = "Cache"
+
+[node name="Cache" type="OptionButton" parent="UI/Panel/Margin/Content/Summary/CacheCard/Margin/VBox"]
+custom_minimum_size = Vector2(0, 70)
+fit_to_longest_item = false
+theme_override_colors/font_color = Color(1, 0.76, 0.02, 1)
+theme_override_font_sizes/font_size = 25
+
+[node name="ConcurrencyCard" type="PanelContainer" parent="UI/Panel/Margin/Content/Summary"]
+custom_minimum_size = Vector2(0, 150)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleCard")
+
+[node name="Margin" type="MarginContainer" parent="UI/Panel/Margin/Content/Summary/ConcurrencyCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="VBox" type="VBoxContainer" parent="UI/Panel/Margin/Content/Summary/ConcurrencyCard/Margin"]
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="UI/Panel/Margin/Content/Summary/ConcurrencyCard/Margin/VBox"]
+theme_override_colors/font_color = Color(0.24, 0.56, 1, 1)
+theme_override_font_sizes/font_size = 25
+text = "Concurrency"
+
+[node name="Concurrency" type="OptionButton" parent="UI/Panel/Margin/Content/Summary/ConcurrencyCard/Margin/VBox"]
+custom_minimum_size = Vector2(0, 70)
+fit_to_longest_item = false
+theme_override_colors/font_color = Color(0.24, 0.56, 1, 1)
+theme_override_font_sizes/font_size = 25
+
+[node name="Metrics" type="GridContainer" parent="UI/Panel/Margin/Content"]
+columns = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+
+[node name="TimingCard" type="PanelContainer" parent="UI/Panel/Margin/Content/Metrics"]
+custom_minimum_size = Vector2(0, 280)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleCard")
+
+[node name="Margin" type="MarginContainer" parent="UI/Panel/Margin/Content/Metrics/TimingCard"]
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin"]
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox"]
+theme_override_colors/font_color = Color(0.67, 0.34, 0.96, 1)
+theme_override_font_sizes/font_size = 28
+text = "LOAD TIMING"
+
+[node name="Grid" type="GridContainer" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox"]
+columns = 2
+theme_override_constants/h_separation = 18
+theme_override_constants/v_separation = 12
+
+[node name="BackgroundCaption" type="Label" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 25
+text = "Background:"
+
+[node name="BackgroundValue" type="Label" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid"]
+theme_override_colors/font_color = Color(0.67, 0.34, 0.96, 1)
+theme_override_font_sizes/font_size = 27
+text = "0 ms"
+horizontal_alignment = 2
+
+[node name="ResidencyCaption" type="Label" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 25
+text = "Residency:"
+
+[node name="ResidencyValue" type="Label" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid"]
+theme_override_colors/font_color = Color(0.67, 0.34, 0.96, 1)
+theme_override_font_sizes/font_size = 27
+text = "0 ms"
+horizontal_alignment = 2
+
+[node name="Separator" type="HSeparator" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox"]
+
+[node name="TotalRow" type="HBoxContainer" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox"]
+
+[node name="Caption" type="Label" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/TotalRow"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 27
+text = "Total:"
+
+[node name="Value" type="Label" parent="UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/TotalRow"]
+theme_override_colors/font_color = Color(0.67, 0.34, 0.96, 1)
+theme_override_font_sizes/font_size = 30
+text = "0 ms"
+
+[node name="RunCard" type="PanelContainer" parent="UI/Panel/Margin/Content/Metrics"]
+custom_minimum_size = Vector2(0, 280)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleCard")
+
+[node name="Margin" type="MarginContainer" parent="UI/Panel/Margin/Content/Metrics/RunCard"]
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin"]
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox"]
+theme_override_colors/font_color = Color(0.36, 0.9, 0.43, 1)
+theme_override_font_sizes/font_size = 28
+text = "RUN"
+
+[node name="Grid" type="GridContainer" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox"]
+columns = 2
+theme_override_constants/h_separation = 18
+theme_override_constants/v_separation = 8
+
+[node name="CompletedCaption" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "Completed:"
+
+[node name="CompletedValue" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid"]
+theme_override_colors/font_color = Color(0.36, 0.9, 0.43, 1)
+theme_override_font_sizes/font_size = 27
+text = "0"
+horizontal_alignment = 2
+
+[node name="FailedCaption" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "Failed:"
+
+[node name="FailedValue" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid"]
+theme_override_colors/font_color = Color(1, 0.28, 0.3, 1)
+theme_override_font_sizes/font_size = 27
+text = "0"
+horizontal_alignment = 2
+
+[node name="FrameCaption" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "Frame:"
+
+[node name="FrameValue" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid"]
+theme_override_colors/font_color = Color(0.24, 0.56, 1, 1)
+theme_override_font_sizes/font_size = 27
+text = "0 ms"
+horizontal_alignment = 2
+
+[node name="RecentCaption" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "Recent max:"
+
+[node name="RecentValue" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid"]
+theme_override_colors/font_color = Color(0.24, 0.56, 1, 1)
+theme_override_font_sizes/font_size = 27
+text = "0 ms"
+horizontal_alignment = 2
+
+[node name="Separator" type="HSeparator" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox"]
+
+[node name="Target" type="Label" parent="UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox"]
+theme_override_colors/font_color = Color(0.7, 0.72, 0.76, 1)
+theme_override_font_sizes/font_size = 23
+text = "Target: loading"
+autowrap_mode = 2
+
+[node name="Buttons" type="GridContainer" parent="UI/Panel/Margin/Content"]
+columns = 2
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 12
 
 [node name="Load" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
+custom_minimum_size = Vector2(0, 72)
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 27
+theme_override_styles/normal = SubResource("StyleButtonBlue")
+theme_override_styles/hover = SubResource("StyleButtonBlueHover")
+theme_override_styles/pressed = SubResource("StyleButtonBlueHover")
 text = "Pause Target"
 
 [node name="Unload" type="Button" parent="UI/Panel/Margin/Content/Buttons"]
-text = "Reset Target + Metrics"
+custom_minimum_size = Vector2(0, 72)
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 27
+theme_override_styles/normal = SubResource("StyleButtonDark")
+theme_override_styles/hover = SubResource("StyleButtonDarkHover")
+theme_override_styles/pressed = SubResource("StyleButtonDarkHover")
+text = "Reset Experiment"
+
+[node name="DetailsToggle" type="Button" parent="UI/Panel/Margin/Content"]
+custom_minimum_size = Vector2(0, 66)
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleButtonDark")
+theme_override_styles/hover = SubResource("StyleButtonDarkHover")
+theme_override_styles/pressed = SubResource("StyleButtonDarkHover")
+text = "Show streaming details"
+
+[node name="DetailsScroll" type="ScrollContainer" parent="UI/Panel/Margin/Content"]
+visible = false
+custom_minimum_size = Vector2(0, 260)
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 1
+
+[node name="Details" type="Label" parent="UI/Panel/Margin/Content/DetailsScroll"]
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "Streaming details"
+autowrap_mode = 2
+
+[node name="InfoCard" type="PanelContainer" parent="UI/Panel/Margin/Content"]
+theme_override_styles/panel = SubResource("StyleInfo")
+
+[node name="Margin" type="MarginContainer" parent="UI/Panel/Margin/Content/InfoCard"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="Instructions" type="Label" parent="UI/Panel/Margin/Content/InfoCard/Margin"]
+theme_override_colors/font_color = Color(0.86, 0.88, 0.91, 1)
+theme_override_font_sizes/font_size = 21
+text = "Set cache provenance before recording a run. Change concurrency only after pending work settles. Reset Experiment clears residency and metrics, not browser or ResourceLoader caches."
+autowrap_mode = 2

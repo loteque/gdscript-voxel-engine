@@ -93,6 +93,7 @@ List unresolved causes, hypotheses, and measurements that would reduce uncertain
 | Version | Report | Primary result |
 | --- | --- | --- |
 | 0.13.0 | [Large single-LOD streaming validation](0.13.0-large-single-lod-validation.md) | Correct 169-chunk single-LOD streaming established; mobile-Web resource-loading throughput emerged as the first material scaling constraint. |
+| 0.14.0 | [Resource-loading analysis](0.14.0-resource-loading-analysis.md) | Native-headless loading saturates near concurrency 4 for the current fixture; background resource loading dominates measured latency, while the previously observed mobile-Web slowdown is not reproduced headlessly. |
 
 ## Reporting principles
 

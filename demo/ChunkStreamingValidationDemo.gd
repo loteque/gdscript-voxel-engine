@@ -1,13 +1,26 @@
 extends Node3D
 
-## Runtime proof for large single-LOD streaming, hysteresis, scheduling, and async loading.
+## Runtime proof for large single-LOD streaming, hysteresis, scheduling, async loading, and loading analysis.
 
 const DEFAULT_MANIFEST_PATH := "res://demo/generated/StreamingDemoManifest.tres"
+const DEFAULT_EXPERIMENT_MATRIX_PATH := "res://demo/experiments/mobile_web_warm_matrix.tres"
 const THREAD_SMOKE_TIMEOUT_MSEC := 5000
 const RECENT_FRAME_WINDOW := 120
+const NARROW_LAYOUT_WIDTH := 900.0
+const CONCURRENCY_OPTIONS := [1, 2, 4, 8]
+const CACHE_PROVENANCE_OPTIONS := [
+	"unknown",
+	"first-load / cold-ish",
+	"repeated / warm",
+]
+const COLOR_SUCCESS := Color(0.36, 0.9, 0.43, 1.0)
+const COLOR_FAILURE := Color(1.0, 0.28, 0.3, 1.0)
+const COLOR_PENDING := Color(0.24, 0.56, 1.0, 1.0)
 
 @export var manifest: TerrainChunkManifest
 @export_file("*.tres") var manifest_path: String = DEFAULT_MANIFEST_PATH
+@export var experiment_matrix: StreamingExperimentMatrix
+@export_file("*.tres") var experiment_matrix_path: String = DEFAULT_EXPERIMENT_MATRIX_PATH
 @export_range(0, 16, 1) var load_radius: int = 2
 @export_range(0, 16, 1) var unload_radius: int = 3
 @export var target_speed: float = 18.0
@@ -21,9 +34,26 @@ const RECENT_FRAME_WINDOW := 120
 @onready var _streamer: ChunkStreamer = $ChunkStreamer
 @onready var _target: Node3D = $ResidencyTarget
 @onready var _camera: Camera3D = $Camera
-@onready var _status_label: Label = $UI/Panel/Margin/Content/Status
+@onready var _content: VBoxContainer = $UI/Panel/Margin/Content
+@onready var _summary_grid: GridContainer = $UI/Panel/Margin/Content/Summary
+@onready var _metrics_grid: GridContainer = $UI/Panel/Margin/Content/Metrics
+@onready var _buttons_grid: GridContainer = $UI/Panel/Margin/Content/Buttons
+@onready var _thread_value: Label = $UI/Panel/Margin/Content/Summary/ThreadCard/Margin/VBox/Value
+@onready var _background_value: Label = $UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/BackgroundValue
+@onready var _residency_value: Label = $UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/Grid/ResidencyValue
+@onready var _total_value: Label = $UI/Panel/Margin/Content/Metrics/TimingCard/Margin/VBox/TotalRow/Value
+@onready var _completed_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/CompletedValue
+@onready var _failed_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/FailedValue
+@onready var _frame_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/FrameValue
+@onready var _recent_value: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Grid/RecentValue
+@onready var _target_label: Label = $UI/Panel/Margin/Content/Metrics/RunCard/Margin/VBox/Target
+@onready var _details_scroll: ScrollContainer = $UI/Panel/Margin/Content/DetailsScroll
+@onready var _details_label: Label = $UI/Panel/Margin/Content/DetailsScroll/Details
+@onready var _details_button: Button = $UI/Panel/Margin/Content/DetailsToggle
 @onready var _pause_button: Button = $UI/Panel/Margin/Content/Buttons/Load
 @onready var _reset_button: Button = $UI/Panel/Margin/Content/Buttons/Unload
+@onready var _concurrency_selector: OptionButton = $UI/Panel/Margin/Content/Summary/ConcurrencyCard/Margin/VBox/Concurrency
+@onready var _cache_selector: OptionButton = $UI/Panel/Margin/Content/Summary/CacheCard/Margin/VBox/Cache
 
 var _motion_direction: float = 1.0
 var _motion_enabled: bool = true
@@ -34,11 +64,32 @@ var _thread_smoke_state: String = "not started"
 var _thread_smoke_web_prerequisites: String = "not checked"
 var _thread_smoke_timed_out: bool = false
 var _recent_frame_times_msec: Array[float] = []
+var _cache_provenance: String = "unknown"
+
+var _matrix_panel: VBoxContainer
+var _matrix_buttons: GridContainer
+var _matrix_status_label: Label
+var _matrix_run_button: Button
+var _matrix_export_button: Button
+var _matrix_running: bool = false
+var _matrix_results: Array[Dictionary] = []
+var _matrix_concurrency_index: int = 0
+var _matrix_repetition_index: int = 0
+var _matrix_waypoint_index: int = 0
+var _matrix_settle_frame_count: int = 0
+var _matrix_run_started_usec: int = 0
+var _matrix_waypoint_started_usec: int = 0
+var _matrix_peak_queued_count: int = 0
+var _matrix_peak_loading_count: int = 0
+var _matrix_peak_frame_time_msec: float = 0.0
+var _matrix_waypoint_results: Array[Dictionary] = []
 
 
 func _ready() -> void:
 	if manifest == null and not manifest_path.is_empty():
 		manifest = ResourceLoader.load(manifest_path) as TerrainChunkManifest
+	if experiment_matrix == null and not experiment_matrix_path.is_empty():
+		experiment_matrix = ResourceLoader.load(experiment_matrix_path) as StreamingExperimentMatrix
 
 	_streamer.manifest = manifest
 	_streamer.load_radius = load_radius
@@ -50,21 +101,29 @@ func _ready() -> void:
 	_streamer.chunk_unloaded.connect(_on_chunk_unloaded)
 	_streamer.chunk_load_failed.connect(_on_chunk_load_failed)
 	_pause_button.pressed.connect(_toggle_motion)
-	_reset_button.pressed.connect(_reset_target)
+	_reset_button.pressed.connect(_reset_experiment)
+	_details_button.pressed.connect(_toggle_details)
+	get_viewport().size_changed.connect(_update_responsive_layout)
+	_configure_experiment_controls()
+	_configure_matrix_controls()
+	_update_responsive_layout()
 	if thread_smoke_enabled:
 		_start_thread_smoke_test()
 	else:
 		_thread_smoke_state = "disabled"
 		_thread_smoke_web_prerequisites = "disabled"
 	_streamer.update_residency(_target.position)
-	_set_streaming_state("large single-LOD streaming active")
+	_set_streaming_state("resource-loading analysis active")
 
 
 func _process(delta: float) -> void:
 	if thread_smoke_enabled:
 		_poll_thread_smoke_test()
 	_record_frame_time(delta)
-	if _can_advance_target():
+	if _matrix_running:
+		_matrix_peak_frame_time_msec = maxf(_matrix_peak_frame_time_msec, delta * 1000.0)
+		_update_matrix_runner()
+	elif _can_advance_target():
 		_advance_target(delta)
 	_follow_target_with_camera()
 	_update_status()
@@ -88,11 +147,129 @@ func get_recent_max_frame_time_msec() -> float:
 	return maximum
 
 
+## Returns the manually recorded cache-provenance label for this validation run.
+func get_cache_provenance() -> String:
+	return _cache_provenance
+
+
+## Returns whether an automated experiment matrix is currently executing.
+func is_experiment_matrix_running() -> bool:
+	return _matrix_running
+
+
+## Returns completed matrix-run results without exposing mutable runner storage.
+func get_experiment_matrix_results() -> Array[Dictionary]:
+	var results: Array[Dictionary] = []
+	for result in _matrix_results:
+		results.append(result.duplicate(true))
+	return results
+
+
+## Returns the complete export payload for the current matrix session.
+func get_experiment_export_payload() -> Dictionary:
+	var matrix_snapshot: Dictionary = {}
+	if experiment_matrix != null:
+		matrix_snapshot = {
+			"name": experiment_matrix.matrix_name,
+			"description": experiment_matrix.description,
+			"cache_provenance": experiment_matrix.cache_provenance,
+			"concurrency_values": Array(experiment_matrix.concurrency_values),
+			"repetitions_per_concurrency": experiment_matrix.repetitions_per_concurrency,
+			"load_radius": experiment_matrix.load_radius,
+			"unload_radius": experiment_matrix.unload_radius,
+			"max_load_starts_per_frame": experiment_matrix.max_load_starts_per_frame,
+			"settle_frames": experiment_matrix.settle_frames,
+			"waypoint_coordinates": experiment_matrix.waypoint_coordinates.map(
+				func(value: Vector3i) -> Array[int]: return [value.x, value.y, value.z]
+			),
+		}
+	return {
+		"schema_version": 1,
+		"experiment": "resource-loading-analysis-web-matrix",
+		"matrix": matrix_snapshot,
+		"environment": _get_environment_snapshot(),
+		"completed_run_count": _matrix_results.size(),
+		"expected_run_count": 0 if experiment_matrix == null else experiment_matrix.get_run_count(),
+		"complete": experiment_matrix != null and _matrix_results.size() == experiment_matrix.get_run_count(),
+		"runs": get_experiment_matrix_results(),
+		"limitations": [
+			"Cache provenance is operator-supplied; the matrix runner does not clear browser or ResourceLoader caches.",
+			"Resource completion timing is polling-cadence observed by ChunkStreamer.",
+			"Frame-time observations are validation diagnostics, not laboratory-grade GPU profiling.",
+		],
+	}
+
+
+## Starts the configured matrix when the current streaming state is settled.
+func start_experiment_matrix() -> bool:
+	if experiment_matrix == null:
+		_set_streaming_state("matrix unavailable")
+		return false
+	var validation_error := experiment_matrix.get_validation_error()
+	if not validation_error.is_empty():
+		_set_streaming_state("matrix invalid: %s" % validation_error)
+		return false
+	if _matrix_running or not _streamer.get_pending_coordinates().is_empty():
+		return false
+
+	_matrix_results.clear()
+	_matrix_concurrency_index = 0
+	_matrix_repetition_index = 0
+	_matrix_running = true
+	_motion_enabled = false
+	_pause_button.text = "Resume Target"
+	_cache_provenance = experiment_matrix.cache_provenance
+	_streamer.load_radius = experiment_matrix.load_radius
+	_streamer.unload_radius = experiment_matrix.unload_radius
+	_streamer.max_load_starts_per_frame = experiment_matrix.max_load_starts_per_frame
+	_select_cache_label(_cache_provenance)
+	_begin_matrix_run()
+	return true
+
+
+## Downloads the accumulated matrix evidence on Web or writes it to user:// elsewhere.
+func export_experiment_results() -> bool:
+	if _matrix_results.is_empty():
+		_set_streaming_state("no matrix results to export")
+		return false
+
+	var filename := "streaming-experiment-%s.json" % _safe_filename(
+		experiment_matrix.matrix_name if experiment_matrix != null else "results"
+	)
+	var json_text := JSON.stringify(get_experiment_export_payload(), "\t")
+	if OS.has_feature("web"):
+		var script := """
+const data = %s;
+const filename = %s;
+const blob = new Blob([data], {type: 'application/json'});
+const url = URL.createObjectURL(blob);
+const link = document.createElement('a');
+link.href = url;
+link.download = filename;
+document.body.appendChild(link);
+link.click();
+link.remove();
+setTimeout(() => URL.revokeObjectURL(url), 0);
+""" % [JSON.stringify(json_text), JSON.stringify(filename)]
+		JavaScriptBridge.eval(script, true)
+	else:
+		var file := FileAccess.open("user://%s" % filename, FileAccess.WRITE)
+		if file == null:
+			_set_streaming_state("experiment export failed")
+			return false
+		file.store_string(json_text)
+		file.close()
+	_set_streaming_state("exported %d matrix runs" % _matrix_results.size())
+	return true
+
+
 func _can_advance_target() -> bool:
-	return _motion_enabled and _streamer.get_pending_coordinates().is_empty()
+	return not _matrix_running and _motion_enabled and _streamer.get_pending_coordinates().is_empty()
 
 
 func _get_target_motion_state() -> String:
+	if _matrix_running:
+		return "matrix experiment"
 	if not _motion_enabled:
 		return "paused"
 	if not _streamer.get_pending_coordinates().is_empty():
@@ -129,18 +306,306 @@ func _record_frame_time(delta: float) -> void:
 		_recent_frame_times_msec.pop_front()
 
 
+func _update_responsive_layout() -> void:
+	_apply_responsive_layout(get_viewport().get_visible_rect().size.x)
+
+
+func _apply_responsive_layout(viewport_width: float) -> void:
+	var narrow_layout := viewport_width < NARROW_LAYOUT_WIDTH
+	_summary_grid.columns = 1 if narrow_layout else 3
+	_metrics_grid.columns = 1 if narrow_layout else 2
+	_buttons_grid.columns = 1 if narrow_layout else 2
+	if _matrix_buttons != null:
+		_matrix_buttons.columns = 1 if narrow_layout else 2
+
+
 func _toggle_motion() -> void:
+	if _matrix_running:
+		return
 	_motion_enabled = not _motion_enabled
 	_pause_button.text = "Pause Target" if _motion_enabled else "Resume Target"
 	_update_status()
 
 
-func _reset_target() -> void:
+func _toggle_details() -> void:
+	_details_scroll.visible = not _details_scroll.visible
+	_details_button.text = "Hide streaming details" if _details_scroll.visible else "Show streaming details"
+
+
+func _configure_experiment_controls() -> void:
+	_concurrency_selector.clear()
+	var selected_concurrency_index := 0
+	for option_index in CONCURRENCY_OPTIONS.size():
+		var concurrency: int = CONCURRENCY_OPTIONS[option_index]
+		_concurrency_selector.add_item("%d concurrent" % concurrency, concurrency)
+		if concurrency == _streamer.max_concurrent_loads:
+			selected_concurrency_index = option_index
+	_concurrency_selector.select(selected_concurrency_index)
+	_concurrency_selector.item_selected.connect(_on_concurrency_selected)
+
+	_cache_selector.clear()
+	for option_index in CACHE_PROVENANCE_OPTIONS.size():
+		_cache_selector.add_item(CACHE_PROVENANCE_OPTIONS[option_index], option_index)
+	_cache_selector.select(0)
+	_cache_selector.item_selected.connect(_on_cache_selected)
+
+
+func _configure_matrix_controls() -> void:
+	_matrix_panel = VBoxContainer.new()
+	_matrix_panel.name = "ExperimentMatrix"
+	_matrix_panel.add_to_group("demo_overlay")
+	_matrix_panel.add_theme_constant_override("separation", 10)
+
+	_matrix_status_label = Label.new()
+	_matrix_status_label.name = "Status"
+	_matrix_status_label.add_theme_font_size_override("font_size", 22)
+	_matrix_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_matrix_panel.add_child(_matrix_status_label)
+
+	_matrix_buttons = GridContainer.new()
+	_matrix_buttons.name = "Buttons"
+	_matrix_buttons.columns = 2
+	_matrix_buttons.add_theme_constant_override("h_separation", 12)
+	_matrix_buttons.add_theme_constant_override("v_separation", 12)
+	_matrix_panel.add_child(_matrix_buttons)
+
+	_matrix_run_button = Button.new()
+	_matrix_run_button.name = "RunMatrix"
+	_matrix_run_button.text = "Run Experiment Matrix"
+	_matrix_run_button.custom_minimum_size = Vector2(0, 70)
+	_matrix_run_button.add_theme_font_size_override("font_size", 24)
+	_matrix_run_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_matrix_run_button.pressed.connect(start_experiment_matrix)
+	_matrix_buttons.add_child(_matrix_run_button)
+
+	_matrix_export_button = Button.new()
+	_matrix_export_button.name = "ExportMatrix"
+	_matrix_export_button.text = "Export Experiment"
+	_matrix_export_button.custom_minimum_size = Vector2(0, 70)
+	_matrix_export_button.add_theme_font_size_override("font_size", 24)
+	_matrix_export_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_matrix_export_button.pressed.connect(export_experiment_results)
+	_matrix_buttons.add_child(_matrix_export_button)
+
+	_content.add_child(_matrix_panel)
+	_content.move_child(_matrix_panel, _details_button.get_index())
+	_update_matrix_status()
+
+
+func _on_concurrency_selected(index: int) -> void:
+	if _matrix_running or not _streamer.get_pending_coordinates().is_empty():
+		return
+	_streamer.max_concurrent_loads = _concurrency_selector.get_item_id(index)
+	_restart_experiment("concurrency changed to %d" % _streamer.max_concurrent_loads)
+
+
+func _on_cache_selected(index: int) -> void:
+	if _matrix_running:
+		return
+	_cache_provenance = CACHE_PROVENANCE_OPTIONS[index]
+	_set_streaming_state("cache provenance labeled %s" % _cache_provenance)
+
+
+func _reset_experiment() -> void:
+	if _matrix_running:
+		return
+	_restart_experiment("experiment reset")
+
+
+func _restart_experiment(state: String) -> void:
+	if not _streamer.get_pending_coordinates().is_empty():
+		return
+	_streamer.clear_chunks()
 	_target.position = Vector3(target_min_x, _target.position.y, target_min_z)
 	_motion_direction = 1.0
 	_streamer.reset_streaming_metrics()
 	_streamer.update_residency(_target.position)
-	_set_streaming_state("target and metrics reset")
+	_set_streaming_state(state)
+
+
+# [b]Experiment Matrix[/b]
+# Runs deterministic validation scenarios while leaving production streaming ownership intact.
+
+func _begin_matrix_run() -> void:
+	if experiment_matrix == null or not _matrix_running:
+		return
+	if _matrix_concurrency_index >= experiment_matrix.concurrency_values.size():
+		_finish_matrix()
+		return
+
+	var concurrency := experiment_matrix.concurrency_values[_matrix_concurrency_index]
+	_streamer.clear_chunks()
+	_streamer.reset_streaming_metrics()
+	_streamer.max_concurrent_loads = concurrency
+	_select_concurrency(concurrency)
+	_recent_frame_times_msec.clear()
+	_matrix_waypoint_results.clear()
+	_matrix_waypoint_index = 0
+	_matrix_settle_frame_count = 0
+	_matrix_peak_queued_count = 0
+	_matrix_peak_loading_count = 0
+	_matrix_peak_frame_time_msec = 0.0
+	_matrix_run_started_usec = Time.get_ticks_usec()
+	_move_to_matrix_waypoint(0)
+	_set_streaming_state(
+		"matrix run %d/%d" % [_matrix_results.size() + 1, experiment_matrix.get_run_count()]
+	)
+
+
+func _update_matrix_runner() -> void:
+	if not _matrix_running or experiment_matrix == null:
+		return
+
+	_matrix_peak_queued_count = maxi(_matrix_peak_queued_count, _streamer.get_queued_coordinates().size())
+	_matrix_peak_loading_count = maxi(_matrix_peak_loading_count, _streamer.get_loading_coordinates().size())
+	if not _streamer.get_pending_coordinates().is_empty():
+		_matrix_settle_frame_count = 0
+		return
+
+	_matrix_settle_frame_count += 1
+	if _matrix_settle_frame_count < experiment_matrix.settle_frames:
+		return
+
+	_record_matrix_waypoint()
+	if _matrix_waypoint_index + 1 < experiment_matrix.waypoint_coordinates.size():
+		_matrix_waypoint_index += 1
+		_move_to_matrix_waypoint(_matrix_waypoint_index)
+		return
+
+	_record_matrix_run()
+	_advance_matrix_indices()
+	if _matrix_running:
+		_begin_matrix_run()
+
+
+func _move_to_matrix_waypoint(index: int) -> void:
+	var coordinate := experiment_matrix.waypoint_coordinates[index]
+	_target.position = _coordinate_center(coordinate)
+	_matrix_waypoint_started_usec = Time.get_ticks_usec()
+	_matrix_settle_frame_count = 0
+	_streamer.update_residency(_target.position)
+	_update_matrix_status()
+
+
+func _record_matrix_waypoint() -> void:
+	var coordinate := experiment_matrix.waypoint_coordinates[_matrix_waypoint_index]
+	var metrics := _streamer.get_streaming_metrics()
+	_matrix_waypoint_results.append({
+		"coordinate": [coordinate.x, coordinate.y, coordinate.z],
+		"settle_duration_msec": float(Time.get_ticks_usec() - _matrix_waypoint_started_usec) / 1000.0,
+		"resident_count": metrics["resident_count"],
+		"completed_load_count": metrics["completed_load_count"],
+		"unload_count": metrics["unload_count"],
+		"cancelled_pending_load_count": metrics["cancelled_pending_load_count"],
+	})
+
+
+func _record_matrix_run() -> void:
+	var metrics := _streamer.get_streaming_metrics()
+	var concurrency := experiment_matrix.concurrency_values[_matrix_concurrency_index]
+	_matrix_results.append({
+		"run_index": _matrix_results.size() + 1,
+		"concurrency": concurrency,
+		"repetition": _matrix_repetition_index + 1,
+		"cache_provenance": experiment_matrix.cache_provenance,
+		"run_duration_msec": float(Time.get_ticks_usec() - _matrix_run_started_usec) / 1000.0,
+		"peak_queued_count": _matrix_peak_queued_count,
+		"peak_loading_count": _matrix_peak_loading_count,
+		"peak_frame_time_msec": _matrix_peak_frame_time_msec,
+		"metrics": metrics.duplicate(true),
+		"waypoints": _matrix_waypoint_results.duplicate(true),
+		"load_observations": _streamer.get_completed_load_observations(),
+	})
+	_update_matrix_status()
+
+
+func _advance_matrix_indices() -> void:
+	_matrix_repetition_index += 1
+	if _matrix_repetition_index >= experiment_matrix.repetitions_per_concurrency:
+		_matrix_repetition_index = 0
+		_matrix_concurrency_index += 1
+	if _matrix_concurrency_index >= experiment_matrix.concurrency_values.size():
+		_finish_matrix()
+
+
+func _finish_matrix() -> void:
+	_matrix_running = false
+	_motion_enabled = false
+	_set_streaming_state("matrix complete: %d runs" % _matrix_results.size())
+	_update_matrix_status()
+
+
+func _coordinate_center(coordinate: Vector3i) -> Vector3:
+	var extent := Vector3(manifest.chunk_cell_dimensions) * manifest.sample_spacing
+	return Vector3(coordinate) * extent + extent * 0.5
+
+
+func _select_concurrency(concurrency: int) -> void:
+	for index in _concurrency_selector.item_count:
+		if _concurrency_selector.get_item_id(index) == concurrency:
+			_concurrency_selector.select(index)
+			return
+
+
+func _select_cache_label(label: String) -> void:
+	for index in CACHE_PROVENANCE_OPTIONS.size():
+		if CACHE_PROVENANCE_OPTIONS[index] == label:
+			_cache_selector.select(index)
+			return
+
+
+func _update_matrix_status() -> void:
+	if _matrix_status_label == null:
+		return
+	if experiment_matrix == null:
+		_matrix_status_label.text = "Experiment matrix: unavailable"
+		return
+	if _matrix_running:
+		var concurrency := experiment_matrix.concurrency_values[_matrix_concurrency_index]
+		_matrix_status_label.text = (
+			"Matrix: %s · run %d/%d · %d concurrent · repetition %d/%d · waypoint %d/%d"
+			% [
+				experiment_matrix.matrix_name,
+				_matrix_results.size() + 1,
+				experiment_matrix.get_run_count(),
+				concurrency,
+				_matrix_repetition_index + 1,
+				experiment_matrix.repetitions_per_concurrency,
+				_matrix_waypoint_index + 1,
+				experiment_matrix.waypoint_coordinates.size(),
+			]
+		)
+	else:
+		_matrix_status_label.text = "Matrix: %s · recorded %d/%d runs" % [
+			experiment_matrix.matrix_name,
+			_matrix_results.size(),
+			experiment_matrix.get_run_count(),
+		]
+
+
+func _safe_filename(value: String) -> String:
+	var safe := value.to_lower().strip_edges().replace(" ", "-")
+	for character in ["/", "\\", ":", "*", "?", "\"", "<", ">", "|"]:
+		safe = safe.replace(character, "-")
+	return safe
+
+
+func _get_environment_snapshot() -> Dictionary:
+	var version := Engine.get_version_info()
+	var user_agent := "unknown"
+	if OS.has_feature("web"):
+		user_agent = str(JavaScriptBridge.eval("navigator.userAgent", true))
+	return {
+		"godot_version": str(version.get("string", "unknown")),
+		"os_name": OS.get_name(),
+		"distribution_name": OS.get_distribution_name(),
+		"processor_count": OS.get_processor_count(),
+		"display_server": DisplayServer.get_name(),
+		"rendering_method": str(ProjectSettings.get_setting("rendering/renderer/rendering_method", "unknown")),
+		"mobile_rendering_method": str(ProjectSettings.get_setting("rendering/renderer/rendering_method.mobile", "unknown")),
+		"web_thread_prerequisites": _thread_smoke_web_prerequisites,
+		"user_agent": user_agent,
+	}
 
 
 func _set_streaming_state(state: String) -> void:
@@ -202,11 +667,20 @@ func _run_thread_smoke_worker() -> void:
 
 
 func _update_status() -> void:
+	_update_thread_status()
 	if manifest == null:
-		_status_label.text = (
-			"Manifest: missing\nWeb thread prerequisites: %s\nThread smoke: %s\nStreaming state: %s"
-			% [_thread_smoke_web_prerequisites, _thread_smoke_state, _streaming_state]
-		)
+		_background_value.text = "—"
+		_residency_value.text = "—"
+		_total_value.text = "—"
+		_completed_value.text = "0"
+		_failed_value.text = "0"
+		_frame_value.text = "—"
+		_recent_value.text = "—"
+		_target_label.text = "Target: manifest missing"
+		_details_label.text = "Web thread prerequisites: %s\nStreaming state: %s" % [
+			_thread_smoke_web_prerequisites,
+			_streaming_state,
+		]
 		return
 
 	var target_coordinate := _streamer.position_to_chunk_coordinate(_target.position)
@@ -214,6 +688,8 @@ func _update_status() -> void:
 	var loading_coordinates := _streamer.get_loading_coordinates()
 	var loaded_coordinates := _streamer.get_loaded_coordinates()
 	var metrics := _streamer.get_streaming_metrics()
+	var observations := _streamer.get_completed_load_observations()
+	var last_observation: Dictionary = {} if observations.is_empty() else observations.back()
 	var surface_count := 0
 	for coordinate in loaded_coordinates:
 		var instance := _streamer.get_chunk_instance(coordinate)
@@ -221,24 +697,52 @@ func _update_status() -> void:
 			surface_count += instance.mesh.get_surface_count()
 	var current_frame_msec: float = 0.0 if _recent_frame_times_msec.is_empty() else float(_recent_frame_times_msec.back())
 	var approximate_mesh_mib := float(metrics["approximate_mesh_memory_bytes"]) / (1024.0 * 1024.0)
-	_status_label.text = (
-		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nThread smoke: %s\nTarget chunk: %s\nTarget motion: %s\nLoad radius: %d\nUnload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d\nQueued priority: %s\nLoading chunks: %d\nLoading coordinates: %s\nResident chunks: %d\nPeak resident chunks: %d\nResident surfaces: %d\nCompleted loads: %d\nFailed loads: %d\nUnloads: %d\nCancelled pending: %d\nResidency churn: %d\nAverage load latency: %.2f ms\nMaximum load latency: %d ms\nApprox. resident mesh memory: %.2f MiB\nFrame time: %.2f ms\nRecent max frame time: %.2f ms\nResident coordinates: %s\nStreaming state: %s"
+	var last_asset_summary := "none"
+	if not last_observation.is_empty():
+		last_asset_summary = "%s | %d B | %d verts | %d indices | %d/%d/%d ms" % [
+			last_observation["coordinate"],
+			last_observation["serialized_size_bytes"],
+			last_observation["mesh_vertex_count"],
+			last_observation["mesh_index_count"],
+			last_observation["aggregate_latency_msec"],
+			last_observation["background_wait_msec"],
+			last_observation["residency_completion_msec"],
+		]
+	var has_pending := not _streamer.get_pending_coordinates().is_empty()
+	var controls_locked := has_pending or _matrix_running
+	_reset_button.disabled = controls_locked
+	_pause_button.disabled = _matrix_running
+	_concurrency_selector.disabled = controls_locked
+	_cache_selector.disabled = _matrix_running
+	if _matrix_run_button != null:
+		_matrix_run_button.disabled = controls_locked or experiment_matrix == null
+	if _matrix_export_button != null:
+		_matrix_export_button.disabled = _matrix_results.is_empty()
+	_update_matrix_status()
+
+	_background_value.text = "%.2f ms" % float(metrics["average_background_wait_msec"])
+	_residency_value.text = "%.2f ms" % float(metrics["average_residency_completion_msec"])
+	_total_value.text = "%.2f ms" % float(metrics["average_load_latency_msec"])
+	_completed_value.text = str(metrics["completed_load_count"])
+	_failed_value.text = str(metrics["failed_load_count"])
+	_frame_value.text = "%.2f ms" % current_frame_msec
+	_recent_value.text = "%.2f ms" % get_recent_max_frame_time_msec()
+	_target_label.text = "Target: %s (%s)" % [target_coordinate, _get_target_motion_state()]
+
+	_details_label.text = (
+		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nRun cache label: %s\nLoad radius: %d | Unload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d | Loading chunks: %d | Resident chunks: %d\nPeak resident chunks: %d | Resident surfaces: %d\nCompleted loads: %d | Failed loads: %d | Unloads: %d\nCancelled pending: %d | Residency churn: %d\nMaximum aggregate latency: %d ms\nMaximum background wait: %d ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nQueued coordinates: %s\nLoading coordinates: %s\nResident coordinates: %s\nStreaming state: %s"
 		% [
 			manifest.entries.size(),
 			manifest.chunk_cell_dimensions,
 			manifest.sample_spacing,
 			_thread_smoke_web_prerequisites,
-			_thread_smoke_state,
-			target_coordinate,
-			_get_target_motion_state(),
+			_cache_provenance,
 			_streamer.load_radius,
 			_streamer.unload_radius,
 			_streamer.max_load_starts_per_frame,
 			_streamer.max_concurrent_loads,
 			queued_coordinates.size(),
-			queued_coordinates,
 			loading_coordinates.size(),
-			loading_coordinates,
 			loaded_coordinates.size(),
 			metrics["peak_resident_count"],
 			surface_count,
@@ -247,15 +751,28 @@ func _update_status() -> void:
 			metrics["unload_count"],
 			metrics["cancelled_pending_load_count"],
 			metrics["residency_churn_count"],
-			metrics["average_load_latency_msec"],
 			metrics["maximum_load_latency_msec"],
+			metrics["maximum_background_wait_msec"],
+			metrics["maximum_residency_completion_msec"],
+			metrics["completed_observation_count"],
+			last_asset_summary,
 			approximate_mesh_mib,
-			current_frame_msec,
-			get_recent_max_frame_time_msec(),
+			queued_coordinates,
+			loading_coordinates,
 			loaded_coordinates,
 			_streaming_state,
 		]
 	)
+
+
+func _update_thread_status() -> void:
+	_thread_value.text = _thread_smoke_state.to_upper()
+	if _thread_smoke_state.begins_with("PASS") or _thread_smoke_state == "disabled":
+		_thread_value.add_theme_color_override("font_color", COLOR_SUCCESS)
+	elif _thread_smoke_state.begins_with("FAIL"):
+		_thread_value.add_theme_color_override("font_color", COLOR_FAILURE)
+	else:
+		_thread_value.add_theme_color_override("font_color", COLOR_PENDING)
 
 
 func _on_chunk_load_queued(_coordinate: Vector3i) -> void:

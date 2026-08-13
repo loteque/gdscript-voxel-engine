@@ -13,6 +13,19 @@ extends Resource
 @export var bounds: AABB
 
 
+# [b]Baked Characteristics[/b]
+# Preserves immutable offline measurements for runtime analysis without loading assets.
+
+## Serialized size of the baked chunk resource in bytes, when known.
+@export var serialized_size_bytes: int = 0
+
+## Total vertex count across all mesh surfaces, measured during baking.
+@export var mesh_vertex_count: int = 0
+
+## Total index count across all mesh surfaces, measured during baking.
+@export var mesh_index_count: int = 0
+
+
 # [b]Validation[/b]
 # Checks manifest-record invariants only.
 
