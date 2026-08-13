@@ -23,6 +23,39 @@ def main() -> None:
     if args.current_release_id == INTEGRATION_PREVIEW_ID:
         current_release_label = INTEGRATION_PREVIEW_LABEL
 
+    experiment_identity = ""
+    if args.current_demo_key == "streaming" and args.current_release_id == INTEGRATION_PREVIEW_ID:
+        experiment_identity = '''
+<style id="voxel-lifecycle-experiment-style">
+  #voxel-lifecycle-experiment {
+    position: fixed;
+    top: 80px;
+    left: 16px;
+    right: 16px;
+    z-index: 2147483646;
+    max-width: 760px;
+    margin: auto;
+    padding: 12px 16px;
+    border: 3px solid #48d66d;
+    border-radius: 14px;
+    background: rgba(4, 25, 15, 0.96);
+    color: #f4fff7;
+    font: 700 20px/1.3 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-align: center;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+  #voxel-lifecycle-experiment strong { color: #70f08e; }
+  @media (max-width: 720px) {
+    #voxel-lifecycle-experiment { top: 72px; font-size: 18px; }
+  }
+</style>
+<div id="voxel-lifecycle-experiment" role="status">
+  <strong>CORRECT TEST: ChunkStreamer Lifecycle Experiment</strong><br>
+  Run “Run Experiment Matrix”. Export filename starts with <code>streaming-experiment-</code>.
+</div>
+'''
+
     selector = f'''
 <style id="voxel-demo-selector-style">
   #voxel-demo-selector {{
@@ -135,7 +168,7 @@ def main() -> None:
     if "</body>" not in html:
         raise SystemExit(f"{index_path} does not contain </body>.")
 
-    html = html.replace("</body>", selector + "\n</body>", 1)
+    html = html.replace("</body>", experiment_identity + selector + "\n</body>", 1)
     index_path.write_text(html, encoding="utf-8")
 
 
