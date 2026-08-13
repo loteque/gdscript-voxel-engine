@@ -39,16 +39,15 @@ class WebDemoManifestTests(unittest.TestCase):
             streaming = next(demo for demo in manifest["demos"] if demo["key"] == "streaming")
             self.assertEqual([release["id"] for release in streaming["releases"]], ["0.8.0"])
 
-    def test_deployment_workflow_exports_latest_residency_scene_to_streaming_path(self) -> None:
+    def test_deployment_workflow_exports_latest_streaming_validation_to_existing_path(self) -> None:
         workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
         bake_command = "godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd"
         streaming_target = "build/web/streaming/index.html"
-        residency_scene = 'run/main_scene="res://demo/ChunkStreamingValidationDemo.tscn"'
+        current_scene = 'run/main_scene="res://demo/RuntimeWorkloadExperiment.tscn"'
         self.assertIn(bake_command, workflow)
         self.assertIn(streaming_target, workflow)
-        self.assertIn(residency_scene, workflow)
+        self.assertIn(current_scene, workflow)
         self.assertLess(workflow.index(bake_command), workflow.index(streaming_target))
-        self.assertIn('"Runtime Streaming Validation Demo"', workflow)
         self.assertIn('"$ARCHIVE/$ARCHIVE_PATH/streaming"', workflow)
         self.assertNotIn("build/web/residency/index.html", workflow)
         self.assertNotIn('"$ARCHIVE/$ARCHIVE_PATH/residency"', workflow)
@@ -56,10 +55,8 @@ class WebDemoManifestTests(unittest.TestCase):
     def test_current_streaming_feature_branch_publishes_existing_integration_preview(self) -> None:
         workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("      - resource-loading-analysis", workflow)
-        self.assertIn(
-            'elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "large-asteroid-validation" ] || [ "$GITHUB_REF_NAME" = "resource-loading-analysis" ]; then',
-            workflow,
-        )
+        self.assertIn("      - runtime-workload-isolation", workflow)
+        self.assertIn('[ "$GITHUB_REF_NAME" = "runtime-workload-isolation" ]', workflow)
         self.assertIn('echo "archive_path=preview/integration"', workflow)
         self.assertIn('echo "publication_type=preview"', workflow)
         self.assertNotIn("      - chunk-residency-hysteresis", workflow)
