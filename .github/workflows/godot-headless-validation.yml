@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - nf/integration
+      - runtime-workload-isolation
   pull_request:
     branches:
       - main
@@ -78,6 +79,10 @@ jobs:
       - name: Run streaming experiment matrix tests
         timeout-minutes: 2
         run: godot --headless --path . --script tests/test_streaming_experiment_matrix.gd
+      - name: Run runtime workload isolation contract tests
+        run: godot --headless --path . --script tests/test_runtime_workload_isolation_contract.gd
+      - name: Start runtime workload isolation scene headlessly
+        run: godot --headless --path . demo/RuntimeWorkloadExperiment.tscn --quit-after 3
       - name: Run chunk residency validation scene test
         timeout-minutes: 2
         run: godot --headless --path . --script tests/test_chunk_residency_validation_scene.gd
