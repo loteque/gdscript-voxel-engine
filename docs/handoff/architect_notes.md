@@ -352,3 +352,80 @@ The $10 cap makes event-driven filtering an architectural advantage rather than 
 3. Confirm that strict exactly-once execution is **not** a requirement; the recommended guarantee is at-least-once event delivery with idempotent semantic outcomes.
 4. Keep `PEMS` as the working semantic-model name. Keep `JOLT` only as a codename until a lower-collision codec name is selected.
 5. Authorize the next Architect design increment to formalize normalized PEMS v1 and the activation-envelope/runtime-receipt schemas as specifications and fixtures, without yet implementing the external runtime.
+
+## ARCH-20260813T153156-0700-003
+
+- timestamp: `2026-08-13T15:31:56-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: design-response
+- status: open
+- acknowledges: none (`steward_notes.md` does not exist on `project-chat-handoff`)
+- subject: COVE / CCJ codec naming review
+
+### Decision recommendation
+
+Recommend **COVE — Canonical Object Value Encoding** as the working formal name for the v1 compact reversible JSON codec. Retire `JOLT` from specification-facing terminology once COVE is adopted in the specification; historical notes may retain JOLT for provenance.
+
+Keep **CCJ — Compact Canonical JSON** only as the fallback requested by the project owner. COVE does not fail architectural analysis, so there is no current reason to fall back.
+
+### Architectural fit
+
+COVE preserves the required layering:
+
+```text
+expanded PEMS semantics
+        ↓
+normalization / semantic canonicalization
+        ↓
+COVE structural encoding
+        ↓
+canonical JSON serialization
+        ↓
+UTF-8 JSON artifact
+```
+
+`Canonical` is justified only if the COVE contract guarantees one structural COVE representation for one normalized PEMS value under a declared COVE version. This is stronger than merely producing deterministic JSON text.
+
+`Object Value` is acceptable as a structured-data term, but the specification must define it deliberately: COVE encodes normalized structured values and is not restricted to lexical tokens, JSON object members, or graph nodes. The codec may use dictionaries, enums, stable references, indexes, and positional records without changing the name's meaning.
+
+`Encoding` correctly places responsibility at the representation layer. COVE must not perform PEMS semantic reconciliation, infer missing project meaning, or decide which claims are authoritative.
+
+### Namespace and collision review
+
+A current web search found no material collision for the exact expansion **“Canonical Object Value Encoding”** or for COVE as a JSON/storage codec specification. The acronym COVE is used by unrelated products and research projects, including APIs and ML/research systems, so the bare acronym is not globally unique. That is acceptable for an internal/project protocol provided public documentation consistently uses the full name on first reference and a stable namespace such as `cove/1`.
+
+By contrast, CCJ is descriptively safe but sits closer to existing **canonical JSON** terminology. RFC 8785 defines the JSON Canonicalization Scheme (JCS), whose job is deterministic JSON serialization. Calling this codec “Compact Canonical JSON” could blur two distinct layers: COVE's structural compaction and the serializer's canonical byte representation.
+
+### Canonicalization boundary
+
+COVE should not redefine JSON canonicalization casually. The v1 specification should separate:
+
+1. **PEMS normalization:** semantic ordering/identity rules, duplicate-ID rejection, absent-versus-null semantics, reference validity, and normalized values.
+2. **COVE encoding:** deterministic dictionaries, enums, references, record layouts, and compact structural representation.
+3. **JSON serialization:** deterministic byte serialization of the COVE JSON value. RFC 8785 JCS is a strong candidate where its I-JSON and number/string constraints match project needs; otherwise deviations must be explicit and fixture-tested.
+
+This separation prevents “canonical” from becoming an overloaded catch-all.
+
+### Identifier recommendation
+
+Use stable identifiers conceptually equivalent to:
+
+```text
+semantic: pems/1
+codec: cove/1
+serializer: jcs/1
+```
+
+The exact envelope shape remains pending specification work. `serializer` should be explicit if byte-for-byte determinism depends on a separately versioned serialization contract.
+
+### Human reasoning
+
+COVE earns the name because it describes the contract rather than today's compression tricks. If v1 uses a shared string table and positional records, and v2 later replaces some positions with dictionary-referenced records, both can still be COVE versions because the promise is canonical reversible object-value encoding, not a specific token layout.
+
+The important guardrail is the word `Canonical`. For example, two encoders must not be allowed to emit different dictionary orders for the same normalized PEMS value and both claim COVE/1 conformance. The codec version must define enough ordering and tie-breaking rules that the compact structured value itself is deterministic before JSON serialization.
+
+Keeping JSON serialization separate also avoids colliding conceptually with JCS. COVE answers “what compact JSON value represents this normalized PEMS value?” The serializer answers “what exact UTF-8 bytes represent that JSON value?” Those are different contracts and should remain independently testable.
+
+### Next design step
+
+Proceed with **COVE** as the preferred working codec name and use `cove/1` as the provisional namespace in design fixtures. Before canonical adoption, formalize normalized PEMS v1, COVE v1 structural rules, serializer selection, and the existing round-trip / migration / malformed-reference / size-regression acceptance tests. No compact representation is canonical merely because the name is now recommended.
