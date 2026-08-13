@@ -15,13 +15,13 @@ func _initialize() -> void:
 		_expect(instance != null, "Web resource-loading experiment scene instantiates.")
 		if instance != null:
 			_expect(instance.get_script() != null, "Experiment scene uses its validation-only runner script.")
+			_expect(instance.get_node_or_null("ChunkStreamer") == null, "Microbenchmark scene does not contain a ChunkStreamer node.")
+			_expect(_tree_contains_type(instance, "MeshInstance3D") == false, "Microbenchmark scene does not contain MeshInstance3D nodes.")
 			instance.free()
 
 	var script_text := FileAccess.get_file_as_string(SCRIPT_PATH)
 	_expect(not script_text.is_empty(), "Experiment runner source is readable.")
 	_expect("ResourceLoader.load_threaded_request" in script_text, "Experiment exercises threaded ResourceLoader.")
-	_expect("ChunkStreamer" not in script_text, "Microbenchmark does not depend on ChunkStreamer.")
-	_expect("MeshInstance3D" not in script_text, "Microbenchmark does not instantiate resident meshes.")
 	_expect("CONCURRENCY_VALUES: Array[int] = [1, 2, 4, 8]" in script_text, "Experiment preserves the controlled concurrency sweep.")
 	_expect("REPETITIONS := 3" in script_text, "Experiment preserves three repetitions per concurrency value.")
 
@@ -36,6 +36,15 @@ func _initialize() -> void:
 		for failure in _failures:
 			push_error(failure)
 		quit(1)
+
+
+func _tree_contains_type(node: Node, class_name: String) -> bool:
+	if node.is_class(class_name):
+		return true
+	for child in node.get_children():
+		if child is Node and _tree_contains_type(child, class_name):
+			return true
+	return false
 
 
 func _expect(condition: bool, message: String) -> void:
