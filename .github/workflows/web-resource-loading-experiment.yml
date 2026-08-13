@@ -34,6 +34,9 @@ jobs:
       - name: Run microbenchmark contract test
         run: godot --headless --path . --script tests/test_web_resource_loading_experiment.gd
 
+      - name: Run browser harness regression test
+        run: python tests/test_web_resource_loading_runner.py
+
       - name: Export diagnostic Web scene
         shell: bash
         run: |
