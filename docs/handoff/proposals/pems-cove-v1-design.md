@@ -2,9 +2,18 @@
 
 ## Status
 
-**Architect proposal for project-owner and Steward review. Not yet canonical.**
+**Architect proposal amended after project-owner and Steward review. Not yet canonical.**
 
 This document specifies a proposed v1 semantic model and compact encoding contract for durable project engineering memory. It does **not** authorize conversion of `docs/project-chat-handoff.json`, implementation of the autonomous agent runtime, or replacement of existing continuity artifacts.
+
+Owner-approved amendments incorporated in this revision:
+
+1. canonical PEMS semantic IDs are allocated or confirmed by the Project Engineering Steward during reconciliation;
+2. stable source identity is distinct from immutable source observation/evidence;
+3. historical preservation is the safe v1 default unless an explicit Steward retention policy authorizes compaction;
+4. JCS remains preferred subject to conformance evidence;
+5. one canonical compact document remains the v1 recommendation;
+6. no fixed 20% compression threshold is owner-approved before representative measurements exist.
 
 Working identifiers:
 
@@ -30,7 +39,7 @@ JCS deterministic JSON serialization
 canonical UTF-8 bytes
 ```
 
-PEMS answers **what the project memory means**. COVE answers **how an arbitrary normalized structured value is represented compactly and reversibly**. The serializer answers **which exact UTF-8 bytes represent that COVE value**.
+PEMS answers **what project memory means**. COVE answers **how an arbitrary normalized structured value is represented compactly and reversibly**. The serializer answers **which exact UTF-8 bytes represent that COVE value**.
 
 ---
 
@@ -43,13 +52,16 @@ PEMS v1 MUST:
 1. preserve project continuity semantics without depending on one conversation transcript;
 2. distinguish current state, historical state, proposals, accepted decisions, superseded decisions, unresolved work, implementation state, validation state, and source authority structurally rather than through prose conventions alone;
 3. provide stable semantic identifiers independent of array position and mutable display names;
-4. provide first-class source/provenance references;
-5. represent the project-level context and chat/workstream continuity needed to reconstruct a role-faithful receiving session;
-6. preserve absent, explicit `null`, and empty collection as distinct JSON states;
-7. validate all semantic references and reject duplicate IDs;
-8. exclude transient agent-runtime mechanics from the semantic model;
-9. support deterministic lossless expansion into human-readable/searchable JSON;
-10. preserve the project authority hierarchy rather than becoming a competing authority for current Git/ADR/roadmap/test truth.
+4. make canonical semantic-ID admission a Steward reconciliation responsibility;
+5. distinguish stable source identity from concrete source observations;
+6. make provenance references point to observations rather than ambiguously to mutable source identities;
+7. represent project-level context and chat/workstream continuity needed to reconstruct a role-faithful receiving session;
+8. preserve absent, explicit `null`, and empty collection as distinct JSON states;
+9. validate all semantic references and reject duplicate IDs;
+10. exclude transient agent-runtime mechanics from the semantic model;
+11. support deterministic lossless expansion into human-readable/searchable JSON;
+12. preserve the project authority hierarchy rather than becoming a competing authority for current Git/ADR/roadmap/test truth;
+13. preserve historical/superseded semantic records by default unless an explicit Steward retention policy authorizes compaction.
 
 COVE v1 MUST:
 
@@ -66,10 +78,10 @@ The serializer MUST be independently identified and versioned when byte-for-byte
 
 ### Recommendations
 
-- Adopt RFC 8785 JSON Canonicalization Scheme (JCS) as `jcs/1` for COVE byte serialization.
+- Adopt RFC 8785 JSON Canonicalization Scheme (JCS) as `jcs/1` for COVE byte serialization, subject to conformance evidence.
 - Keep one canonical COVE project-memory artifact in v1 rather than sharding immediately.
 - Keep a generated, pretty-printed expanded PEMS derivative during migration and for human debugging/onboarding.
-- Target at least a 20% aggregate byte reduction versus the equivalent expanded normalized PEMS JSON on representative fixtures before COVE becomes canonical. This threshold is a proposed acceptance target, not yet an owner-approved invariant.
+- Measure compression on representative fixtures before setting a numeric canonical-adoption threshold. A 20% aggregate reduction remains a useful experimental target, not an owner-approved invariant.
 
 ---
 
@@ -113,37 +125,34 @@ For this project, current authority remains conceptually:
 5. explicit project-owner instructions for owner intent and policy;
 6. PEMS continuity memory for reconstructed context and cross-source synthesis.
 
-The exact order can vary by claim type. For example, an owner instruction can intentionally supersede a prior roadmap direction before `ROADMAP.md` is updated. PEMS therefore stores source authority categories and provenance, while reconciliation logic belongs to the Steward.
+The exact order varies by claim type. For example, an owner instruction can intentionally supersede a prior roadmap direction before `ROADMAP.md` is updated. PEMS stores authority categories and provenance evidence; reconciliation logic belongs to the Steward.
 
-### 3.2 Source records
+### 3.2 Stable source identity
 
-Every durable claim whose truth depends on an external source SHOULD reference one or more `source` records.
+A `source` record identifies the durable thing from which evidence can be observed. It does not represent a particular observation of that thing.
 
-A normalized source record has the common record envelope plus source-specific data:
+Example:
 
 ```json
 {
-  "id": "source:adr-001",
+  "id": "source:adr-offline-runtime-boundary",
   "kind": "source",
   "lifecycle": "current",
-  "source_refs": [],
+  "observation_refs": [],
   "data": {
     "source_kind": "git_file",
     "authority": "accepted_architecture",
-    "locator": {
+    "identity_locator": {
       "repository": "loteque/gdscript-voxel-engine",
-      "ref": "main",
-      "path": "docs/architecture/decisions/ADR-001-offline-runtime-terrain-boundary.md",
-      "commit": "<commit-sha>",
-      "line_start": null,
-      "line_end": null
-    },
-    "observed_at": "2026-08-13T15:40:00-07:00"
+      "path": "docs/architecture/decisions/ADR-001-offline-runtime-terrain-boundary.md"
+    }
   }
 }
 ```
 
-`authority` is a semantic category, not an instruction to COVE. Proposed v1 categories are:
+`identity_locator` contains fields needed to identify the source across observations. It MUST NOT contain observation-specific revision data such as a commit SHA when the source identity itself persists across commits.
+
+Proposed v1 `authority` categories:
 
 - `repository_state`
 - `accepted_architecture`
@@ -155,19 +164,72 @@ A normalized source record has the common record envelope plus source-specific d
 - `generated_derivative`
 - `other`
 
-### 3.3 Provenance granularity
+### 3.3 Source observations
 
-PEMS v1 uses **record-level provenance**. If two fields of what appears to be one object have materially different provenance or lifecycle, they SHOULD be represented as separate semantic records or relations rather than inventing field-level mini-provenance.
+A `source_observation` record is immutable evidence that a source had a particular observed representation or state.
 
-This is a normalization rule. It trades some record count for clearer authority and simpler tooling.
+Example:
+
+```json
+{
+  "id": "observation:adr-offline-runtime-boundary:abc123",
+  "kind": "source_observation",
+  "lifecycle": "historical",
+  "observation_refs": [],
+  "data": {
+    "source_id": "source:adr-offline-runtime-boundary",
+    "evidence_state": "immutable_snapshot",
+    "observed_at": "2026-08-13T15:40:00-07:00",
+    "evidence_locator": {
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "abc123",
+      "path": "docs/architecture/decisions/ADR-001-offline-runtime-terrain-boundary.md",
+      "line_start": null,
+      "line_end": null
+    }
+  }
+}
+```
+
+Once admitted to canonical PEMS, a `source_observation` MUST NOT be mutated to describe a later observation. A later observation is a new record with a new Steward-admitted ID.
+
+Proposed v1 `evidence_state` values:
+
+- `immutable_snapshot` — the locator identifies immutable or content-addressed evidence such as a commit, immutable release, immutable note entry, or equivalent;
+- `unversioned_observation` — the observation was made at a recorded time but no immutable revision was available;
+- `owner_attestation` — the evidence is an explicit owner decision or instruction whose durable provenance is represented by the observation.
+
+`unversioned_observation` is intentionally weaker evidence, not a shortcut that collapses source and observation. Its `observed_at` and captured locator MUST remain immutable after admission.
+
+### 3.4 Provenance references
+
+The common record and relation envelope uses `observation_refs`, not ambiguous `source_refs`.
+
+Every durable claim whose truth depends on evidence SHOULD reference one or more `source_observation` records through `observation_refs`.
+
+Direct provenance references from semantic claims to `source` records are **not valid in pems/1**. When an immutable revision cannot be captured, tooling MUST create an `unversioned_observation` instead. This gives every consumer one uniform rule:
+
+```text
+semantic claim
+    ↓ observation_refs
+source_observation
+    ↓ data.source_id
+source
+```
+
+A source record itself normally has `observation_refs: []` because it is an identity object rather than a claim about a particular source state. A source identity MAY have provenance only when its own existence/identity is derived from evidence that must be retained.
+
+### 3.5 Record-level provenance
+
+PEMS v1 uses record-level provenance. If two fields of what appears to be one semantic object have materially different provenance or lifecycle, they SHOULD be represented as separate semantic records or relations rather than inventing field-level mini-provenance.
+
+This trades some record count for clearer authority, auditability, and simpler tooling.
 
 ---
 
 ## 4. PEMS v1 Normalized Semantic Model
 
 ### 4.1 Root document
-
-The normalized expanded PEMS document is proposed as:
 
 ```json
 {
@@ -178,7 +240,7 @@ The normalized expanded PEMS document is proposed as:
 }
 ```
 
-The root is intentionally small. Project data is itself a record so that all durable semantic objects share identity, lifecycle, provenance, and reference rules.
+Project data is itself a record so all durable semantic objects share identity, lifecycle, provenance, and reference rules.
 
 ### 4.2 Common record envelope
 
@@ -189,12 +251,12 @@ Every PEMS record MUST have:
   "id": "<stable semantic ID>",
   "kind": "<record kind>",
   "lifecycle": "current",
-  "source_refs": ["source:..."],
+  "observation_refs": ["observation:..."],
   "data": {}
 }
 ```
 
-Optional common fields are:
+Optional common fields:
 
 ```json
 {
@@ -214,9 +276,11 @@ Allowed v1 values:
 - `superseded` — replaced by another identified semantic record;
 - `tombstoned` — identity intentionally retained while the semantic object has been removed and must not be treated as active.
 
-`lifecycle` does not replace type-specific state. A `decision` record can be `current` with `decision_state: "proposed"`, and later become `superseded` when an accepted replacement decision exists.
+`lifecycle` does not replace type-specific state. A `decision` can be `current` with `decision_state: "proposed"`, then become `superseded` when a replacement decision is accepted.
 
-### 4.3 Stable IDs
+A `source_observation` normally becomes `historical` when it no longer represents the newest known state of its source. Historical observations remain valid evidence for claims made from them.
+
+### 4.3 Stable IDs and canonical admission
 
 PEMS IDs MUST:
 
@@ -224,14 +288,26 @@ PEMS IDs MUST:
 - be unique within one project-memory document;
 - remain stable across display-name changes;
 - never be derived from current array position;
-- use a type-oriented prefix where practical for readability, e.g. `chat:procedural-terrain-architecture`, `role:engineering-knowledge-systems-architect`, `decision:offline-runtime-boundary`;
+- use a type-oriented prefix where practical for readability;
 - reject duplicates during normalization.
 
-IDs MAY initially be human-selected slugs. UUIDs are not required. The invariant is stability, not randomness.
+Canonical PEMS semantic IDs are **allocated or confirmed by the Project Engineering Steward during reconciliation**. Other roles, tools, importers, and agents MAY propose candidate IDs, but those candidates are not canonical until admitted by the Steward.
 
-Renaming a record changes `data.name` or equivalent display data, not `id`.
+The Steward admission boundary MUST:
 
-If an identity was created incorrectly and must be replaced, the old record SHOULD be superseded or tombstoned and the replacement SHOULD be linked explicitly rather than silently reusing the old ID for different meaning.
+1. resolve candidate identity against existing canonical semantic objects;
+2. reuse an existing ID when the candidate represents the same semantic object;
+3. allocate or confirm a new ID when the semantic object is genuinely new;
+4. reject collisions where one ID would represent two meanings;
+5. reject silent alias creation where two IDs would represent one known semantic object unless an explicit supersession/alias migration rule authorizes it.
+
+IDs MAY be human-readable slugs. UUIDs are not required. The invariant is stable meaning, not randomness.
+
+Externally stable identity MAY contribute to deterministic candidate IDs, for example repository-qualified pull-request numbers or immutable commit SHAs. External identity does not bypass Steward admission or collision handling.
+
+Renaming changes display data, not identity. An existing canonical ID MUST NEVER be silently reassigned to a different semantic meaning.
+
+If an identity was created incorrectly, the old record SHOULD be superseded or tombstoned and a replacement linked explicitly rather than reusing the old ID for new meaning.
 
 ### 4.4 Proposed record kinds
 
@@ -256,27 +332,15 @@ PEMS v1 SHOULD define schemas for at least:
 - `roadmap_adjustment`
 - `continuation`
 - `source`
+- `source_observation`
 
-This is a bounded v1 vocabulary, not an unrestricted free-form type bag. New record kinds require a PEMS schema revision or an explicitly namespaced extension mechanism approved later.
+This is a bounded v1 vocabulary. New record kinds require a PEMS schema revision or an explicitly approved namespaced extension mechanism.
 
 ### 4.5 Type-specific states
 
-PEMS avoids one overloaded universal `status` enum. Each semantic type uses the smallest state machine that describes its domain.
-
-Examples:
+PEMS avoids one overloaded universal `status` enum.
 
 #### Decision
-
-```json
-{
-  "kind": "decision",
-  "data": {
-    "title": "Use COVE as the compact codec name",
-    "decision_state": "accepted",
-    "summary": "COVE is the working codec name; CCJ remains fallback."
-  }
-}
-```
 
 Allowed `decision_state` values:
 
@@ -286,17 +350,6 @@ Allowed `decision_state` values:
 - `superseded`
 
 #### Unresolved item
-
-```json
-{
-  "kind": "unresolved_item",
-  "data": {
-    "title": "Select canonical serializer",
-    "resolution_state": "open",
-    "summary": "Confirm JCS compatibility with implementation fixtures."
-  }
-}
-```
 
 Allowed `resolution_state` values:
 
@@ -324,13 +377,11 @@ Recommended `validation_state` values:
 - `failing`
 - `not_applicable`
 
-Validation evidence belongs in source references and structured data, not only prose.
+Validation evidence belongs in `observation_refs` and structured data, not only prose.
 
 ### 4.6 Relations
 
 Cross-record relationships are normalized into a separate relation list when the relationship itself has durable meaning or provenance.
-
-A relation is:
 
 ```json
 {
@@ -339,14 +390,14 @@ A relation is:
   "from": "role:engineering-knowledge-systems-architect",
   "to": "requirement:cove-contract",
   "lifecycle": "current",
-  "source_refs": ["source:architect-directive"],
+  "observation_refs": ["observation:architect-directive:commit-abc"],
   "data": {}
 }
 ```
 
-Relation IDs are stable semantic IDs and MUST be unique.
+Relation IDs are Steward-admitted semantic IDs and MUST be unique.
 
-Proposed core relation kinds include:
+Proposed core relation kinds:
 
 - `owns`
 - `scoped_to`
@@ -359,25 +410,25 @@ Proposed core relation kinds include:
 - `supersedes`
 - `derived_from`
 
-Direct ID fields remain appropriate where the relationship is intrinsic to the record schema, such as `project_id` in a chat record or `table_id` in a database-column record. The normalizer SHOULD avoid representing the same semantic edge both as an intrinsic field and a relation unless the duplication is explicitly required.
+Direct ID fields remain appropriate where the relationship is intrinsic to a record schema, such as `project_id`, `table_id`, or `source_id`. The normalizer SHOULD avoid representing the same semantic edge both intrinsically and as a relation unless duplication is explicitly required.
 
 ---
 
 ## 5. Required Continuity Semantics
 
-The current human handoff is requirements input, not a shape to freeze. PEMS v1 should normalize its useful concepts as follows.
+The current human handoff is requirements input, not a shape to freeze.
 
 ### Project-level context
 
-Represent as a `project` record plus project-scoped `expectation`, `requirement`, `decision`, `module`, `source`, and related records.
+Represent as a `project` record plus project-scoped expectations, requirements, decisions, modules, sources, observations, and related records.
 
 ### Chats / workstreams
 
-Each chat/workstream becomes a `chat` record with stable identity, title, date/range, summary, and references to its active role and continuation information.
+Each chat/workstream becomes a `chat` record with stable identity, title, date/range, summary, active-role reference, and continuation information.
 
 ### Roles
 
-Roles are independent records so multiple chats can reference one role without duplicating role semantics. Role directives remain Git artifacts and are referenced by sources rather than copied wholesale into PEMS.
+Roles are independent records so multiple chats can reference one role without duplicating role semantics. Role directives remain Git artifacts represented as stable `source` records with concrete observations.
 
 ### Owner relationship / expectations
 
@@ -385,7 +436,7 @@ Use explicit `expectation` records scoped to project, chat, or role through rela
 
 ### Requirements and decisions
 
-Use typed records with state and provenance. Proposed, accepted, rejected, and superseded outcomes are explicit.
+Use typed records with state and observation provenance. Proposed, accepted, rejected, and superseded outcomes are explicit.
 
 ### Unresolved items
 
@@ -393,11 +444,11 @@ Use `unresolved_item` records with structured resolution state, owner/scope rela
 
 ### External files
 
-Use `external_file` records describing logical identity, title/name, source locator if available, purpose, and provenance. File content itself is not embedded merely because it was used in a chat.
+Use `external_file` records describing logical identity, title/name, safe locator if available, purpose, and provenance. File content is not embedded merely because it was used in a chat.
 
 ### Modules
 
-Use `module` records with repository path, domain, public role, and source references. Current existence/path claims should reference repository-state sources.
+Use `module` records with repository path, domain, public role, and repository-state observations.
 
 ### Environment variables
 
@@ -405,23 +456,23 @@ Use `environment_variable` records with secret-safe value semantics defined in S
 
 ### Database tables / columns
 
-Use separate `database_table` and `database_column` records. Columns reference a stable table ID. This avoids nesting that makes individual columns hard to identify or supersede.
+Use separate `database_table` and `database_column` records. Columns reference stable table IDs.
 
 ### Branches / pull requests
 
-Use `branch` and `pull_request` records for continuity claims that matter beyond a single retrieval. Current GitHub truth should always be revalidated before operational decisions.
+Use `branch` and `pull_request` records for continuity claims that matter beyond one retrieval. Current GitHub truth must be revalidated before operational decisions; observations capture what was known at reconciliation time.
 
 ### Validation responsibilities and state
 
-Use `validation` records linked to the requirement/feature they validate and to evidence sources such as test files, validation scenes, CI runs, or published demo paths.
+Use `validation` records linked to requirements/features and to evidence observations such as test-file commits, validation-scene commits, CI runs, or published immutable release artifacts where available.
 
 ### Architecture / roadmap adjustments
 
-Use `architecture_adjustment` and `roadmap_adjustment` records only for continuity around changes or pending reconciliation. Accepted current architecture and roadmap intent remain authoritative in ADRs/docs and `ROADMAP.md`.
+Use `architecture_adjustment` and `roadmap_adjustment` only for continuity around changes or pending reconciliation. Accepted architecture and roadmap intent remain authoritative in ADRs/docs and `ROADMAP.md`.
 
 ### Continuation state
 
-Use a `continuation` record to express the minimal state required to resume a chat/role: active role, current focus, known blockers, pending owner decisions, and pointers to the highest-value semantic records. It must not become a second project summary that duplicates the entire project memory.
+Use a `continuation` record to express the minimal state needed to resume a chat/role: active role, current focus, blockers, pending owner decisions, and pointers to high-value semantic records. It must not become a duplicate project summary.
 
 ---
 
@@ -433,21 +484,21 @@ These states MUST remain distinguishable through PEMS normalization and COVE rou
 {}
 ```
 
-means a field is **absent** and therefore unspecified/not represented by this schema instance.
+means a field is absent and unspecified.
 
 ```json
 {"value": null}
 ```
 
-means the field is explicitly present with **no value / unknown / intentionally empty semantic scalar**, as defined by that field's schema.
+means the field is explicitly present with no value / unknown / intentionally empty scalar according to its schema.
 
 ```json
 {"items": []}
 ```
 
-means the collection is explicitly present and **known to contain zero members**.
+means the collection is explicitly present and known to contain zero members.
 
-Schemas MUST state whether a field is required, optional, nullable, or collection-valued. Normalization MUST NOT silently replace absent values with `null` or empty arrays unless that defaulting behavior is part of the PEMS version contract.
+Schemas MUST state whether fields are required, optional, nullable, or collection-valued. Normalization MUST NOT silently replace absent values with `null` or empty arrays unless that default is part of the PEMS contract.
 
 ---
 
@@ -458,21 +509,42 @@ For one semantically equivalent PEMS input under `pems/1`, normalization MUST pr
 ### Normative rules
 
 1. Duplicate record IDs and relation IDs fail normalization.
-2. All intrinsic references and relation endpoints must resolve unless the schema explicitly marks the reference as external.
-3. Record arrays are sorted by `id` using bytewise lexicographic ordering of their UTF-8 encoding.
-4. Relation arrays are sorted by `id` using the same rule.
-5. Set-like ID arrays, such as `source_refs`, `supersedes`, and `superseded_by`, are deduplicated and sorted by the same rule.
-6. Ordered domain sequences retain their semantic order and MUST be identified as ordered by the schema.
-7. JSON object property order is not semantic. Deterministic byte property order is the serializer's responsibility.
-8. Strings are preserved exactly; PEMS v1 does not apply Unicode normalization implicitly.
-9. Numeric fields must be finite JSON numbers compatible with the selected serializer. Stable IDs, commit SHAs, timestamps, and potentially large integer-like identifiers are strings.
-10. Invalid type-specific states fail normalization.
-11. A `superseded` record SHOULD identify at least one replacement through `superseded_by` unless the absence is explicitly justified by a schema rule.
-12. A tombstoned record MUST retain its ID and kind but SHOULD minimize data to what is necessary to preserve identity/provenance.
+2. Every admitted semantic ID must satisfy Steward admission rules; import/candidate IDs are not canonical merely because they parse.
+3. All intrinsic references and relation endpoints must resolve unless explicitly external by schema.
+4. Every `observation_refs` value must resolve to a `source_observation` record.
+5. Every `source_observation.data.source_id` must resolve to a `source` record.
+6. A semantic record or relation MUST NOT use a `source` ID directly in `observation_refs`.
+7. `source_observation` records are immutable after canonical admission except for a separately versioned corrective migration that preserves the prior erroneous identity/history.
+8. Record arrays are sorted by `id` using bytewise lexicographic ordering of UTF-8 encoding.
+9. Relation arrays are sorted by `id` using the same rule.
+10. Set-like ID arrays such as `observation_refs`, `supersedes`, and `superseded_by` are deduplicated and sorted by the same rule.
+11. Ordered domain sequences retain semantic order and MUST be marked as ordered by schema.
+12. JSON object property order is not semantic; byte property order belongs to the serializer.
+13. Strings are preserved exactly; PEMS v1 performs no implicit Unicode normalization.
+14. Numeric fields must be finite JSON numbers compatible with the selected serializer. Stable IDs, commit SHAs, timestamps, and potentially large integer-like identifiers are strings.
+15. Invalid type-specific states fail normalization.
+16. A `superseded` record SHOULD identify at least one replacement through `superseded_by` unless schema explicitly permits otherwise.
+17. A tombstoned record MUST retain ID and kind and SHOULD minimize data while preserving identity/provenance.
+18. Normalization MUST NOT delete, coalesce, or summarize away historical, superseded, tombstoned, or observation records as a side effect of ordinary canonicalization.
+
+### Historical preservation default
+
+Historical retention is a Steward continuity policy, not a codec behavior.
+
+For pems/1, the safe default is **preserve history**. Destructive compaction is allowed only when an explicit Steward retention policy authorizes it. Such a policy MUST define:
+
+- which record kinds/states are eligible;
+- minimum retention or evidence requirements;
+- how provenance of the compaction decision is recorded;
+- whether a deterministic historical-summary record is required;
+- how references to compacted records are migrated without dangling identities;
+- validation fixtures for the policy.
+
+COVE MUST encode whatever normalized PEMS it receives and MUST NOT prune historical data itself.
 
 ### Why normalization happens before COVE
 
-COVE must not decide that two project records are duplicates, infer which decision supersedes another, sort unordered project concepts, or validate project authority. Those are PEMS semantics. COVE receives a normalized JSON value and treats it as structured data only.
+COVE must not decide that project records are duplicates, allocate IDs, infer supersession, determine source authority, select historical retention, or validate provenance semantics. Those are PEMS/Steward responsibilities.
 
 ---
 
@@ -480,18 +552,14 @@ COVE must not decide that two project records are duplicates, infer which decisi
 
 ### 8.1 Design choice
 
-COVE v1 intentionally uses only two compaction mechanisms in its core:
+COVE v1 uses only two compaction mechanisms in its core:
 
-1. **global string interning**;
-2. **deterministic object-shape factoring**.
+1. global string interning;
+2. deterministic object-shape factoring.
 
-This is smaller and simpler than a broad token language while remaining completely domain-agnostic. Enums, IDs, paths, repeated prose, object keys, and repeated reference strings naturally benefit from the string dictionary. Repeated keyed record layouts benefit from shape factoring.
-
-PEMS-specific enum ordinals, record-type opcodes, or semantic reference types are **not** part of COVE v1. If later measurements justify a typed profile extension, that should be a separate codec revision or profile rather than hidden semantic coupling.
+This remains smaller and simpler than a broad token language while staying domain-agnostic. PEMS-specific enum ordinals, record-type opcodes, or semantic reference types are not part of COVE v1.
 
 ### 8.2 COVE artifact envelope
-
-Proposed v1 envelope:
 
 ```json
 {
@@ -504,125 +572,101 @@ Proposed v1 envelope:
 }
 ```
 
-Fields:
-
-- `c` — COVE codec identifier;
-- `p` — opaque semantic/profile identifier; COVE does not interpret it;
-- `s` — serializer identifier for canonical bytes;
+- `c` — codec identifier;
+- `p` — opaque semantic/profile identifier;
+- `s` — serializer identifier;
 - `d` — global string dictionary;
 - `h` — object-shape dictionary;
 - `x` — encoded root value.
 
-A non-PEMS user of COVE could set `p` to another profile identifier without changing the codec.
+COVE does not interpret the semantic profile.
 
 ### 8.3 String dictionary `d`
 
-The dictionary contains **every distinct string appearing anywhere in the normalized input**, including object property names and string values.
+The dictionary contains every distinct string appearing anywhere in normalized input, including property names and string values.
 
 Rules:
 
-1. Strings are byte-for-byte exact Unicode strings from the parsed normalized value.
-2. No Unicode normalization is applied by COVE.
-3. Distinct strings are sorted by bytewise lexicographic order of their UTF-8 encoding.
-4. Dictionary index is the zero-based position in that sorted array.
-5. Duplicate strings are forbidden.
+1. strings are exact Unicode strings from parsed normalized input;
+2. COVE applies no Unicode normalization;
+3. distinct strings sort by bytewise UTF-8 lexicographic order;
+4. dictionary index is zero-based sorted position;
+5. duplicate strings are forbidden.
 
-Interning every string adds a small reference overhead for one-off values, but removes the need for a heuristic whose output could depend on serializer-size estimation. Shape factoring removes repeated object keys entirely from object instances. The size requirement is validated empirically before canonical adoption.
+Interning every string may add overhead for one-off values. This is intentionally measured rather than heuristically optimized in v1.
 
 ### 8.4 Object-shape dictionary `h`
 
 Each distinct JSON object key set becomes one shape.
 
-A shape is an array of string-dictionary indexes, sorted ascending. Since the string dictionary itself is sorted deterministically, this defines deterministic key ordering inside a shape.
+A shape is an array of string-dictionary indexes sorted ascending.
 
-Example:
+Shape construction:
 
-```json
-[3, 7, 11]
-```
-
-means an object whose keys are dictionary strings `d[3]`, `d[7]`, and `d[11]`.
-
-Shape construction rules:
-
-1. gather every distinct object key set in the normalized input, including the normalized root if it is an object;
-2. convert each key to its string dictionary index;
-3. sort indexes ascending within the shape;
+1. gather every distinct object key set;
+2. convert keys to dictionary indexes;
+3. sort indexes ascending within each shape;
 4. deduplicate identical shapes;
-5. sort shapes lexicographically by integer sequence; where one sequence is an exact prefix of another, the shorter sequence sorts first;
-6. shape index is zero-based position in this sorted list.
+5. sort shapes lexicographically by integer sequence, shorter-prefix first;
+6. assign zero-based shape indexes.
 
 ### 8.5 Encoded values
 
-JSON primitives use these rules:
-
-- `null`, `true`, `false`, and numbers remain raw JSON literals;
+- `null`, `true`, `false`, numbers remain raw JSON literals;
 - strings encode as `[0, <dictionary-index>]`;
-- arrays encode as `[1, <encoded-item-0>, <encoded-item-1>, ...]`;
-- objects encode as `[2, <shape-index>, <encoded-value-for-key-0>, <encoded-value-for-key-1>, ...]`.
+- arrays encode as `[1, <encoded-item-0>, ...]`;
+- objects encode as `[2, <shape-index>, <value-for-key-0>, ...]`.
 
-The numeric tags are normative for `cove/1`:
+Normative tags:
 
 - `0` = string reference
 - `1` = array
 - `2` = object
 
-No other tag is valid in v1.
-
-For an object, values are emitted in the order of key indexes in its referenced shape.
-
-This representation is unambiguous because every composite input value is replaced with a tagged encoded array. A raw JSON array never appears as an encoded semantic array without tag `1`.
+No other tag is valid in cove/1.
 
 ### 8.6 Decoder validation
 
-A COVE v1 decoder MUST reject:
+A decoder MUST reject:
 
 - unknown codec major version;
-- unsupported profile when the caller requires a specific profile;
+- unsupported required profile;
 - malformed envelope fields;
-- duplicate dictionary strings;
-- dictionary strings not in canonical order;
-- malformed or duplicate shapes;
-- shape key indexes outside `d`;
-- unsorted shape key indexes;
-- shape dictionary entries not in canonical order;
-- unknown value tags;
-- wrong tag arity;
-- string indexes outside `d`;
-- object shape indexes outside `h`;
-- object value counts not matching the referenced shape;
-- non-finite numeric values at the parsed-data boundary;
-- decoded object duplicate keys, which should be impossible after valid shape checks but remains a defensive invariant.
+- duplicate or non-canonically ordered dictionary strings;
+- malformed, duplicate, unsorted, or non-canonically ordered shapes;
+- out-of-range dictionary or shape indexes;
+- unknown tags or wrong tag arity;
+- object value counts not matching referenced shapes;
+- non-finite numeric values;
+- decoded duplicate object keys.
 
-After COVE decoding, the resulting expanded value MUST pass its profile validator, e.g. PEMS validation for `pems/1`.
+After COVE decoding, expanded data MUST pass its semantic profile validator.
 
 ### 8.7 Deterministic construction
 
-The same normalized input MUST produce the same `d`, `h`, and `x` independent of traversal order used internally by an encoder.
-
-A conforming encoder may collect strings/shapes in any implementation order, but it MUST apply the sorting and index-assignment rules above before producing the COVE value.
+The same normalized input MUST produce identical `d`, `h`, and `x` independent of internal traversal order.
 
 ---
 
 ## 9. Serializer: RFC 8785 JCS Evaluation
 
-RFC 8785 JCS is recommended for `jcs/1` because it already defines deterministic JSON serialization, including recursive property sorting, no insignificant whitespace, deterministic primitive serialization, and UTF-8 output.
+RFC 8785 JCS remains preferred for `jcs/1` because it already defines deterministic JSON serialization including recursive property sorting, no insignificant whitespace, deterministic primitive serialization, and UTF-8 output.
 
-Its important constraints are compatible with the proposed PEMS/COVE design if we deliberately remain inside them:
+Compatible constraints include:
 
-- object property names must be unique;
-- strings must be valid Unicode and are preserved as-is rather than Unicode-normalized;
-- numbers must be representable as IEEE 754 double precision;
-- non-finite values are invalid;
-- property sorting follows JCS rules rather than application-specific order.
+- unique object property names;
+- valid Unicode strings preserved without Unicode normalization;
+- IEEE-754-compatible numbers;
+- no non-finite numbers;
+- serializer-defined property ordering rather than application ordering.
 
-PEMS v1 avoids numeric identities and timestamps, uses strings for commit hashes and semantic IDs, and has no requirement for arbitrary-precision JSON numbers. Therefore no known PEMS requirement currently conflicts with JCS.
+No known pems/1 requirement conflicts with JCS.
 
 ### Recommendation
 
-Adopt RFC 8785 JCS as the normative byte serializer for the first implementation, subject to implementation fixtures proving identical output across at least two independent JCS implementations or one implementation plus RFC test vectors.
+Adopt JCS as the normative byte serializer for the first implementation **only after conformance evidence**, using at least RFC test vectors and preferably cross-implementation comparison.
 
-Do **not** make COVE responsible for JSON property ordering or numeric textual rendering. COVE structural determinism exists before serialization; JCS byte determinism is a separate test.
+COVE remains responsible for structural determinism, not JSON textual rendering.
 
 ---
 
@@ -630,14 +674,14 @@ Do **not** make COVE responsible for JSON property ordering or numeric textual r
 
 PEMS is continuity memory, not a credential vault.
 
-An environment-variable record MUST model value disposition explicitly:
+Environment variables model value disposition explicitly:
 
 ```json
 {
   "id": "env:example-token",
   "kind": "environment_variable",
   "lifecycle": "current",
-  "source_refs": [],
+  "observation_refs": [],
   "data": {
     "name": "EXAMPLE_TOKEN",
     "value_state": "external_secret",
@@ -658,23 +702,21 @@ Proposed `value_state` values:
 
 Rules:
 
-- `literal` MAY contain a value only when the value is non-secret and intentionally appropriate for durable repository storage.
-- `redacted` MUST NOT contain the secret value.
-- `external_secret` MUST NOT contain the secret value; `external_ref` may identify an external secret slot only when that locator is itself safe to commit.
-- `unset` means the variable is intentionally not configured in the represented environment.
-- `unknown` means continuity knows the variable exists but not its current value/disposition.
+- `literal` MAY contain only a non-secret value intentionally suitable for durable repository storage;
+- `redacted` MUST NOT contain the secret value;
+- `external_secret` MUST NOT contain the secret value and may contain only a safe external locator;
+- `unset` means intentionally unconfigured;
+- `unknown` means the variable is known but current value/disposition is not.
 
-Normalizers SHOULD reject obvious credential fields placed in a record type that does not permit secret-bearing data, but no schema validator can reliably detect every secret. Role directives and review remain necessary.
+Normalizers SHOULD reject obvious credential fields in record types that do not permit secret-bearing data, while recognizing that schema validation cannot detect every secret.
 
 ---
 
 ## 11. Versioning and Compatibility
 
-PEMS, COVE, and the serializer are independently versioned.
+PEMS, COVE, and serializer are independently versioned.
 
-### Identifier format
-
-V1 uses stable namespace identifiers of the form:
+V1 identifiers:
 
 ```text
 pems/1
@@ -682,29 +724,29 @@ cove/1
 jcs/1
 ```
 
-Minor compatibility rules may later be represented in schema metadata or implementation capability ranges, but the artifact identifier itself remains a major contract boundary in v1.
-
 ### Unknown versions
 
-- Unknown PEMS major/profile: fail closed before semantic use.
-- Unknown COVE major: fail closed before decoding.
-- Unknown serializer identifier: canonical-byte verification fails; a parser may still inspect JSON structurally, but must not claim canonical-byte conformance.
+- unknown PEMS major/profile: fail closed before semantic use;
+- unknown COVE major: fail closed before decoding;
+- unknown serializer identifier: canonical-byte verification fails, though structural JSON inspection may still occur without claiming canonical-byte conformance.
 
 ### Migration
 
-Preferred migration boundary:
+Preferred boundary:
 
 ```text
 old semantic artifact
-   ↓ decode with old codec/profile
+   ↓ decode old codec/profile
 old normalized expanded PEMS
    ↓ semantic migration
 new normalized expanded PEMS
-   ↓ encode with current COVE
+   ↓ encode current COVE
 new compact artifact
 ```
 
-Semantic migrations belong to PEMS versions. COVE migrations should be rare and purely representational. Do not accumulate PEMS history inside COVE.
+Semantic migrations belong to PEMS versions. COVE migrations are purely representational.
+
+The current handoff importer MUST create separate `source` and `source_observation` records where historical input previously combined stable locator and observation/revision metadata. Candidate semantic IDs generated by import tooling remain provisional until Steward admission.
 
 Every supported migration path requires fixtures.
 
@@ -726,229 +768,129 @@ Benefits:
 
 Costs:
 
-- a small semantic change can rewrite dictionary/shape indexes and therefore produce a large compact diff;
+- a small semantic change can rewrite many dictionary/shape indexes;
 - corruption affects the whole artifact;
-- selective retrieval generally requires reading dictionaries/shapes and at least structurally traversing the document;
-- concurrent writers would conflict at file level.
+- selective retrieval generally requires parsing the envelope/root sufficiently to locate records;
+- concurrent writers conflict at file level.
 
-The project already uses a single-writer Steward for canonical knowledge, so write concurrency is not currently a reason to shard.
+The single-writer Steward makes write concurrency an insufficient reason to shard in v1.
 
 ### Partial decoding
 
-COVE v1 does not promise O(1) extraction of one PEMS record from raw bytes. Global dictionaries and shapes are document-scoped.
+COVE v1 does not promise O(1) record extraction. If retrieval becomes material, evaluate in order:
 
-A decoder can avoid materializing unrelated records after parsing the envelope and root structure, but the canonical JCS JSON artifact still needs to be parsed enough to reach the requested region.
-
-Do not add shard manifests, byte offsets, or multiple canonical documents in v1 solely for hypothetical scale. If measured artifact size or retrieval cost becomes material, introduce a deterministic derived search index first. Sharding the canonical memory should require a separate design review because it changes atomicity and reference-integrity boundaries.
+1. deterministic derived semantic index;
+2. cached decoded PEMS;
+3. canonical sharding only if the first two are insufficient.
 
 ---
 
 ## 13. Human-Readable and Searchable Derivatives
 
-There are two distinct expansion stages:
-
 ### Lossless normalized expansion
 
 ```text
 COVE artifact
-   ↓ COVE decode
+   ↓ decode
 normalized expanded PEMS JSON
 ```
 
-This expansion MUST be semantically lossless and deterministic.
+This expansion MUST be lossless and deterministic.
 
-### Presentation / documentation transformation
+### Presentation/documentation transformation
 
 ```text
 normalized expanded PEMS
-   ↓ presentation exporters
+   ↓ exporters
 pretty JSON / Markdown / onboarding docs / search index
 ```
 
-Presentation exporters MAY:
+Presentation exporters MAY group records, resolve labels, add navigation indexes, derive deterministic summaries/tables, and expose source/evidence links.
 
-- group records by kind or chat;
-- resolve IDs into display labels;
-- add navigation indexes;
-- derive summaries or tables deterministically from structured fields;
-- expose source links and provenance next to human-readable claims.
-
-Presentation output MUST preserve semantic IDs and provenance links so humans can trace generated material back to canonical records.
+Presentation output MUST preserve semantic IDs and provenance paths through observations to stable sources.
 
 ### Migration recommendation for `docs/project-chat-handoff.json`
 
-During migration, keep the existing human-readable `docs/project-chat-handoff.json` as the **canonical Steward artifact** while a COVE artifact is generated in shadow mode.
+During migration, keep `docs/project-chat-handoff.json` as the canonical Steward artifact while COVE is generated in shadow mode.
 
-After the new validator/encoder/decoder passes conformance and the Steward explicitly adopts COVE, recommended paths are:
+After validator/encoder/decoder conformance and explicit Steward/owner adoption, recommended paths are:
 
 - canonical compact memory: `docs/project-chat-handoff.cove.json`
 - generated compatibility/human derivative: `docs/project-chat-handoff.json`
 
-The existing path should remain available as a generated derivative until project startup instructions, tooling, onboarding flows, and human review no longer depend on it. It may cease being canonical only through an explicit migration decision, never merely because an encoder exists.
+The existing path may cease being canonical only through an explicit migration decision.
 
 ---
 
-## 14. Illustrative PEMS Fixture
+## 14. Near-Normative PEMS Fixture Requirements
 
-This fixture is **near-normative**: its semantics and edge cases are required, while exact prose IDs may be refined before implementation fixtures are frozen.
+Implementation fixtures MUST include at least:
+
+- one project;
+- two chats/workstreams;
+- two roles;
+- repeated strings sufficient to exercise COVE compaction;
+- semantic references between records;
+- one non-secret environment variable or secret-safe disposition record;
+- one database table and one separately identified column;
+- one proposed decision that later becomes accepted/superseded;
+- one unresolved item;
+- one stable `source` with at least two `source_observation` records showing different observed revisions;
+- at least one claim whose `observation_refs` points to an immutable snapshot observation;
+- at least one `unversioned_observation` fixture showing weaker but structurally explicit evidence;
+- null/absent/empty distinctions;
+- at least one malformed provenance reference;
+- at least one candidate-ID collision rejected at Steward admission/normalization.
+
+Illustrative provenance fragment:
 
 ```json
 {
-  "semantic": "pems/1",
-  "project_id": "project:voxel",
   "records": [
     {
-      "id": "chat:architecture",
-      "kind": "chat",
-      "lifecycle": "current",
-      "source_refs": ["source:chat-architecture"],
-      "data": {
-        "title": "Procedural Terrain Architecture",
-        "project_id": "project:voxel",
-        "role_id": "role:architect"
-      }
-    },
-    {
-      "id": "chat:stewardship",
-      "kind": "chat",
-      "lifecycle": "current",
-      "source_refs": ["source:chat-stewardship"],
-      "data": {
-        "title": "Project Stewardship",
-        "project_id": "project:voxel",
-        "role_id": "role:steward"
-      }
-    },
-    {
-      "id": "column:chunks-path",
-      "kind": "database_column",
-      "lifecycle": "current",
-      "source_refs": [],
-      "data": {
-        "name": "asset_path",
-        "table_id": "table:chunks",
-        "type": "text",
-        "nullable": false
-      }
-    },
-    {
-      "id": "decision:codec-cove",
-      "kind": "decision",
-      "lifecycle": "current",
-      "source_refs": ["source:architect-notes"],
-      "data": {
-        "title": "Use COVE",
-        "decision_state": "accepted",
-        "summary": "Use COVE as the working compact-codec name."
-      },
-      "supersedes": ["decision:codec-jolt"]
-    },
-    {
-      "id": "decision:codec-jolt",
-      "kind": "decision",
-      "lifecycle": "superseded",
-      "source_refs": ["source:architect-notes"],
-      "data": {
-        "title": "Use JOLT",
-        "decision_state": "superseded",
-        "summary": "Earlier codec naming proposal."
-      },
-      "superseded_by": ["decision:codec-cove"]
-    },
-    {
-      "id": "env:deploy-token",
-      "kind": "environment_variable",
-      "lifecycle": "current",
-      "source_refs": [],
-      "data": {
-        "name": "DEPLOY_TOKEN",
-        "value_state": "external_secret",
-        "value": null,
-        "external_ref": "secret-store:deploy-token"
-      }
-    },
-    {
-      "id": "item:serializer",
-      "kind": "unresolved_item",
-      "lifecycle": "current",
-      "source_refs": ["source:architect-notes"],
-      "data": {
-        "title": "Confirm JCS serializer",
-        "resolution_state": "open",
-        "summary": "Validate RFC 8785 compatibility with fixtures."
-      }
-    },
-    {
-      "id": "project:voxel",
-      "kind": "project",
-      "lifecycle": "current",
-      "source_refs": ["source:repo"],
-      "data": {
-        "name": "GDScript Voxel Terrain",
-        "repository": "loteque/gdscript-voxel-engine",
-        "description": "Procedural voxel terrain engine"
-      }
-    },
-    {
-      "id": "role:architect",
-      "kind": "role",
-      "lifecycle": "current",
-      "source_refs": ["source:architect-directive"],
-      "data": {
-        "name": "Engineering Knowledge Systems Architect"
-      }
-    },
-    {
-      "id": "role:steward",
-      "kind": "role",
-      "lifecycle": "current",
-      "source_refs": [],
-      "data": {
-        "name": "Project Engineering Steward"
-      }
-    },
-    {
-      "id": "source:architect-directive",
+      "id": "source:roadmap",
       "kind": "source",
       "lifecycle": "current",
-      "source_refs": [],
+      "observation_refs": [],
       "data": {
         "source_kind": "git_file",
-        "authority": "owner_instruction",
-        "locator": {
-          "path": "docs/handoff/architect_directive.md",
-          "ref": "project-chat-handoff"
+        "authority": "roadmap_intent",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "path": "ROADMAP.md"
         }
       }
     },
     {
-      "id": "table:chunks",
-      "kind": "database_table",
-      "lifecycle": "current",
-      "source_refs": [],
+      "id": "observation:roadmap:abc123",
+      "kind": "source_observation",
+      "lifecycle": "historical",
+      "observation_refs": [],
       "data": {
-        "name": "terrain_chunks",
-        "purpose": "Example fixture table"
+        "source_id": "source:roadmap",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-13T15:00:00-07:00",
+        "evidence_locator": {
+          "commit": "abc123",
+          "path": "ROADMAP.md"
+        }
       }
-    }
-  ],
-  "relations": [
+    },
     {
-      "id": "relation:architect-owns-cove",
-      "kind": "owns",
-      "from": "role:architect",
-      "to": "decision:codec-cove",
+      "id": "requirement:streaming-preview",
+      "kind": "requirement",
       "lifecycle": "current",
-      "source_refs": ["source:architect-directive"],
-      "data": {}
+      "observation_refs": ["observation:roadmap:abc123"],
+      "data": {
+        "requirement_state": "active",
+        "summary": "Runtime streaming validation is exposed in Integration Preview."
+      }
     }
   ]
 }
 ```
 
-The fixture intentionally contains repeated strings (`current`, record keys, role/source structure), semantic references, two chats/roles, an environment variable, table/column, supersession, an unresolved item, provenance, and an explicit `null`.
-
-A separate fixture MUST demonstrate the difference between:
+A separate fixture MUST distinguish:
 
 ```json
 {"data": {}}
@@ -958,19 +900,17 @@ A separate fixture MUST demonstrate the difference between:
 {"data": {"summary": null}}
 ```
 
-and:
-
 ```json
 {"data": {"tags": []}}
 ```
 
-No normalizer or codec is allowed to collapse those three states.
+No normalizer or codec may collapse them.
 
 ---
 
 ## 15. Illustrative COVE Encoding
 
-A tiny generic input:
+For generic input:
 
 ```json
 {
@@ -979,25 +919,7 @@ A tiny generic input:
 }
 ```
 
-might yield a dictionary conceptually ordered as:
-
-```json
-["Architect", "kind", "name", "role"]
-```
-
-with shape:
-
-```json
-[[1, 2]]
-```
-
-and encoded root:
-
-```json
-[2, 0, [0, 3], [0, 0]]
-```
-
-inside an envelope:
+one valid cove/1 construction is conceptually:
 
 ```json
 {
@@ -1010,22 +932,27 @@ inside an envelope:
 }
 ```
 
-This example is normative for tag meaning and value/shape mechanics, but implementation fixtures must recompute exact dictionary ordering using the specified UTF-8 byte comparison rather than copying examples blindly.
+Exact dictionary ordering is determined by the UTF-8 byte comparison rules, not by illustrative prose order.
 
 ---
 
 ## 16. Required Failure Fixtures
 
-At minimum, conformance fixtures MUST include:
-
 ### PEMS failures
 
 - duplicate record ID;
 - duplicate relation ID;
+- candidate canonical-ID collision representing different semantic meanings;
+- known duplicate semantic identity proposed under a second ID without an authorized migration/alias rule;
 - dangling relation endpoint;
-- dangling `source_refs` entry;
+- dangling `observation_refs` entry;
+- `observation_refs` pointing directly to a `source` record;
+- `source_observation.data.source_id` pointing to a non-source or missing record;
+- mutation of an already admitted source observation into a later revision;
+- invalid `evidence_state`;
 - invalid type-specific state;
 - invalid supersession reference;
+- unauthorized destructive historical compaction;
 - environment variable marked `external_secret` while containing a literal secret value;
 - unknown `pems/<major>` profile.
 
@@ -1036,13 +963,13 @@ At minimum, conformance fixtures MUST include:
 - unsorted dictionary;
 - out-of-range string index;
 - out-of-range shape index;
-- duplicate or unsorted shape key index;
-- non-canonical shape dictionary order;
+- duplicate/unsorted shape key index;
+- non-canonical shape order;
 - unknown tag;
 - wrong object arity;
 - malformed tagged array.
 
-A specific malformed-reference fixture SHOULD decode successfully at the COVE layer and then fail PEMS validation, proving that codec validity and semantic validity are distinct boundaries.
+At least one malformed provenance fixture SHOULD decode successfully at COVE and then fail PEMS validation, proving codec validity and semantic validity are separate boundaries.
 
 ---
 
@@ -1062,29 +989,53 @@ expanded input
  → PEMS validate/normalize
 ```
 
-The final normalized expanded PEMS value MUST equal the initial normalized value structurally and semantically.
+The final normalized value MUST equal the initial normalized value structurally and semantically.
+
+### Steward ID-admission fixtures
+
+Tests MUST prove:
+
+- candidate IDs do not become canonical merely by parsing;
+- same-meaning candidates reuse/confirm existing IDs;
+- conflicting meanings cannot share one ID;
+- existing canonical IDs are not silently rebound;
+- external stable identity may inform candidate ID generation without bypassing admission.
+
+### Provenance fixtures
+
+Tests MUST prove:
+
+- source identity survives multiple observations;
+- observations remain immutable;
+- claims target observations, not sources;
+- immutable and unversioned observations remain distinguishable;
+- historical claims retain their original evidence observation after a newer source observation appears.
 
 ### Structured determinism
 
-Two independent encoder executions with different internal traversal/insertion order MUST produce identical COVE JSON values.
+Two encoder executions with different insertion/traversal order MUST produce identical COVE JSON values.
 
 ### Byte determinism
 
-The chosen serializer MUST produce identical UTF-8 bytes for the same COVE value. JCS RFC vectors SHOULD be included when `jcs/1` is adopted.
+The selected serializer MUST produce identical UTF-8 bytes for identical COVE values. JCS RFC vectors SHOULD be included.
 
 ### Migration
 
-At least one fixture MUST exercise an explicit prior semantic version to `pems/1` migration before any future PEMS version is declared supported. Migration tests are added with every supported version transition.
+Every supported version transition requires explicit fixtures. The current-handoff importer must demonstrate source/observation splitting and provisional-to-Steward-admitted identity handling.
 
 ### Human reconstruction
 
-Generated pretty JSON and Markdown/search projections MUST retain semantic IDs and source references, and repeated generation from the same canonical memory MUST be deterministic.
+Pretty JSON and Markdown/search projections MUST retain semantic IDs and observation→source provenance, and repeated generation MUST be deterministic.
+
+### Historical retention
+
+Ordinary normalization MUST preserve historical/superseded/tombstoned/observation records. Any future retention-policy compaction requires its own fixture suite and explicit policy identifier.
 
 ### Size regression
 
-Measure size using **exact UTF-8 byte length** of:
+Measure exact UTF-8 byte length of:
 
-1. JCS serialization of normalized expanded PEMS JSON;
+1. JCS serialization of normalized expanded PEMS;
 2. JCS serialization of its COVE artifact.
 
 Report:
@@ -1094,63 +1045,55 @@ ratio = cove_bytes / expanded_bytes
 reduction = 1 - ratio
 ```
 
-Do not compare pretty-printed expanded JSON against minified COVE; that would exaggerate compression.
+Do not compare pretty expanded JSON against compact COVE.
 
-Recommended adoption criterion pending measured fixtures:
-
-- aggregate representative corpus reduction >= 20%;
-- no representative fixture larger by more than 5% unless explicitly accepted as a small-fixture overhead case;
-- future COVE changes that regress aggregate size by more than a configured tolerance require deliberate review.
-
-Correctness and provenance outrank marginal byte savings.
+The prior `>=20%` aggregate reduction remains a **measurement hypothesis**, not a normative acceptance gate. After representative fixtures exist, the project owner/Steward should set or explicitly waive a numeric threshold based on evidence. Correctness, provenance, deterministic recoverability, and useful context selection outrank marginal byte savings.
 
 ---
 
 ## 18. Selective Retrieval and Future Indexing
 
-PEMS's normalized record IDs make selective semantic retrieval straightforward *after expansion*. A derived search/index artifact can map:
+A derived index can map:
 
-- record ID → kind/title/source refs;
+- record ID → kind/title/observation refs;
+- source → observations;
+- observation → dependent claims;
 - chat → scoped records;
 - role → owned/scoped records;
 - module → requirements/decisions/validations;
 - unresolved state → open items.
 
-The index MUST be deterministically reconstructable from PEMS and MUST NOT become canonical project memory.
+The index MUST be deterministically reconstructable and MUST NOT become canonical memory.
 
-COVE v1 does not add byte offsets or per-record compressed blocks. If future measurements show that full-artifact parsing dominates agent context preparation, evaluate one of these in order:
-
-1. generated deterministic semantic index;
-2. cached decoded PEMS;
-3. canonical sharding only if the first two are insufficient.
-
-This keeps v1 practical and avoids turning a continuity file into a miniature database engine prematurely.
+Do not add canonical sharding, byte offsets, or per-record blocks in v1 without measured need.
 
 ---
 
 ## 19. Cost and Agent-Context Implications
 
-The `$10/month` autonomous-agent budget is not a codec requirement, but it changes what should be measured.
+The `$10/month` autonomous-agent budget is not a codec requirement but affects measurement priorities.
 
-COVE can reduce repository/storage bytes, but model cost is driven by the **selected semantic context actually presented to a model**, not merely the canonical file size. Therefore:
+Model cost is driven by selected semantic context, not canonical file byte size. Therefore:
 
-- compact canonical storage should reduce deterministic transport/parsing overhead;
-- selective retrieval and generated summaries/indexes should reduce repeated context expansion;
-- agents SHOULD decode/select only semantically relevant PEMS records before model invocation;
-- never feed raw COVE token arrays to a model merely because they are smaller on disk if expanded selected records are clearer and cheaper in model-token terms;
-- model-context cost should be benchmarked separately from UTF-8 artifact size.
-
-The representation architecture supports budget control, but deterministic event filtering and selective semantic context remain the larger cost levers.
+- compact storage may reduce transport/parsing overhead;
+- deterministic indexes/summaries should reduce repeated context expansion;
+- agents SHOULD decode/select only relevant PEMS records before model invocation;
+- raw COVE arrays SHOULD NOT be fed to a model merely because they are smaller on disk;
+- context-token cost should be benchmarked separately from UTF-8 artifact size.
 
 ---
 
-## 20. Open Questions Requiring Owner or Implementation Evidence
+## 20. Remaining Open Questions Requiring Owner or Implementation Evidence
 
-1. **Size threshold:** Is the proposed >=20% aggregate reduction an appropriate minimum for canonical adoption, or should acceptance be purely evidence-based after fixtures exist?
-2. **Canonical file path after migration:** Approve `docs/project-chat-handoff.cove.json` as the eventual compact canonical path while retaining `docs/project-chat-handoff.json` as a generated human/compatibility derivative.
-3. **JCS implementation dependency:** Confirm willingness to adopt an RFC 8785 implementation/tooling dependency if Godot/GDScript does not provide exact JCS serialization natively.
-4. **Extension policy:** v1 deliberately has a closed record-kind vocabulary. Decide later whether project-local extension kinds are needed or whether PEMS revisions are sufficiently cheap.
-5. **Historical retention:** Define Steward policy for when superseded/historical records remain in canonical PEMS versus being compacted into higher-level historical summaries. This is continuity policy, not codec behavior.
+Owner decisions incorporated in this revision remove ID-allocation ownership, source/observation separation, default historical retention, and the predeclared 20% threshold from the open list.
+
+Remaining questions:
+
+1. **Canonical file path after migration:** approve `docs/project-chat-handoff.cove.json` as eventual compact canonical path while retaining `docs/project-chat-handoff.json` as generated compatibility/human derivative.
+2. **JCS implementation dependency:** confirm willingness to adopt an RFC 8785 implementation/tooling dependency if Godot/GDScript does not provide exact JCS serialization natively. Architectural preference is approved; dependency choice remains implementation evidence.
+3. **Extension policy:** v1 deliberately has a closed record-kind vocabulary. Decide later whether project-local extension kinds are needed or PEMS revisions are sufficiently cheap.
+4. **Numeric compression threshold:** select only after representative fixture measurements exist; no fixed threshold is currently normative.
+5. **Future retention policy details:** preservation is the v1 default. Any destructive compaction policy requires separate Steward approval and fixtures.
 
 ---
 
@@ -1160,81 +1103,90 @@ Do not implement out of order merely to obtain a compact artifact quickly.
 
 ### Phase 1 — Freeze semantic fixtures
 
-Create expanded PEMS fixtures covering the current handoff requirements, edge states, provenance, secret handling, and failures.
+Create expanded PEMS fixtures covering current handoff requirements, source/observation provenance, Steward ID admission, historical retention, secret handling, edge states, and failures.
 
 ### Phase 2 — PEMS validator and normalizer
 
-Implement deterministic validation/normalization without COVE. The normalized expanded representation becomes independently testable.
+Implement deterministic validation/normalization without COVE. Include ID-admission boundary contracts and provenance validation.
 
 ### Phase 3 — COVE encoder/decoder
 
-Implement `cove/1` as a generic structured-data codec against generic JSON fixtures first, then PEMS fixtures.
+Implement cove/1 against generic JSON fixtures first, then PEMS fixtures.
 
 ### Phase 4 — Deterministic serializer
 
-Adopt/test JCS or, only if a demonstrated incompatibility appears, specify the smallest alternative byte-serialization contract.
+Adopt/test JCS or, only if demonstrated incompatibility appears, specify the smallest alternative byte-serialization contract.
 
 ### Phase 5 — Conformance suite
 
-Add round-trip, structured determinism, byte determinism, malformed input, semantic-reference failure, secret-policy, migration, human-export, and size-regression tests.
+Add round-trip, structured determinism, byte determinism, malformed input, semantic/provenance failure, ID admission, historical retention, secret policy, migration, human export, and size-regression tests.
 
 ### Phase 6 — Existing handoff conversion tooling
 
-Build a one-way importer from the current handoff schema into normalized PEMS plus generated human-readable export. Do not make the output canonical yet.
+Build a one-way importer from the current handoff schema into candidate normalized PEMS. Split source identity from observations and treat generated IDs as provisional until Steward admission. Do not make output canonical.
 
 ### Phase 7 — Shadow generation
 
-For multiple Steward reconciliations, generate:
+For multiple Steward reconciliations generate:
 
 - existing canonical human handoff;
 - shadow normalized PEMS;
 - shadow COVE artifact;
 - regenerated human derivative.
 
-Compare semantic equivalence, continuation usability, diffs, retrieval quality, and size.
+Compare semantic equivalence, continuation usability, provenance auditability, ID stability, diffs, retrieval quality, and measured size.
 
 ### Phase 8 — Canonical adoption decision
 
-Only after evidence is satisfactory should the owner/Steward approve switching canonical memory to COVE and updating project startup instructions/tooling.
+Only after evidence is satisfactory should owner/Steward approve switching canonical memory to COVE and updating startup/tooling instructions.
 
 ---
 
 ## 22. Architectural Decisions Recommended by This Proposal
 
-### Recommend acceptance
+### Owner-approved / recommend locked for v1 design
 
-1. **PEMS v1 uses normalized typed records, explicit relations, stable IDs, and record-level provenance.**
-2. **The current nested handoff JSON is requirements input, not the future schema.**
-3. **COVE v1 uses global string interning plus deterministic object-shape factoring as its deliberately small generic core.**
-4. **COVE remains completely PEMS-agnostic.**
-5. **JCS is the preferred deterministic JSON serializer, separate from COVE.**
-6. **One canonical compact document is preferable to sharding in v1.**
-7. **Human-readable/searchable artifacts remain deterministic derivatives and preserve semantic IDs/provenance.**
-8. **The current human handoff remains canonical throughout migration and shadow validation.**
-9. **Secret values are explicitly excluded from PEMS except non-secret values intentionally classified as `literal`.**
-10. **Runtime leases, retries, receipts, queues, and budget meters remain outside PEMS.**
+1. **PEMS uses normalized typed records, explicit relations, stable IDs, type-specific states, and record-level provenance.**
+2. **Canonical semantic IDs are allocated or confirmed by the Steward during reconciliation.**
+3. **Stable source identity and source observations are distinct record kinds.**
+4. **Semantic provenance references target observations, never mutable source identities directly.**
+5. **Historical preservation is the safe v1 default; destructive compaction requires explicit Steward retention policy.**
+6. **The current nested handoff is requirements input, not the future schema.**
+7. **COVE uses global string interning plus deterministic object-shape factoring as a deliberately small generic core.**
+8. **COVE remains PEMS-agnostic.**
+9. **JCS is preferred as the separate deterministic serializer, subject to conformance evidence.**
+10. **One canonical compact document is preferred to sharding in v1.**
+11. **Human-readable/searchable artifacts are deterministic derivatives preserving semantic IDs and provenance.**
+12. **The current human handoff remains canonical throughout migration and shadow validation.**
+13. **Secret values are excluded except intentionally non-secret values classified as `literal`.**
+14. **Runtime leases, retries, receipts, queues, and budget meters remain outside PEMS.**
+15. **No fixed 20% compression threshold is normative before representative measurements exist.**
 
-### Steward recommendations refined
+### Architect critique of owner-approved amendments
 
-The Steward requested dictionary encoding, enums, stable references, positional records, and repeated-shape factoring as candidates. This proposal deliberately **does not** give COVE semantic enum tables or PEMS-specific positional record layouts in v1. Generic shape factoring already removes repeated keys while preserving domain independence. Adding semantic opcodes now would save more bytes at the cost of coupling codec and schema evolution.
+No architectural objection.
 
-The Steward also suggested selective retrieval considerations. This proposal treats whole-document parsing as an acceptable v1 tradeoff and recommends deterministic derived indexes before canonical sharding.
+Steward-owned canonical ID admission is consistent with the existing single-writer reconciliation boundary and prevents identity split-brain without forcing UUID complexity into every producer.
 
-These are refinements, not rejections of the underlying requirements.
+Separating source identity from source observation materially improves provenance. The one refinement made by this proposal is stricter than the minimum request: pems/1 does not allow claims to point directly to sources even when immutable evidence is unavailable. Instead it uses an `unversioned_observation`. This avoids a polymorphic provenance pointer whose meaning would depend on target kind.
+
+Historical preservation by default is also appropriate. Canonical normalization should not perform garbage collection. Retention can be added later as an explicit policy with its own evidence and migrations.
 
 ---
 
 ## 23. Decision Gate
 
-This document is ready for owner/Steward review as a design proposal.
+This amended proposal is ready for final owner/Steward design review.
 
-Before implementation begins, the project owner should approve or amend:
+Before implementation begins, the owner should approve or amend the remaining design package as a whole:
 
-- the PEMS typed-record normalization model;
-- the small generic COVE mechanism;
-- JCS as preferred serializer;
-- the single-artifact v1 boundary;
+- typed-record PEMS model including Steward ID admission;
+- source/source_observation provenance model;
+- small generic COVE mechanism;
+- JCS as preferred serializer pending conformance evidence;
+- single-artifact v1 boundary;
 - migration/shadow-generation strategy;
-- the proposed size-acceptance policy or an instruction to defer the numeric threshold until fixtures are measured.
+- historical-preservation default;
+- evidence-based rather than predeclared numeric compression threshold.
 
-Until that review occurs, `docs/project-chat-handoff.json` remains the canonical continuity artifact and no PEMS/COVE representation should be treated as authoritative.
+Until final design approval and later explicit migration approval, `docs/project-chat-handoff.json` remains the canonical continuity artifact and no PEMS/COVE representation is authoritative.
