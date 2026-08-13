@@ -7,7 +7,6 @@ import argparse
 import http.server
 import json
 import pathlib
-import re
 import socketserver
 import subprocess
 import sys
@@ -56,8 +55,15 @@ def main() -> int:
             "--headless=new",
             "--no-sandbox",
             "--disable-dev-shm-usage",
+            # GitHub-hosted runners have no usable GPU. Modern Chromium no longer
+            # automatically falls back to SwiftShader for WebGL, so opt in explicitly
+            # for this trusted local diagnostic export.
+            "--use-gl=angle",
+            "--use-angle=swiftshader-webgl",
+            "--enable-unsafe-swiftshader",
             "--enable-features=SharedArrayBuffer",
-            "--virtual-time-budget=240000",
+            # Do not use Chromium virtual-time acceleration here. The experiment
+            # measures real elapsed ResourceLoader behavior and worker progress.
             "--enable-logging=stderr",
             "--v=0",
             f"http://127.0.0.1:{port}/index.html",
