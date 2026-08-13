@@ -23,91 +23,75 @@ jobs:
   build:
     name: Build mobile ResourceLoader diagnostic
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out experiment revision
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
       - name: Wait for matching Integration Preview deployment
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          echo "Waiting for Deploy Versioned Web Demo at exact head $GITHUB_SHA"
           for attempt in $(seq 1 180); do
-            RUN_JSON="$(gh run list \
-              --workflow deploy-web-demo.yml \
-              --branch resource-loading-analysis \
-              --limit 30 \
-              --json databaseId,headSha,status,conclusion \
-              --jq ".[] | select(.headSha == \"$GITHUB_SHA\")" | head -n 1)"
-
-            if [ -z "$RUN_JSON" ]; then
-              sleep 5
-              continue
-            fi
-
+            RUN_JSON="$(gh run list --workflow deploy-web-demo.yml --branch resource-loading-analysis --limit 30 --json databaseId,headSha,status,conclusion --jq ".[] | select(.headSha == \"$GITHUB_SHA\")" | head -n 1)"
+            if [ -z "$RUN_JSON" ]; then sleep 5; continue; fi
             STATUS="$(printf '%s' "$RUN_JSON" | jq -r '.status')"
             CONCLUSION="$(printf '%s' "$RUN_JSON" | jq -r '.conclusion // ""')"
-            RUN_ID="$(printf '%s' "$RUN_JSON" | jq -r '.databaseId')"
-            echo "Preview workflow $RUN_ID: status=$STATUS conclusion=$CONCLUSION"
-
             if [ "$STATUS" = "completed" ]; then
-              if [ "$CONCLUSION" != "success" ]; then
-                echo "Matching Integration Preview deployment did not succeed."
-                exit 1
-              fi
-              exit 0
+              [ "$CONCLUSION" = "success" ] && exit 0
+              echo "Matching Integration Preview deployment failed."
+              exit 1
             fi
             sleep 5
           done
           echo "Timed out waiting for matching Integration Preview deployment."
           exit 1
-
       - name: Setup Godot with Web templates
         uses: solarlabyrinth/action-setup-godot@v3
         with:
           version: ${{ env.GODOT_VERSION }}
           export-templates: true
-
       - name: Import project
         run: godot --headless --path . --import
-
       - name: Bake production streaming fixture
         run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
-
-      - name: Run ResourceLoader experiment contract test
-        run: godot --headless --path . --script tests/test_web_resource_loading_experiment.gd
-
-      - name: Export mobile diagnostic
+      - name: Bake strategy comparison controls
+        run: godot --headless --path . --script demo/tools/BakeResourceLoadingDiagnosticControls.gd
+      - name: Run ResourceLoader experiment contract tests
+        run: |
+          godot --headless --path . --script tests/test_web_resource_loading_experiment.gd
+          godot --headless --path . --script tests/test_resource_loading_strategy_comparison.gd
+      - name: Export mobile diagnostics
         shell: bash
         run: |
           set -euo pipefail
           cp project.godot "$RUNNER_TEMP/project.godot.original"
           trap 'cp "$RUNNER_TEMP/project.godot.original" project.godot' EXIT
-
-          python - <<'PY'
+          set_scene() {
+            python - "$1" <<'PY'
+          import sys
           from pathlib import Path
-
+          scene = sys.argv[1]
           path = Path("project.godot")
           lines = path.read_text(encoding="utf-8").splitlines()
-          prefix = "run/main_scene="
           for index, line in enumerate(lines):
-              if line.startswith(prefix):
-                  lines[index] = 'run/main_scene="res://demo/experiments/WebResourceLoadingExperiment.tscn"'
+              if line.startswith("run/main_scene="):
+                  lines[index] = f'run/main_scene="{scene}"'
                   break
           else:
               raise SystemExit("project.godot does not define run/main_scene")
           path.write_text("\n".join(lines) + "\n", encoding="utf-8")
           PY
-
-          mkdir -p build/web/resource-loader
+          }
+          mkdir -p build/web/resource-loader/strategy-comparison
+          set_scene "res://demo/experiments/WebResourceLoadingExperiment.tscn"
           godot --headless --path . --export-release "Web Threads" build/web/resource-loader/index.html
           python .github/scripts/inject_resource_loader_diagnostic_ui.py build/web/resource-loader/index.html
-
+          set_scene "res://demo/experiments/ResourceLoadingStrategyComparison.tscn"
+          godot --headless --path . --export-release "Web Threads" build/web/resource-loader/strategy-comparison/index.html
+          python .github/scripts/inject_resource_loading_strategy_ui.py build/web/resource-loader/strategy-comparison/index.html
       - name: Update nested Integration Preview diagnostic
         shell: bash
         run: |
@@ -115,37 +99,28 @@ jobs:
           ARCHIVE="$RUNNER_TEMP/pages-archive"
           git fetch origin gh-pages:refs/heads/gh-pages
           git worktree add "$ARCHIVE" gh-pages
-
           DESTINATION="$ARCHIVE/preview/integration/streaming/resource-loader"
           rm -rf "$DESTINATION"
           mkdir -p "$DESTINATION"
           cp -a build/web/resource-loader/. "$DESTINATION/"
           touch "$ARCHIVE/.nojekyll"
-
           git -C "$ARCHIVE" config user.name "github-actions[bot]"
           git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C "$ARCHIVE" add -A
-          if git -C "$ARCHIVE" diff --cached --quiet; then
-            echo "Mobile ResourceLoader diagnostic already matches this revision."
-          else
-            git -C "$ARCHIVE" commit -m "Publish mobile ResourceLoader diagnostic"
+          if ! git -C "$ARCHIVE" diff --cached --quiet; then
+            git -C "$ARCHIVE" commit -m "Publish mobile ResourceLoader diagnostics"
             git -C "$ARCHIVE" push origin gh-pages
           fi
-
       - name: Package Pages site
-        shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/pages-site"
           git -C "$RUNNER_TEMP/pages-archive" archive HEAD | tar -x -C "$RUNNER_TEMP/pages-site"
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
           path: ${{ runner.temp }}/pages-site
-
   deploy:
     name: Deploy mobile ResourceLoader diagnostic
     needs: build
@@ -153,7 +128,6 @@ jobs:
     environment:
       name: github-pages-preview
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Deploy
         id: deployment

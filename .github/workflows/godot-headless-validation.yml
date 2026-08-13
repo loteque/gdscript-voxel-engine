@@ -40,6 +40,8 @@ jobs:
         run: godot --headless --path . --import
       - name: Bake streaming demo terrain fixture
         run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
+      - name: Bake ResourceLoader strategy controls
+        run: godot --headless --path . --script demo/tools/BakeResourceLoadingDiagnosticControls.gd
       - name: Run controlled resource-loading experiment
         timeout-minutes: 12
         run: python demo/tools/run_resource_loading_experiment.py
@@ -51,6 +53,8 @@ jobs:
           path: artifacts/performance/resource-loading-analysis/
           if-no-files-found: error
           retention-days: 30
+      - name: Run resource-loading strategy comparison contract test
+        run: godot --headless --path . --script tests/test_resource_loading_strategy_comparison.gd
       - name: Run surface orientation tests
         run: godot --headless --path . --script tests/test_surface_orientation.gd
       - name: Run point field state tests
