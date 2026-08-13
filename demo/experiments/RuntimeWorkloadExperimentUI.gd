@@ -38,6 +38,7 @@ func set_running(completed: int, total: int, mode_label: String, repetition: int
 	_status.text = "%d / %d runs  •  %s  •  Run %d/3\n%s" % [completed, total, mode_label, repetition, live_text]
 	_run_button.disabled = true
 	_stop_button.disabled = false
+	_export_button.disabled = true
 
 
 func set_complete(completed: int, total: int, success: bool, message: String) -> void:
@@ -46,7 +47,7 @@ func set_complete(completed: int, total: int, success: bool, message: String) ->
 	_status.text = ("Experiment Complete!  %d / %d runs completed" % [completed, total]) if success else message
 	_run_button.disabled = false
 	_stop_button.disabled = true
-	_export_button.disabled = completed > 0
+	_export_button.disabled = not success
 
 
 func set_results(summary: String, details: String) -> void:
