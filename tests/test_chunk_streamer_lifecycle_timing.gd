@@ -43,7 +43,10 @@ func _initialize() -> void:
 	_assert_true("get_completed_load_observations" in demo_source, "Streaming matrix exports production lifecycle observations.")
 	var timing_doc_source := FileAccess.get_file_as_string("res://docs/performance/chunk-streamer-lifecycle-timing-experiment.md")
 	_assert_true("# ChunkStreamer Lifecycle Timing Experiment" in timing_doc_source, "Lifecycle experiment rationale is documented.")
-	_assert_true("ResourceLoader does not expose the exact instant" in timing_doc_source, "Polling-boundary limitation is documented.")
+	_assert_true(
+		"does not expose the exact instant background work finishes" in timing_doc_source,
+		"Polling-boundary limitation is documented."
+	)
 	var trace_doc_source := FileAccess.get_file_as_string("res://docs/performance/chunk-streamer-request-lifecycle-trace.md")
 	_assert_true("# ChunkStreamer Request Lifecycle Trace" in trace_doc_source, "Expanded request trace is documented.")
 	_assert_true("The state snapshots are observational" in trace_doc_source, "Trace documentation explains why no completed-resource holding queue is added.")
