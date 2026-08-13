@@ -70,13 +70,26 @@ def pearson(values_x: Iterable[float], values_y: Iterable[float]) -> float | Non
     return sum((x - mean_x) * (y - mean_y) for x, y in pairs) / (denominator_x * denominator_y)
 
 
+def observation_loader_wait_msec(observation: dict[str, Any]) -> float:
+    """Read the historical background-wait measurement from either trace schema.
+
+    ChunkStreamer lifecycle tracing renamed the per-load observation field to
+    ``loader_wait_msec`` because the boundary is request start through first
+    observed ``THREAD_LOAD_LOADED``. Existing aggregate metric names remain
+    intentionally stable for report compatibility.
+    """
+    if "loader_wait_msec" in observation:
+        return float(observation["loader_wait_msec"])
+    return float(observation["background_wait_msec"])
+
+
 def summarize_group(cases: list[dict[str, Any]]) -> dict[str, Any]:
     run_durations = [float(case["measured"]["run_duration_msec"]) for case in cases]
     metrics = [case["measured"]["metrics"] for case in cases]
     observations = [observation for case in cases for observation in case["measured"]["load_observations"]]
 
     aggregate_latencies = [float(value["aggregate_latency_msec"]) for value in observations]
-    background_waits = [float(value["background_wait_msec"]) for value in observations]
+    background_waits = [observation_loader_wait_msec(value) for value in observations]
     residency_completions = [float(value["residency_completion_msec"]) for value in observations]
     sizes = [float(value.get("serialized_size_bytes", 0)) for value in observations]
     vertices = [float(value.get("mesh_vertex_count", 0)) for value in observations]
