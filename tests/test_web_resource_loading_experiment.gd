@@ -38,11 +38,11 @@ func _initialize() -> void:
 		quit(1)
 
 
-func _tree_contains_type(node: Node, class_name: String) -> bool:
-	if node.is_class(class_name):
+func _tree_contains_type(node: Node, type_name: String) -> bool:
+	if node.is_class(type_name):
 		return true
 	for child in node.get_children():
-		if child is Node and _tree_contains_type(child, class_name):
+		if child is Node and _tree_contains_type(child, type_name):
 			return true
 	return false
 
