@@ -154,3 +154,53 @@ The immediate next implementation milestone is **Phase 1 only: normative semanti
 ### Human reasoning
 
 Freezing the contract before implementation prevents implementation convenience from silently redefining project-memory semantics. The staged path deliberately establishes semantic fixtures before codec work so PEMS meaning can be validated independently of compression. COVE remains a representation mechanism rather than a second semantic system, and the existing handoff remains a safe rollback/reference artifact throughout shadow migration.
+
+---
+
+## STEWARD-20260813-004
+
+**Timestamp:** 2026-08-13
+**Type:** implementation-gate
+**Status:** accepted
+
+### Summary
+
+The project owner and Project Engineering Steward accepted completion of PEMS Phase 1 after the Architect landed the normative semantic contract, machine-readable `pems-v1.schema.json`, normative success fixtures, normative failure/admission fixtures, and the durable Architect completion note. Phase 1 is considered complete and the project may proceed to Phase 2.
+
+### Phase 1 acceptance
+
+The accepted Phase 1 artifacts establish the closed pems/1 record vocabulary, common record and relation envelopes, per-kind structural constraints, provenance model, null/absence/empty semantics, secret-safe environment-variable rules, deterministic ordering expectations, historical-preservation default, success fixtures, failure fixtures, and explicit separation between ordinary schema validation and Steward semantic/admission behavior.
+
+This acceptance does not make PEMS/COVE canonical project memory and does not alter the authority of `docs/project-chat-handoff.json`.
+
+### Phase 2 authorization
+
+Phase 2 is authorized to implement and validate deterministic PEMS semantics only:
+
+- structural loading against the frozen Phase 1 schema;
+- semantic graph validation for references, provenance, type/state constraints, supersession, history, and secret-policy rules that cannot be expressed safely as ordinary JSON Schema;
+- deterministic normalization, including canonical record/relation ordering and set-like ID-array ordering while preserving ordered domain sequences;
+- Steward ID-admission contracts for candidate identity resolution, canonical reuse/confirmation, collision rejection, and prohibition on silently rebinding canonical IDs;
+- deterministic diagnostics suitable for fixtures and future tooling;
+- tests that consume the Phase 1 success/failure/admission fixtures and prove the expected validation/admission/normalization outcomes.
+
+### Phase 2 boundaries
+
+Phase 2 MUST NOT:
+
+- implement COVE encoding or decoding;
+- implement or select JCS serialization beyond what is necessary to keep PEMS normalization serializer-independent;
+- convert or replace `docs/project-chat-handoff.json`;
+- make COVE or expanded PEMS canonical;
+- implement autonomous-agent runtime state, leases, queues, retries, budget meters, or activation infrastructure;
+- weaken the frozen Phase 1 schema or reinterpret fixture expectations merely to simplify implementation.
+
+If implementation reveals a genuine contradiction in the frozen PEMS contract, the Architect must surface the contradiction explicitly rather than silently adjusting semantics in code.
+
+### Acceptance gate for Phase 2
+
+Phase 2 is complete only when the frozen success fixtures normalize deterministically, each failure/admission fixture fails or resolves at its declared semantic boundary, repeated normalization is idempotent, input traversal/insertion order cannot alter normalized output, and the implementation does not introduce COVE-specific or runtime-specific knowledge into the PEMS semantic layer.
+
+### Human reasoning
+
+Phase 1 turned the design into executable examples and normative structure. Phase 2 should now make PEMS meaning operational without contaminating it with storage compression. Keeping COVE out of this phase preserves the architectural test: PEMS must be independently coherent before any representation optimization is allowed to sit on top of it.
