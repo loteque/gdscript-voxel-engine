@@ -23,10 +23,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-
       - name: Run web and release workflow tests
         run: python -m unittest tests/test_web_demo_manifest.py tests/test_release_change_classification.py
-
       - name: Install Godot 4.7.1
         shell: bash
         run: |
@@ -38,17 +36,13 @@ jobs:
           unzip -q "$GODOT_ARCHIVE"
           install -m 0755 "$GODOT_BINARY" /usr/local/bin/godot
           godot --version
-
       - name: Import project headlessly
         run: godot --headless --path . --import
-
       - name: Bake streaming demo terrain fixture
         run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
-
       - name: Run controlled resource-loading experiment
         timeout-minutes: 12
         run: python demo/tools/run_resource_loading_experiment.py
-
       - name: Upload resource-loading experiment evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -57,7 +51,6 @@ jobs:
           path: artifacts/performance/resource-loading-analysis/
           if-no-files-found: error
           retention-days: 30
-
       - name: Run surface orientation tests
         run: godot --headless --path . --script tests/test_surface_orientation.gd
       - name: Run point field state tests
@@ -72,6 +65,8 @@ jobs:
         run: godot --headless --path . --script tests/test_chunk_surface_nets_grid.gd
       - name: Run chunk streaming tests
         run: godot --headless --path . --script tests/test_chunk_streaming.gd
+      - name: Run ChunkStreamer lifecycle timing contract test
+        run: godot --headless --path . --script tests/test_chunk_streamer_lifecycle_timing.gd
       - name: Run chunk residency hysteresis tests
         run: godot --headless --path . --script tests/test_chunk_residency_hysteresis.gd
       - name: Run large single-LOD streaming validation tests
