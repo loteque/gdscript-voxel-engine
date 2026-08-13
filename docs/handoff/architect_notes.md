@@ -429,3 +429,58 @@ Keeping JSON serialization separate also avoids colliding conceptually with JCS.
 ### Next design step
 
 Proceed with **COVE** as the preferred working codec name and use `cove/1` as the provisional namespace in design fixtures. Before canonical adoption, formalize normalized PEMS v1, COVE v1 structural rules, serializer selection, and the existing round-trip / migration / malformed-reference / size-regression acceptance tests. No compact representation is canonical merely because the name is now recommended.
+
+## ARCH-20260813T154353-0700-004
+
+- timestamp: `2026-08-13T15:43:53-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: proposal
+- status: open
+- acknowledges: none (`steward_notes.md` does not exist on `project-chat-handoff`)
+- subject: PEMS v1 and COVE v1 design proposal submitted
+
+### Proposal
+
+Submitted `docs/handoff/proposals/pems-cove-v1-design.md` as the first concrete v1 architecture for the semantic memory model, compact codec, serializer boundary, migration path, and conformance gates.
+
+Major recommendations:
+
+1. **PEMS v1** should use normalized typed records plus explicit relations, stable semantic IDs, type-specific state machines, and record-level provenance rather than preserving the current nested handoff layout.
+2. **COVE v1** should remain completely domain-agnostic and deliberately small. Its core should use global string interning plus deterministic object-shape factoring. It should not contain PEMS enum opcodes or semantic positional-record layouts in v1.
+3. **JCS / RFC 8785** is the preferred independent deterministic JSON serializer because the proposed PEMS model fits its I-JSON, Unicode, and IEEE-754 constraints. Adoption remains subject to implementation fixtures.
+4. Use one canonical COVE document in v1. Prefer deterministic derived indexes and cached expanded PEMS before considering canonical sharding.
+5. Keep `docs/project-chat-handoff.json` canonical throughout migration. Generate COVE in shadow mode first. If adoption succeeds, recommend `docs/project-chat-handoff.cove.json` as compact canonical memory while retaining the existing JSON path as a generated compatibility/human derivative until project startup/tooling no longer depends on it.
+6. PEMS explicitly models environment-variable secret disposition and forbids durable secret values except intentionally non-secret `literal` values.
+7. Runtime leases, queues, receipts, retries, provider IDs, and budget meters remain outside PEMS.
+8. Canonical adoption requires semantic round-trip, structured determinism, byte determinism, malformed-input rejection, migration, human reconstruction, and reproducible size-regression evidence.
+
+### Steward recommendations refined
+
+I agree with the Steward's goals but intentionally narrowed two mechanisms:
+
+- Rather than adding PEMS-specific enum tables and positional layouts directly to COVE v1, generic object-shape factoring removes repeated keys while preserving codec/domain independence. Semantic opcodes can be reconsidered only if measured size evidence justifies the coupling.
+- Rather than sharding for selective retrieval now, v1 accepts whole-document parsing and recommends deterministic derived semantic indexes first. Canonical sharding changes atomicity and reference-integrity boundaries and therefore should be evidence-driven.
+
+These are architectural refinements, not disagreements with the continuity requirements.
+
+### Open owner decisions
+
+1. Approve or amend the typed-record PEMS model and bounded v1 record-kind vocabulary.
+2. Approve or amend the small generic COVE core: all-string interning plus object-shape factoring.
+3. Approve JCS as the preferred serializer dependency pending conformance fixtures.
+4. Approve one canonical compact document for v1 and the proposed post-adoption `.cove.json` path.
+5. Decide whether the proposed >=20% aggregate size reduction should be a predeclared adoption gate or whether the numeric threshold should be selected after representative fixtures are measured.
+
+### Human reasoning
+
+The main architectural risk was letting compression choices leak backward into project meaning. A PEMS-specific positional codec could be extremely small, but every semantic schema change would then become a codec evolution problem. Generic shape factoring captures much of the same repeated-key savings while keeping COVE useful for arbitrary structured values.
+
+The typed-record PEMS model similarly avoids freezing today's nested handoff as accidental architecture. A role, module, decision, validation, or source can be identified once and referenced from many workstreams without copying its semantics. When something becomes historical or superseded, the lifecycle is explicit rather than inferred from paragraph wording.
+
+One canonical document is intentionally conservative. The current single-writer Steward already provides an atomic reconciliation boundary, so sharding would add cross-file consistency and dangling-reference problems before we have evidence that full-document retrieval is expensive. If retrieval becomes costly, generated indexes are the cheaper first lever.
+
+Finally, storage compression and model-token cost are related but not identical. The runtime should decode and select relevant PEMS records before model invocation rather than feeding compact COVE arrays to a model. COVE is the durable storage contract; semantic selection is the context-cost optimization.
+
+### Next step
+
+Project owner and Steward should review the proposal before implementation. If approved, freeze semantic fixtures first, then implement the PEMS validator/normalizer before writing the COVE encoder. Do not convert canonical project memory yet.
