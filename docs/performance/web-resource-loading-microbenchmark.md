@@ -69,6 +69,18 @@ The experiment does not instantiate meshes and does not call `ChunkStreamer`.
 
 CI exports the scene with the existing `Web Threads` preset, preserving the same Godot threaded-Web runtime used by the streaming Integration Preview. A local HTTP server supplies the cross-origin-isolation headers required for browser threads, and headless Chromium executes the export.
 
+GitHub-hosted Linux runners do not expose a usable GPU to Chromium. Modern Chromium no longer guarantees automatic software fallback for WebGL, so the harness explicitly selects ANGLE + SwiftShader WebGL for this trusted local diagnostic using:
+
+```text
+--use-gl=angle
+--use-angle=swiftshader-webgl
+--enable-unsafe-swiftshader
+```
+
+This renderer selection exists only so the Godot Web export can initialize on a GPU-less CI runner. It is recorded as test-environment provenance and must not be interpreted as representative mobile GPU behavior.
+
+The harness intentionally does **not** use Chromium's virtual-time acceleration. Resource-loading latency is measured in real elapsed time, and background worker progress must not be distorted by an accelerated browser clock. The Python harness supplies the wall-clock timeout instead.
+
 The raw JSON evidence is uploaded as a CI artifact. Timing values are evidence, not CI thresholds. CI fails only when the experiment cannot execute coherently, a resource fails to load, the threaded Web runtime cannot run, or no result is emitted.
 
 This keeps correctness deterministic without pretending shared-runner timing is deterministic.
