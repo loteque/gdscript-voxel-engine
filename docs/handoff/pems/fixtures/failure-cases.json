@@ -1,0 +1,164 @@
+{
+  "fixture_suite": "pems/1-phase1-failures",
+  "base_document": "success/full-project.json",
+  "patch_semantics": "RFC6902",
+  "cases": [
+    {
+      "id": "duplicate-record-id",
+      "mode": "document_patch",
+      "patch": [{"op":"add","path":"/records/-","value":{"id":"project:gdscript-voxel-terrain","kind":"project","lifecycle":"current","observation_refs":[],"data":{"name":"Duplicate","repository":"example/repo","summary":"Duplicate ID."}}}],
+      "expected": {"valid":false,"stage":"semantic","code":"duplicate_record_id"}
+    },
+    {
+      "id": "duplicate-relation-id",
+      "mode": "document_patch",
+      "patch": [{"op":"add","path":"/relations/-","value":{"id":"relation:architect-owns-pems-contract","kind":"references","from":"project:gdscript-voxel-terrain","to":"module:chunk-streamer","lifecycle":"current","observation_refs":[],"data":{}}}],
+      "expected": {"valid":false,"stage":"semantic","code":"duplicate_relation_id"}
+    },
+    {
+      "id": "dangling-relation-endpoint",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/relations/0/to","value":"requirement:missing"}],
+      "expected": {"valid":false,"stage":"semantic","code":"dangling_relation_endpoint"}
+    },
+    {
+      "id": "dangling-observation-ref",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/0/observation_refs/0","value":"observation:missing"}],
+      "expected": {"valid":false,"stage":"semantic","code":"dangling_observation_ref"}
+    },
+    {
+      "id": "observation-ref-targets-source",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/0/observation_refs/0","value":"source:roadmap"}],
+      "expected": {"valid":false,"stage":"semantic","code":"observation_ref_wrong_kind"}
+    },
+    {
+      "id": "observation-source-missing",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/17/data/source_id","value":"source:missing"}],
+      "expected": {"valid":false,"stage":"semantic","code":"observation_source_missing"}
+    },
+    {
+      "id": "observation-source-wrong-kind",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/17/data/source_id","value":"module:chunk-streamer"}],
+      "expected": {"valid":false,"stage":"semantic","code":"observation_source_wrong_kind"}
+    },
+    {
+      "id": "observation-identity-reused-for-later-revision",
+      "mode": "admission",
+      "canonical_record_id": "observation:roadmap:r1",
+      "canonical_identity": {"source_id":"source:roadmap","evidence_state":"immutable_snapshot","observed_at":"2026-08-11T12:00:00-07:00","evidence_locator":{"repository":"loteque/gdscript-voxel-engine","commit":"roadmap-old","path":"ROADMAP.md"}},
+      "candidate_record": {"id":"observation:roadmap:r1","kind":"source_observation","lifecycle":"current","observation_refs":[],"data":{"source_id":"source:roadmap","evidence_state":"immutable_snapshot","observed_at":"2026-08-13T13:08:00-07:00","evidence_locator":{"repository":"loteque/gdscript-voxel-engine","commit":"1f72f8d61e0799cf94a5dedb3953d533068bf502","path":"ROADMAP.md"}}},
+      "expected": {"valid":false,"stage":"admission","code":"immutable_observation_rebound"}
+    },
+    {
+      "id": "invalid-evidence-state",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/17/data/evidence_state","value":"live_pointer"}],
+      "expected": {"valid":false,"stage":"schema","code":"invalid_evidence_state"}
+    },
+    {
+      "id": "invalid-lifecycle",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/0/lifecycle","value":"archived"}],
+      "expected": {"valid":false,"stage":"schema","code":"invalid_lifecycle"}
+    },
+    {
+      "id": "invalid-decision-state",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/7/data/decision_state","value":"maybe"}],
+      "expected": {"valid":false,"stage":"schema","code":"invalid_type_state"}
+    },
+    {
+      "id": "invalid-supersession-target",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/7/superseded_by/0","value":"decision:missing"}],
+      "expected": {"valid":false,"stage":"semantic","code":"invalid_supersession_reference"}
+    },
+    {
+      "id": "superseded-without-replacement",
+      "mode": "document_patch",
+      "patch": [{"op":"remove","path":"/records/7/superseded_by"}],
+      "expected": {"valid":false,"stage":"semantic","code":"superseded_without_replacement"}
+    },
+    {
+      "id": "external-secret-has-literal-value",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/12/data/value","value":"credential-must-not-be-stored"}],
+      "expected": {"valid":false,"stage":"schema","code":"external_secret_contains_value"}
+    },
+    {
+      "id": "unknown-pems-major",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/semantic","value":"pems/2"}],
+      "expected": {"valid":false,"stage":"schema","code":"unknown_semantic_profile"}
+    },
+    {
+      "id": "required-field-absent",
+      "mode": "document_patch",
+      "patch": [{"op":"remove","path":"/records/26/data/name"}],
+      "expected": {"valid":false,"stage":"schema","code":"required_field_absent"}
+    },
+    {
+      "id": "required-field-null",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/26/data/name","value":null}],
+      "expected": {"valid":false,"stage":"schema","code":"required_field_null"}
+    },
+    {
+      "id": "required-nonempty-string-empty",
+      "mode": "document_patch",
+      "patch": [{"op":"replace","path":"/records/26/data/name","value":""}],
+      "expected": {"valid":false,"stage":"schema","code":"required_string_empty"}
+    },
+    {
+      "id": "canonical-id-collision-different-meaning",
+      "mode": "admission",
+      "canonical_record_id": "module:chunk-streamer",
+      "canonical_identity": {"kind":"module","path":"voxel/chunking/ChunkStreamer.gd"},
+      "candidate_record": {"id":"module:chunk-streamer","kind":"module","lifecycle":"current","observation_refs":[],"data":{"name":"Different Module","path":"voxel/other/Different.gd","domain":"other","public_role":"Different semantic object."}},
+      "expected": {"valid":false,"stage":"admission","code":"canonical_id_collision"}
+    },
+    {
+      "id": "duplicate-semantic-identity-parallel-id",
+      "mode": "admission",
+      "canonical_record_id": "module:chunk-streamer",
+      "canonical_identity": {"kind":"module","path":"voxel/chunking/ChunkStreamer.gd"},
+      "candidate_record": {"id":"module:runtime-streamer-copy","kind":"module","lifecycle":"current","observation_refs":[],"data":{"name":"ChunkStreamer","path":"voxel/chunking/ChunkStreamer.gd","domain":"chunking/runtime","public_role":"Loads and manages residency of precomputed terrain chunks."}},
+      "expected": {"valid":false,"stage":"admission","code":"duplicate_semantic_identity"}
+    },
+    {
+      "id": "same-semantic-identity-reuses-existing-id",
+      "mode": "admission",
+      "canonical_record_id": "module:chunk-streamer",
+      "canonical_identity": {"kind":"module","path":"voxel/chunking/ChunkStreamer.gd"},
+      "candidate_record": {"id":"candidate:module:chunk-streamer","kind":"module","lifecycle":"current","observation_refs":[],"data":{"name":"ChunkStreamer","path":"voxel/chunking/ChunkStreamer.gd","domain":"chunking/runtime","public_role":"Loads and manages residency of precomputed terrain chunks."}},
+      "expected": {"valid":true,"stage":"admission","code":"reuse_existing_id","canonical_id":"module:chunk-streamer"}
+    },
+    {
+      "id": "external-stable-id-does-not-bypass-admission",
+      "mode": "admission",
+      "canonical_record_id": null,
+      "candidate_record": {"id":"pull-request:43","kind":"pull_request","lifecycle":"historical","observation_refs":[],"data":{"repository":"loteque/gdscript-voxel-engine","number":"43","title":"Chunk residency milestone","pull_request_state":"merged","head_branch_id":null}},
+      "expected": {"valid":true,"stage":"admission","code":"candidate_requires_steward_confirmation","canonical_id":"pull-request:43"}
+    },
+    {
+      "id": "unauthorized-historical-compaction",
+      "mode": "retention",
+      "operation": {"remove_record_ids":["decision:canonical-path-old","observation:roadmap:r1"],"retention_policy_id":null},
+      "expected": {"valid":false,"stage":"retention","code":"retention_policy_required"}
+    },
+    {
+      "id": "null-absent-empty-must-not-collapse",
+      "mode": "normalization_invariant",
+      "inputs": [
+        {"data":{}},
+        {"data":{"rationale":null}},
+        {"data":{"blocker_ids":[]}}
+      ],
+      "expected": {"valid":true,"stage":"normalization","code":"states_remain_distinct"}
+    }
+  ]
+}
