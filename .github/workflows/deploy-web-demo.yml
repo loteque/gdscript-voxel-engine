@@ -7,6 +7,7 @@ on:
       - nf/integration
       - large-asteroid-validation
       - resource-loading-analysis
+      - runtime-workload-isolation
   workflow_dispatch:
 
 permissions:
@@ -48,7 +49,7 @@ jobs:
             echo "streaming_manifest_url=../../versions.json" >> "$GITHUB_OUTPUT"
             echo "publication_type=release" >> "$GITHUB_OUTPUT"
             echo "Publishing immutable release $VERSION"
-          elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "large-asteroid-validation" ] || [ "$GITHUB_REF_NAME" = "resource-loading-analysis" ]; then
+          elif [ "$GITHUB_REF_NAME" = "nf/integration" ] || [ "$GITHUB_REF_NAME" = "large-asteroid-validation" ] || [ "$GITHUB_REF_NAME" = "resource-loading-analysis" ] || [ "$GITHUB_REF_NAME" = "runtime-workload-isolation" ]; then
             echo "release_id=integration" >> "$GITHUB_OUTPUT"
             echo "release_label=Integration Preview" >> "$GITHUB_OUTPUT"
             echo "archive_path=preview/integration" >> "$GITHUB_OUTPUT"
@@ -116,6 +117,12 @@ jobs:
       - name: Bake streaming demo terrain fixture
         run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
 
+      - name: Record streaming experiment revision
+        shell: bash
+        run: |
+          mkdir -p demo/generated
+          printf '%s\n' "$GITHUB_SHA" > demo/generated/build_revision.txt
+
       - name: Export runtime streaming validation demo
         shell: bash
         run: |
@@ -134,7 +141,7 @@ jobs:
 
           for index, line in enumerate(lines):
               if line.startswith(prefix):
-                  lines[index] = 'run/main_scene="res://demo/ChunkStreamingValidationDemo.tscn"'
+                  lines[index] = 'run/main_scene="res://demo/RuntimeWorkloadExperiment.tscn"'
                   replaced = True
                   break
 
@@ -181,7 +188,7 @@ jobs:
             "$CURRENT_RELEASE_ID" \
             "$CURRENT_RELEASE_LABEL" \
             streaming \
-            "Runtime Streaming Validation Demo" \
+            "Chunk Streamer Runtime Workload Isolation" \
             "$STREAMING_MANIFEST_URL"
 
       - name: Preserve exported builds
