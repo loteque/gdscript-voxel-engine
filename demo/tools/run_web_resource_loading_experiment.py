@@ -29,6 +29,24 @@ class IsolationHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+def extract_result_payload(line: str) -> dict[str, object] | None:
+    """Extract one experiment JSON object from Chromium console-log output."""
+    marker = line.find(RESULT_PREFIX)
+    if marker < 0:
+        return None
+
+    candidate = line[marker + len(RESULT_PREFIX):]
+    object_start = candidate.find("{")
+    if object_start < 0:
+        return None
+
+    try:
+        payload, _ = json.JSONDecoder().raw_decode(candidate[object_start:])
+    except json.JSONDecodeError:
+        return None
+    return payload if isinstance(payload, dict) else None
+
+
 def serve(directory: pathlib.Path) -> tuple[socketserver.TCPServer, int]:
     handler = lambda *args, **kwargs: IsolationHandler(*args, directory=str(directory), **kwargs)
     server = socketserver.TCPServer(("127.0.0.1", 0), handler)
@@ -78,15 +96,9 @@ def main() -> int:
             if line:
                 captured.append(line)
                 print(line, end="")
-                marker = line.find(RESULT_PREFIX)
-                if marker >= 0:
-                    candidate = line[marker + len(RESULT_PREFIX):].strip()
-                    try:
-                        payload = json.loads(candidate)
-                    except json.JSONDecodeError:
-                        pass
-                    if payload is not None:
-                        break
+                payload = extract_result_payload(line)
+                if payload is not None:
+                    break
             elif process.poll() is not None:
                 break
             else:
