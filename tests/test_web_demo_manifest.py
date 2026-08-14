@@ -71,7 +71,7 @@ class WebDemoManifestTests(unittest.TestCase):
         self.assertIn('progressive_web_app/enabled=true', presets)
         self.assertIn('progressive_web_app/ensure_cross_origin_isolation_headers=true', presets)
 
-    def test_mutable_streaming_preview_promotes_new_service_worker(self) -> None:
+    def test_mutable_streaming_preview_uses_revisioned_cache_without_lifecycle_overrides(self) -> None:
         workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("Refresh mutable streaming preview clients", workflow)
         self.assertIn("if: steps.publication.outputs.publication_type == 'preview'", workflow)
@@ -80,25 +80,25 @@ class WebDemoManifestTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temporary_directory:
             worker = Path(temporary_directory) / "index.service.worker.js"
-            worker.write_text(
+            original = (
                 "const CACHE_VERSION = 'test';\n"
                 "self.addEventListener('install', (event) => {});\n"
                 "self.addEventListener('activate', (event) => {});\n"
-                "self.addEventListener(\n\t'fetch',\n\t(event) => {}\n);\n",
-                encoding="utf-8",
+                "self.addEventListener(\n\t'fetch',\n\t(event) => {}\n);\n"
             )
-            command = ["python", str(PREVIEW_WORKER_SCRIPT), str(worker)]
+            worker.write_text(original, encoding="utf-8")
+            revision = "abc123"
+            command = ["python", str(PREVIEW_WORKER_SCRIPT), str(worker), revision]
             subprocess.run(command, cwd=REPOSITORY_ROOT, check=True)
-            once = worker.read_text(encoding="utf-8")
-            subprocess.run(command, cwd=REPOSITORY_ROOT, check=True)
-            twice = worker.read_text(encoding="utf-8")
+            patched = worker.read_text(encoding="utf-8")
 
-            self.assertEqual(once, twice)
-            self.assertIn("MUTABLE_PREVIEW_IMMEDIATE_UPDATE", once)
-            self.assertIn("self.skipWaiting()", once)
-            self.assertIn("self.clients.claim()", once)
-            self.assertNotIn("client.navigate", once)
-            self.assertNotIn("clients.matchAll", once)
+            self.assertIn("const CACHE_VERSION = 'preview-abc123';", patched)
+            self.assertEqual(patched.count("self.addEventListener('install'"), 1)
+            self.assertEqual(patched.count("self.addEventListener('activate'"), 1)
+            self.assertNotIn("skipWaiting", patched)
+            self.assertNotIn("clients.claim", patched)
+            self.assertNotIn("client.navigate", patched)
+            self.assertNotIn("MUTABLE_PREVIEW_IMMEDIATE_UPDATE", patched)
 
     def _build_manifest(self, archive: Path) -> None:
         subprocess.run(["python", str(MANIFEST_SCRIPT), str(archive)], cwd=REPOSITORY_ROOT, check=True)
