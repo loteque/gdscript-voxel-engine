@@ -12,65 +12,410 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Identify exact recovery mutation
+      - name: Reproduce validate and persist final closeout artifacts
         shell: bash
         run: |
-          python3 - <<'PY'
-          import json,hashlib,copy,itertools
-          base=json.load(open('docs/project-chat-handoff.json'))
-          target='090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7'
-          old='Phase 8 technical cutover is complete and final Steward governance closeout is pending.'
-          phrases=[
-          'Phase 8 technical cutover and final Steward governance closeout are complete.',
-          'Phase 8 technical cutover is complete and final Steward governance closeout is complete.',
-          'Phase 8 technical cutover is complete and final Steward governance closeout is now complete.',
-          'Phase 8 technical cutover is complete and final Steward governance closeout is accepted complete.',
-          'Phase 8 technical cutover is complete and final Steward governance closeout is accepted/complete.',
-          'Phase 8 technical cutover is complete and post-cutover governance closeout is complete.',
-          'Phase 8 technical cutover and post-cutover governance closeout are complete.',
-          'Phase 8 technical cutover is accepted complete and final Steward governance closeout is complete.',
-          'Phase 8 technical cutover and final Steward governance closeout are accepted complete.',
-          'Phase 8 technical cutover is complete; final Steward governance closeout is complete.',
-          'Phase 8 technical cutover is complete. Final Steward governance closeout is complete.',
-          'Phase 8 technical cutover is complete and Phase 8/post-cutover governance is fully closed.',
-          'Phase 8 technical cutover is complete and post-cutover canonical reconciliation and governance closeout are complete.',
-          'Phase 8 technical cutover and post-cutover canonical reconciliation/governance closeout are complete.',
-          'Phase 8 technical cutover is complete and post-cutover canonical reconciliation/governance closeout is complete.'
-          ]
-          ids=('pems:decision:5fa3241c8b9bc2787b6d','pems:source_observation:15b32d4adb9bcfa4fc94')
-          def canon(d): return json.dumps(d,ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()
-          def build(phrase,bits):
-            chat_obs,cont_obs,hv,old_obs,dec_obs,project_obs,rationale,obs_current=bits
-            d=copy.deepcopy(base); did,oid=ids
-            for r in d['records']:
-              if r['id']=='pems:decision:abe7b5d5efc6d7232e72':
-                r['lifecycle']='superseded';r['superseded_by']=[did]
-                if old_obs:r['observation_refs']=sorted(set(r['observation_refs']+[oid]))
-              elif r['id']=='pems:chat:7da38ee068988502fe3b':
-                r['data']['summary']=r['data']['summary'].replace(old,phrase)
-                if chat_obs:r['observation_refs']=sorted(set(r['observation_refs']+[oid]))
-              elif r['id']=='pems:continuation:7da38ee068988502fe3b':
-                r['data']['current_focus']=r['data']['current_focus'].replace(old,phrase)
-                if cont_obs:r['observation_refs']=sorted(set(r['observation_refs']+[oid]))
-                if hv:r['data']['high_value_record_ids']=sorted(set(r['data']['high_value_record_ids']+[did]))
-              elif r['id']=='pems:project:f16c91ec0a6e67eb2e1d' and project_obs:
-                r['observation_refs']=sorted(set(r['observation_refs']+[oid]))
-            data={'decision_state':'accepted','summary':'Engineering-memory representation workstream field \'phase8_status\' is "accepted_complete".'}
-            if rationale:data['rationale']=None
-            d['records'] += [
-              {'data':data,'id':did,'kind':'decision','lifecycle':'current','observation_refs':([oid] if dec_obs else []),'supersedes':['pems:decision:abe7b5d5efc6d7232e72']},
-              {'data':{'captured_fingerprint':'sha256:ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa','evidence_locator':{'commit':'3ad4794f6ef89ecdde5077acee49c7d6844961f8','path':'docs/project-chat-handoff.cove.json','repository':'loteque/gdscript-voxel-engine'},'evidence_state':'immutable_snapshot','observed_at':'2026-08-14T10:03:17-07:00','source_id':'pems:source:eb92b21e7f3c92db6d23'},'id':oid,'kind':'source_observation','lifecycle':('current' if obs_current else 'historical'),'observation_refs':[]}
-            ]
-            d['records']=sorted(d['records'],key=lambda r:r['id'].encode())
-            return d
-          near=[]
-          for phrase in phrases:
-            for bits in itertools.product([False,True],repeat=8):
-              d=build(phrase,bits); b=canon(d); h=hashlib.sha256(b).hexdigest()
-              if h==target:
-                print('EXACT',repr(phrase),bits,len(b));raise SystemExit(0)
-              if len(b)==66860: near.append((h,phrase,bits))
-          print('NO_EXACT; exact-size variants',len(near))
-          for x in near[:100]:print(x)
-          raise SystemExit(2)
+          set -euo pipefail
+          rm -rf /tmp/accepted-pems-cove
+          mkdir -p /tmp/accepted-pems-cove
+          git archive origin/post-cutover-admitted-regeneration tools | tar -x -C /tmp/accepted-pems-cove
+          python3 -m pip install -q jsonschema rfc8785
+          PYTHONPATH=/tmp/accepted-pems-cove python3 - <<'PY'
+          from __future__ import annotations
+          import copy
+          import hashlib
+          import json
+          from pathlib import Path
+
+          from tools.cove.cove_v1 import decode, encode
+          from tools.cove.jcs_v1 import canonicalize, parse_canonical, serialize_cove
+          from tools.pems import normalize_document, semantic_identity, validate_schema, validate_semantics
+          from tools.pems.human_export import render_human_markdown
+
+          root = Path('.')
+          base_expanded_path = root / 'docs/project-chat-handoff.json'
+          base_cove_path = root / 'docs/project-chat-handoff.cove.json'
+          schema = json.loads((root / 'docs/handoff/pems/pems-v1.schema.json').read_text(encoding='utf-8'))
+
+          def sha256(data: bytes) -> str:
+              return hashlib.sha256(data).hexdigest()
+
+          def git_blob_sha(data: bytes) -> str:
+              header = f'blob {len(data)}\0'.encode('ascii')
+              return hashlib.sha1(header + data).hexdigest()
+
+          base_expanded_bytes = base_expanded_path.read_bytes()
+          base_cove_bytes = base_cove_path.read_bytes()
+          assert len(base_expanded_bytes) == 65793
+          assert sha256(base_expanded_bytes) == 'bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038'
+          assert git_blob_sha(base_expanded_bytes) == '10de73e29e0118b63a365dd47b566307c9a0b98b'
+          assert len(base_cove_bytes) == 38053
+          assert sha256(base_cove_bytes) == 'ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa'
+          assert git_blob_sha(base_cove_bytes) == '0ed7fd47dc5bf6a81078389cd9bc65e0864ad3be'
+
+          base = json.loads(base_expanded_bytes.decode('utf-8'))
+          base = normalize_document(base)
+          assert len(base['records']) == 163
+          assert len(base['relations']) == 0
+          assert canonicalize(base) == base_expanded_bytes
+          assert validate_schema(base, schema=schema).valid
+          assert validate_semantics(base).valid
+
+          base_records = {record['id']: record for record in base['records']}
+          base_ids = set(base_records)
+          assert len(base_ids) == 163
+
+          old_pending = 'pems:decision:abe7b5d5efc6d7232e72'
+          candidate_decision = 'candidate:decision:5fa3241c8b9bc2787b6d'
+          admitted_decision = 'pems:decision:5fa3241c8b9bc2787b6d'
+          candidate_observation = 'candidate:source_observation:15b32d4adb9bcfa4fc94'
+          admitted_observation = 'pems:source_observation:15b32d4adb9bcfa4fc94'
+          old_sentence = 'Phase 8 technical cutover is complete and final Steward governance closeout is pending.'
+          complete_sentence = 'Phase 8 technical cutover and final Steward governance closeout are complete.'
+          exact_decision_summary = 'Engineering-memory representation workstream field \'phase8_status\' is "accepted_complete".'
+
+          def build(*, admitted: bool) -> dict:
+              doc = copy.deepcopy(base)
+              decision_id = admitted_decision if admitted else candidate_decision
+              observation_id = admitted_observation if admitted else candidate_observation
+
+              for record in doc['records']:
+                  rid = record['id']
+                  if rid == old_pending:
+                      assert record['data']['summary'] == 'Engineering-memory representation workstream field \'phase8_status\' is "technical_cutover_complete_pending_steward_governance_closeout".'
+                      record['lifecycle'] = 'superseded'
+                      record['superseded_by'] = [decision_id]
+                      record['observation_refs'] = sorted(set(record.get('observation_refs', []) + [observation_id]), key=lambda s: s.encode('utf-8'))
+                  elif rid == 'pems:chat:7da38ee068988502fe3b':
+                      assert old_sentence in record['data']['summary']
+                      record['data']['summary'] = record['data']['summary'].replace(old_sentence, complete_sentence)
+                      record['observation_refs'] = sorted(set(record.get('observation_refs', []) + [observation_id]), key=lambda s: s.encode('utf-8'))
+                  elif rid == 'pems:continuation:7da38ee068988502fe3b':
+                      assert old_sentence in record['data']['current_focus']
+                      record['data']['current_focus'] = record['data']['current_focus'].replace(old_sentence, complete_sentence)
+                      record['observation_refs'] = sorted(set(record.get('observation_refs', []) + [observation_id]), key=lambda s: s.encode('utf-8'))
+
+              doc['records'].append({
+                  'data': {
+                      'decision_state': 'accepted',
+                      'rationale': None,
+                      'summary': exact_decision_summary,
+                  },
+                  'id': decision_id,
+                  'kind': 'decision',
+                  'lifecycle': 'current',
+                  'observation_refs': [observation_id],
+                  'supersedes': [old_pending],
+              })
+              doc['records'].append({
+                  'data': {
+                      'captured_fingerprint': 'sha256:ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa',
+                      'evidence_locator': {
+                          'commit': '3ad4794f6ef89ecdde5077acee49c7d6844961f8',
+                          'path': 'docs/project-chat-handoff.cove.json',
+                          'repository': 'loteque/gdscript-voxel-engine',
+                      },
+                      'evidence_state': 'immutable_snapshot',
+                      'observed_at': '2026-08-14T10:03:17-07:00',
+                      'source_id': 'pems:source:eb92b21e7f3c92db6d23',
+                  },
+                  'id': observation_id,
+                  'kind': 'source_observation',
+                  'lifecycle': 'historical',
+                  'observation_refs': [],
+              })
+              return normalize_document(doc)
+
+          candidate = build(admitted=False)
+          contingent = build(admitted=True)
+
+          expected = {
+              'candidate_pems': (66895, '1d2378cf19a247256c327dd8f12ed639c7508dba555fa7c7a92df44fd98b98ba'),
+              'candidate_cove': (38628, '0b4a7478469c28e9d44b8358dd0ca21ec8cbb1135bb33ba29afe14f2bddb0a43'),
+              'candidate_human': (68552, '2d63d2c6765bd92d906a330864e8f59c0350c885d824f56279a660184675f9f0'),
+              'contingent_pems': (66860, '090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7'),
+              'contingent_cove': (38618, 'a7ca5962c354161840822ce406bddd405296e4855afd2b0481f05f904291dc1a'),
+              'contingent_human': (68522, 'f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c'),
+          }
+
+          artifact_bytes: dict[str, bytes] = {}
+          artifact_bytes['candidate_pems'] = canonicalize(candidate)
+          artifact_bytes['candidate_cove'] = serialize_cove(encode(candidate, profile='pems/1', serializer='jcs/1'))
+          artifact_bytes['candidate_human'] = render_human_markdown(candidate).encode('utf-8')
+          artifact_bytes['contingent_pems'] = canonicalize(contingent)
+          artifact_bytes['contingent_cove'] = serialize_cove(encode(contingent, profile='pems/1', serializer='jcs/1'))
+          artifact_bytes['contingent_human'] = render_human_markdown(contingent).encode('utf-8')
+
+          for name, payload in artifact_bytes.items():
+              exp_bytes, exp_sha = expected[name]
+              assert len(payload) == exp_bytes, (name, len(payload), exp_bytes)
+              assert sha256(payload) == exp_sha, (name, sha256(payload), exp_sha)
+
+          for doc, prefix in ((candidate, 'candidate'), (contingent, 'contingent')):
+              assert len(doc['records']) == 165
+              assert len(doc['relations']) == 0
+              ids = [r['id'] for r in doc['records']]
+              assert len(ids) == len(set(ids)) == 165
+              assert base_ids.issubset(set(ids))
+              assert validate_schema(doc, schema=schema).valid
+              semantics = validate_semantics(doc)
+              assert semantics.valid, semantics.diagnostics
+              now = {r['id']: r for r in doc['records']}
+              rebound = [rid for rid in sorted(base_ids) if semantic_identity(now[rid]) != semantic_identity(base_records[rid])]
+              assert rebound == [], rebound
+              for historical_id in (
+                  'pems:decision:b54a6445b1ce2b815b56',
+                  'pems:source_observation:5b206d4358781f93074b',
+                  'pems:source_observation:8c186a6ca2398e0cfe5e',
+                  'pems:source_observation:be6819991bf46e7cc226',
+                  old_pending,
+              ):
+                  assert historical_id in now
+              compact = artifact_bytes[prefix + '_cove']
+              parsed = parse_canonical(compact)
+              decoded = decode(parsed, supported_profiles={'pems/1'})
+              assert decoded == doc
+              assert serialize_cove(encode(decoded, profile='pems/1', serializer='jcs/1')) == compact
+              assert canonicalize(normalize_document(doc)) == artifact_bytes[prefix + '_pems']
+              assert render_human_markdown(doc).encode('utf-8') == artifact_bytes[prefix + '_human']
+
+          paths = {
+              'candidate_pems': root / 'docs/handoff/pems/final-closeout.candidate.pems.json',
+              'candidate_cove': root / 'docs/handoff/pems/final-closeout.candidate.cove.json',
+              'candidate_human': root / 'docs/handoff/pems/final-closeout.candidate.md',
+              'contingent_pems': root / 'docs/handoff/pems/final-closeout.contingent-admitted.pems.json',
+              'contingent_cove': root / 'docs/handoff/pems/final-closeout.contingent-admitted.cove.json',
+              'contingent_human': root / 'docs/handoff/pems/final-closeout.contingent-admitted.md',
+          }
+          for key, path in paths.items():
+              path.write_bytes(artifact_bytes[key])
+          # Compatibility aliases intentionally share exact PEMS bytes.
+          candidate_expanded = root / 'docs/handoff/pems/final-closeout.candidate.expanded.json'
+          contingent_expanded = root / 'docs/handoff/pems/final-closeout.contingent-admitted.expanded.json'
+          candidate_expanded.write_bytes(artifact_bytes['candidate_pems'])
+          contingent_expanded.write_bytes(artifact_bytes['contingent_pems'])
+
+          artifact_manifest = {}
+          for key, path in paths.items():
+              payload = path.read_bytes()
+              artifact_manifest[str(path)] = {
+                  'bytes': len(payload),
+                  'sha256': sha256(payload),
+                  'git_blob_sha': git_blob_sha(payload),
+              }
+          for path in (candidate_expanded, contingent_expanded):
+              payload = path.read_bytes()
+              artifact_manifest[str(path)] = {
+                  'bytes': len(payload),
+                  'sha256': sha256(payload),
+                  'git_blob_sha': git_blob_sha(payload),
+              }
+
+          evidence = {
+              'status': 'persisted_ready_for_steward_confirmation',
+              'authority': {
+                  'architect_admission_performed': False,
+                  'canonical_authority_unchanged': 'docs/project-chat-handoff.cove.json',
+                  'contingent_admitted_variant_requires_steward_confirmation': True,
+              },
+              'base_canonical': {
+                  'commit': '3ad4794f6ef89ecdde5077acee49c7d6844961f8',
+                  'record_count': 163,
+                  'cove': {'path': 'docs/project-chat-handoff.cove.json', 'git_blob_sha': '0ed7fd47dc5bf6a81078389cd9bc65e0864ad3be', 'bytes': 38053, 'sha256': 'ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa'},
+                  'expanded': {'path': 'docs/project-chat-handoff.json', 'git_blob_sha': '10de73e29e0118b63a365dd47b566307c9a0b98b', 'bytes': 65793, 'sha256': 'bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038'},
+              },
+              'candidate_to_contingent_admitted_id_map': {
+                  candidate_decision: admitted_decision,
+                  candidate_observation: admitted_observation,
+              },
+              'record_count_before': 163,
+              'record_count_after': 165,
+              'relation_count': 0,
+              'existing_ids_preserved': 163,
+              'missing_existing_ids': [],
+              'rebound_existing_ids': [],
+              'identity_collisions': [],
+              'history_preserved_ids': [
+                  old_pending,
+                  'pems:decision:b54a6445b1ce2b815b56',
+                  'pems:source_observation:5b206d4358781f93074b',
+                  'pems:source_observation:8c186a6ca2398e0cfe5e',
+                  'pems:source_observation:be6819991bf46e7cc226',
+              ],
+              'pending_status_supersession': {
+                  'from': old_pending,
+                  'candidate_to': candidate_decision,
+                  'contingent_admitted_to': admitted_decision,
+                  'new_summary': exact_decision_summary,
+              },
+              'new_source_observation': {
+                  'candidate_id': candidate_observation,
+                  'contingent_admitted_id': admitted_observation,
+                  'source_id': 'pems:source:eb92b21e7f3c92db6d23',
+                  'captured_commit': '3ad4794f6ef89ecdde5077acee49c7d6844961f8',
+                  'captured_sha256': 'ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa',
+                  'observed_at': '2026-08-14T10:03:17-07:00',
+              },
+              'artifacts': artifact_manifest,
+              'validation': {
+                  'schema_valid': True,
+                  'semantic_valid': True,
+                  'all_references_resolve': True,
+                  'supersession_reciprocal': True,
+                  'candidate_cove_round_trip_valid': True,
+                  'contingent_admitted_cove_round_trip_valid': True,
+                  'candidate_expanded_byte_repeat_identical': True,
+                  'candidate_canonical_byte_repeat_identical': True,
+                  'candidate_human_reconstruction_repeat_identical': True,
+                  'contingent_admitted_expanded_byte_repeat_identical': True,
+                  'contingent_admitted_canonical_byte_repeat_identical': True,
+                  'contingent_admitted_human_reconstruction_repeat_identical': True,
+                  'recovery_hashes_match_exactly': True,
+              },
+              'accepted_tooling_source': 'origin/post-cutover-admitted-regeneration',
+              'recovery_evidence_commits': [
+                  '894844702668f2ef6c1e4e2c58f3de2bef33d377',
+                  '8d51cec4fd19bd62ebbb8a4132675c7cb3a6760d',
+              ],
+          }
+          evidence_path = root / 'docs/handoff/pems/final-closeout-regeneration.persisted.evidence.json'
+          evidence_bytes = (json.dumps(evidence, indent=2, sort_keys=True, ensure_ascii=False) + '\n').encode('utf-8')
+          evidence_path.write_bytes(evidence_bytes)
+
+          # Complete-source append-only repair: current notes bytes must be the immutable blob previously verified by the Architect.
+          notes_path = root / 'docs/handoff/architect_notes.md'
+          prior_notes = notes_path.read_bytes()
+          assert git_blob_sha(prior_notes) == 'cc835535407a39f6a69e3d1accb2ed5a0ba1360e'
+          recovery_path = root / 'docs/handoff/pems/final-closeout-architect-notes-append.md'
+          recovery_bytes = recovery_path.read_bytes()
+          marker = b'## ARCH-20260814T100300-0700-019'
+          assert marker not in prior_notes
+          exact_append = recovery_bytes[recovery_bytes.index(marker):]
+          separator = b'' if prior_notes.endswith(b'\n\n') else (b'\n' if prior_notes.endswith(b'\n') else b'\n\n')
+          notes_after_recovery = prior_notes + separator + exact_append
+          assert notes_after_recovery[:len(prior_notes)] == prior_notes
+
+          def artifact_line(path: str) -> str:
+              meta = artifact_manifest[path]
+              return f"- `{path}` — Git blob `{meta['git_blob_sha']}`; {meta['bytes']:,} bytes; SHA-256 `{meta['sha256']}`."
+
+          final_note = f'''\n## ARCH-20260814T123200-0700-021
+
+- timestamp: `2026-08-14T12:32:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: `ARCH-20260814T100300-0700-019`, `ARCH-20260814T100300-0700-020`, and project-owner persistence-repair authorization
+- subject: Final governance-closeout persistence repair complete; Steward-ready artifacts durable
+
+### Assessment
+
+The prior persistence blocker is resolved using a bounded repository-native workflow transport. The final 165-record post-closeout transition was independently reproduced from the exact 163-record canonical base with the accepted PEMS normalizer, COVE v1 codec, and `jcs/1` serializer. The reproduced candidate and contingent-admitted PEMS, COVE, and human artifacts match every hash and byte count recorded by the earlier recovery evidence.
+
+All 163 existing admitted semantic identities are present with zero missing identities, collisions, or rebindings. `pems:decision:abe7b5d5efc6d7232e72` remains preserved as superseded history and gains provenance to the new canonical observation. The new current decision has exact summary `Engineering-memory representation workstream field 'phase8_status' is "accepted_complete".` The Steward chat and continuation retain their identities while their mutable current summary/focus state now says governance closeout is complete.
+
+### Confirmed contingent admission map
+
+- `candidate:decision:5fa3241c8b9bc2787b6d` -> `pems:decision:5fa3241c8b9bc2787b6d`
+- `candidate:source_observation:15b32d4adb9bcfa4fc94` -> `pems:source_observation:15b32d4adb9bcfa4fc94`
+
+These `pems:` forms remain contingent evidence only. The Architect has not admitted them; final confirmation belongs to the Project Engineering Steward.
+
+### Persisted Steward-ready artifacts
+
+{artifact_line('docs/handoff/pems/final-closeout.candidate.pems.json')}
+{artifact_line('docs/handoff/pems/final-closeout.candidate.cove.json')}
+{artifact_line('docs/handoff/pems/final-closeout.candidate.md')}
+{artifact_line('docs/handoff/pems/final-closeout.contingent-admitted.pems.json')}
+{artifact_line('docs/handoff/pems/final-closeout.contingent-admitted.cove.json')}
+{artifact_line('docs/handoff/pems/final-closeout.contingent-admitted.md')}
+
+Machine-readable persistence/validation evidence is `docs/handoff/pems/final-closeout-regeneration.persisted.evidence.json`.
+
+### Validation evidence
+
+Both variants contain 165 records and zero relations. Schema and semantic validation pass; all references resolve; reciprocal supersession is valid; historical records and all prior source observations are preserved; COVE decoding reproduces normalized PEMS exactly; repeated expanded `jcs/1`, compact `jcs/1`, and human reconstruction are byte-identical. Exact recovery hashes match, including contingent-admitted expanded SHA-256 `090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7`, COVE SHA-256 `a7ca5962c354161840822ce406bddd405296e4855afd2b0481f05f904291dc1a`, and human SHA-256 `f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c`.
+
+The canonical Steward-owned files were re-hashed before this persistence write and remain the unchanged 163-record base: COVE blob `0ed7fd47dc5bf6a81078389cd9bc65e0864ad3be` / SHA-256 `ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa`, and expanded derivative blob `10de73e29e0118b63a365dd47b566307c9a0b98b` / SHA-256 `bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038`.
+
+### Steward handoff
+
+Verify the machine-readable evidence and the persisted Git blob identities above. If the two new identities are accepted, confirm the namespace-preserving admission map and install `docs/handoff/pems/final-closeout.contingent-admitted.cove.json` as canonical `docs/project-chat-handoff.cove.json` and the byte-identical expanded/PEMS artifact as `docs/project-chat-handoff.json`, then post-write verify the exact hashes and record governance closeout in Steward-owned history.
+
+### Human reasoning
+
+The original transport blocker was narrower than the repository's actual capabilities. Repository-native execution could generate large deterministic blobs in the working tree and commit them without manually retranscribing them through a size-limited connector. The first attempt correctly hard-stopped when an independently reconstructed semantic mutation failed the recovery hashes; the exact prior mutation was then recovered cryptographically and revalidated through the accepted implementation before persistence. This preserves the distinction between evidence and assertion while turning the previously computed-only state into independently fetchable Git evidence.
+'''.encode('utf-8')
+          notes_path.write_bytes(notes_after_recovery.rstrip(b'\n') + b'\n' + final_note)
+          final_notes = notes_path.read_bytes()
+          assert final_notes[:len(prior_notes)] == prior_notes
+          assert final_notes.count(b'## ARCH-20260814T100300-0700-019') == 1
+          assert final_notes.count(b'## ARCH-20260814T100300-0700-020') == 1
+          assert final_notes.count(b'## ARCH-20260814T123200-0700-021') == 1
+
+          # Final pre-commit authority guard: Architect must not mutate Steward canonical files.
+          assert base_cove_path.read_bytes() == base_cove_bytes
+          assert base_expanded_path.read_bytes() == base_expanded_bytes
+
+          print(json.dumps({
+              'candidate': {
+                  'expanded': artifact_manifest['docs/handoff/pems/final-closeout.candidate.pems.json'],
+                  'cove': artifact_manifest['docs/handoff/pems/final-closeout.candidate.cove.json'],
+                  'human': artifact_manifest['docs/handoff/pems/final-closeout.candidate.md'],
+              },
+              'contingent_admitted': {
+                  'expanded': artifact_manifest['docs/handoff/pems/final-closeout.contingent-admitted.pems.json'],
+                  'cove': artifact_manifest['docs/handoff/pems/final-closeout.contingent-admitted.cove.json'],
+                  'human': artifact_manifest['docs/handoff/pems/final-closeout.contingent-admitted.md'],
+              },
+              'notes_blob_before': 'cc835535407a39f6a69e3d1accb2ed5a0ba1360e',
+              'notes_blob_after_expected': git_blob_sha(final_notes),
+              'evidence_blob_expected': git_blob_sha(evidence_bytes),
+          }, indent=2, sort_keys=True))
           PY
+
+          # The transport workflow is one-shot infrastructure for this bounded repair and must not remain in the resulting tree.
+          rm .github/workflows/architect-persistence-repair.yml
+
+          # Explicitly stage only Architect-owned artifacts plus deletion of the temporary transport.
+          git add docs/handoff/architect_notes.md \
+            docs/handoff/pems/final-closeout.candidate.pems.json \
+            docs/handoff/pems/final-closeout.candidate.expanded.json \
+            docs/handoff/pems/final-closeout.candidate.cove.json \
+            docs/handoff/pems/final-closeout.candidate.md \
+            docs/handoff/pems/final-closeout.contingent-admitted.pems.json \
+            docs/handoff/pems/final-closeout.contingent-admitted.expanded.json \
+            docs/handoff/pems/final-closeout.contingent-admitted.cove.json \
+            docs/handoff/pems/final-closeout.contingent-admitted.md \
+            docs/handoff/pems/final-closeout-regeneration.persisted.evidence.json \
+            .github/workflows/architect-persistence-repair.yml
+
+          # Scope guard: no Steward-owned canonical artifacts, production files, ADRs, roadmap, demos, or tests may be staged.
+          git diff --cached --name-only | tee /tmp/staged-files.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          paths = Path('/tmp/staged-files.txt').read_text().splitlines()
+          allowed = {
+              'docs/handoff/architect_notes.md',
+              'docs/handoff/pems/final-closeout.candidate.pems.json',
+              'docs/handoff/pems/final-closeout.candidate.expanded.json',
+              'docs/handoff/pems/final-closeout.candidate.cove.json',
+              'docs/handoff/pems/final-closeout.candidate.md',
+              'docs/handoff/pems/final-closeout.contingent-admitted.pems.json',
+              'docs/handoff/pems/final-closeout.contingent-admitted.expanded.json',
+              'docs/handoff/pems/final-closeout.contingent-admitted.cove.json',
+              'docs/handoff/pems/final-closeout.contingent-admitted.md',
+              'docs/handoff/pems/final-closeout-regeneration.persisted.evidence.json',
+              '.github/workflows/architect-persistence-repair.yml',
+          }
+          assert set(paths) <= allowed, paths
+          assert 'docs/project-chat-handoff.cove.json' not in paths
+          assert 'docs/project-chat-handoff.json' not in paths
+          assert 'docs/handoff/steward_notes.md' not in paths
+          assert 'docs/handoff/steward_directive.md' not in paths
+          PY
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs: persist final closeout regeneration artifacts'
+          git push origin HEAD:project-chat-handoff
