@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1786735545|2653805';
+const CACHE_VERSION = 'preview-732e4d99f4b90c27c7c10ac5fe48595050989bf2';
 /** @type {string} */
 const CACHE_PREFIX = 'smooth_voxel_tec-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
@@ -162,16 +162,5 @@ self.addEventListener('message', (event) => {
 			self.skipWaiting().then(() => self.clients.claim()).then(() => self.clients.matchAll()).then((all) => all.forEach((c) => c.navigate(c.url)));
 		}
 	});
-});
-
-// MUTABLE_PREVIEW_IMMEDIATE_UPDATE
-// Integration Preview is mutable. Promote each newly deployed worker immediately
-// and let it control existing clients without forcing navigation during activation.
-self.addEventListener('install', (event) => {
-	event.waitUntil(self.skipWaiting());
-});
-
-self.addEventListener('activate', (event) => {
-	event.waitUntil(self.clients.claim());
 });
 
