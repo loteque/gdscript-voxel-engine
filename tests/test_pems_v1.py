@@ -14,6 +14,9 @@ from tools.pems import (
 from tools.pems.pems_v1 import default_success_fixture_path
 
 
+MAX_INTEROPERABLE_INTEGER = 9007199254740991
+
+
 class PemsV1Phase2Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -26,6 +29,27 @@ class PemsV1Phase2Tests(unittest.TestCase):
     def test_success_fixture_is_structurally_and_semantically_valid(self) -> None:
         self.assertTrue(validate_schema(self.success).valid)
         self.assertTrue(validate_semantics(self.success).valid)
+
+    def test_interoperable_integer_boundary_is_enforced_by_schema(self) -> None:
+        safe = copy.deepcopy(self.success)
+        unsafe = copy.deepcopy(self.success)
+
+        safe_observation = next(
+            record for record in safe["records"] if record["kind"] == "source_observation"
+        )
+        unsafe_observation = next(
+            record for record in unsafe["records"] if record["kind"] == "source_observation"
+        )
+        safe_observation["data"]["evidence_locator"]["line_start"] = MAX_INTEROPERABLE_INTEGER
+        unsafe_observation["data"]["evidence_locator"]["line_start"] = MAX_INTEROPERABLE_INTEGER + 1
+
+        self.assertTrue(validate_schema(safe).valid)
+        unsafe_result = validate_schema(unsafe)
+        self.assertFalse(unsafe_result.valid)
+        self.assertTrue(
+            any(diagnostic.path.endswith("/data/evidence_locator/line_start") for diagnostic in unsafe_result.diagnostics),
+            unsafe_result.diagnostics,
+        )
 
     def test_normalization_is_idempotent(self) -> None:
         normalized = normalize_document(self.success)
