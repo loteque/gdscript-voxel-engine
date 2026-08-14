@@ -1,0 +1,211 @@
+name: PEMS Post-Cutover Reconciliation
+on:
+  push:
+    branches: [pems-postcutover-reconciliation]
+permissions:
+  contents: write
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          ref: pems-phase8-cutover
+          path: .representation
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r .representation/tools/pems/requirements.txt -r .representation/tools/cove/requirements.txt
+      - name: Generate and validate post-cutover candidate
+        env:
+          BASE_HANDOFF_COMMIT: ccbeac9d1a5a4b7b9baec69f811a9afd1c6d9fdc
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+          import copy, hashlib, json, os, sys
+          from pathlib import Path
+
+          sys.path.insert(0, str(Path('.representation').resolve()))
+          from tools.cove.cove_v1 import decode, encode
+          from tools.cove.jcs_v1 import canonicalize
+          from tools.pems.human_export import render_human_markdown
+          from tools.pems.pems_v1 import admit_candidate, normalize_document, semantic_identity, validate_schema, validate_semantics
+
+          OUT = Path('/tmp/reconciliation')
+          OUT.mkdir(parents=True, exist_ok=True)
+          CANONICAL_PATH = Path('docs/project-chat-handoff.cove.json')
+          DERIVATIVE_PATH = Path('docs/project-chat-handoff.json')
+          SCHEMA_PATH = Path('.representation/docs/handoff/pems/pems-v1.schema.json')
+          BASE_COMMIT = os.environ['BASE_HANDOFF_COMMIT']
+          OBSERVED_AT = '2026-08-14T09:11:00-07:00'
+          REPOSITORY = 'loteque/gdscript-voxel-engine'
+
+          def jtext(value):
+              return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
+
+          def candidate_id(kind, identity):
+              digest = hashlib.sha256(jtext(identity).encode('utf-8')).hexdigest()[:20]
+              return f'candidate:{kind}:{digest}'
+
+          raw_compact = CANONICAL_PATH.read_bytes()
+          compact = json.loads(raw_compact)
+          compact_bytes = canonicalize(compact)
+          assert raw_compact == compact_bytes + b'\n', 'canonical COVE file is not exact jcs/1 plus newline'
+          assert compact.get('c') == 'cove/1' and compact.get('p') == 'pems/1' and compact.get('s') == 'jcs/1'
+          current = decode(compact, supported_profiles={'pems/1'})
+          raw_derivative = DERIVATIVE_PATH.read_bytes()
+          assert raw_derivative == canonicalize(current) + b'\n', 'compatibility derivative does not match decoded canonical COVE'
+          assert validate_schema(current, schema_path=SCHEMA_PATH).valid
+          assert validate_semantics(current).valid
+
+          before_records = {r['id']: copy.deepcopy(r) for r in current['records']}
+          assert len(before_records) == 156
+          before_identity = {rid: semantic_identity(r) for rid, r in before_records.items()}
+          candidate = copy.deepcopy(current)
+          records = {r['id']: r for r in candidate['records']}
+
+          source_id = candidate_id('source', {'source_kind':'canonical_project_handoff','identity_locator':{'repository':REPOSITORY,'path':'docs/project-chat-handoff.cove.json'}})
+          observation_id = candidate_id('source_observation', {'source_id':source_id,'evidence_state':'immutable_snapshot','observed_at':OBSERVED_AT,'evidence_locator':{'repository':REPOSITORY,'path':'docs/project-chat-handoff.cove.json','commit':BASE_COMMIT}})
+          new_records = [
+              {
+                  'id': source_id, 'kind':'source', 'lifecycle':'current', 'observation_refs':[],
+                  'data': {'source_kind':'canonical_project_handoff','authority':'other','identity_locator':{'repository':REPOSITORY,'path':'docs/project-chat-handoff.cove.json'}},
+              },
+              {
+                  'id': observation_id, 'kind':'source_observation', 'lifecycle':'historical', 'observation_refs':[],
+                  'data': {'source_id':source_id,'evidence_state':'immutable_snapshot','observed_at':OBSERVED_AT,'evidence_locator':{'repository':REPOSITORY,'path':'docs/project-chat-handoff.cove.json','commit':BASE_COMMIT},'captured_fingerprint':'sha256:'+hashlib.sha256(compact_bytes).hexdigest()},
+              },
+          ]
+
+          replacements = {
+              'pems:decision:bfcfdfd0ffc93a3f7e74': 'Engineering-memory representation workstream field \'current_canonical_authority\' is "docs/project-chat-handoff.cove.json".',
+              'pems:decision:ee29b74c5edefb5f52da': 'Engineering-memory representation workstream field \'phase7_status\' is "accepted_complete".',
+              'pems:decision:042dc3b317ef40f58f1a': 'Engineering-memory representation workstream field \'phase8_status\' is "technical_cutover_complete_pending_steward_governance_closeout".',
+              'pems:decision:6c24dc31880b86935095': 'Phase 7 shadow artifacts remain noncanonical historical evidence; the accepted Phase 8 cutover makes docs/project-chat-handoff.cove.json authoritative and docs/project-chat-handoff.json a deterministic compatibility derivative.',
+              'pems:decision:8d0c6d046cdc11f3f4ff': 'The Project Engineering Steward owns reconciliation of canonical PEMS meaning; accepted reconciliation regenerates docs/project-chat-handoff.cove.json canonically and docs/project-chat-handoff.json as its deterministic compatibility derivative.',
+          }
+          replacement_ids = {}
+          for old_id, summary in replacements.items():
+              assert old_id in records
+              new_id = candidate_id('decision', {'summary': summary})
+              replacement_ids[old_id] = new_id
+              old = records[old_id]
+              old['lifecycle'] = 'superseded'
+              old['superseded_by'] = [new_id]
+              old['observation_refs'] = sorted(set(old.get('observation_refs', []) + [observation_id]))
+              new_records.append({
+                  'id':new_id,'kind':'decision','lifecycle':'current','observation_refs':[observation_id],
+                  'supersedes':[old_id],
+                  'data':{'decision_state':'accepted','rationale':None,'summary':summary},
+              })
+
+          # The old candidate-path statement remains historically true but is no longer current after adoption.
+          records['pems:decision:02dc73e1dd6ce2c15903']['lifecycle'] = 'historical'
+          records['pems:decision:02dc73e1dd6ce2c15903']['observation_refs'] = sorted(set(records['pems:decision:02dc73e1dd6ce2c15903'].get('observation_refs', []) + [observation_id]))
+          # Phase 7 scope is complete historical scope, not current execution state.
+          records['pems:decision:43132407f41da59bf87d']['lifecycle'] = 'historical'
+          records['pems:decision:43132407f41da59bf87d']['observation_refs'] = sorted(set(records['pems:decision:43132407f41da59bf87d'].get('observation_refs', []) + [observation_id]))
+
+          steward_chat = records['pems:chat:7da38ee068988502fe3b']
+          current_summary = ('Created the project handoff and stewarded its engineering-memory migration through the frozen PEMS/COVE v1 sequence. '
+                             'Phases 1 through 7 are accepted complete and the verified Phase 8 cutover makes docs/project-chat-handoff.cove.json canonical, '
+                             'with docs/project-chat-handoff.json as its deterministic compatibility derivative. Phase 8 technical cutover is complete and final Steward governance closeout is pending. '
+                             'Complete-source repository-write safety remains mandatory for append-only and history-sensitive artifacts.')
+          steward_chat['data']['summary'] = current_summary
+          steward_chat['observation_refs'] = sorted(set(steward_chat.get('observation_refs', []) + [observation_id]))
+          continuation = records['pems:continuation:7da38ee068988502fe3b']
+          continuation['data']['current_focus'] = current_summary
+          continuation['observation_refs'] = sorted(set(continuation.get('observation_refs', []) + [observation_id]))
+          continuation['data']['high_value_record_ids'] = [replacement_ids.get(x, x) for x in continuation['data']['high_value_record_ids']]
+
+          project = records['pems:project:f16c91ec0a6e67eb2e1d']
+          project['data']['summary'] = project['data']['summary'].replace(
+              'A dedicated Project Engineering Steward now maintains this mutable handoff JSON as an engineering-memory and continuity layer over authoritative repository, ADR, roadmap, test, and validation sources.',
+              'A dedicated Project Engineering Steward maintains canonical compact engineering memory in docs/project-chat-handoff.cove.json and a deterministic compatibility derivative in docs/project-chat-handoff.json, while Git, ADR, roadmap, test, and validation sources retain their higher source-of-truth roles.'
+          )
+          project['observation_refs'] = sorted(set(project.get('observation_refs', []) + [observation_id]))
+
+          candidate['records'].extend(new_records)
+          candidate = normalize_document(candidate)
+          schema = validate_schema(candidate, schema_path=SCHEMA_PATH)
+          semantic = validate_semantics(candidate)
+          assert schema.valid, schema.diagnostics
+          assert semantic.valid, semantic.diagnostics
+
+          after_by_id = {r['id']: r for r in candidate['records']}
+          missing = sorted(set(before_records) - set(after_by_id))
+          assert not missing, f'pre-cutover identities missing: {missing}'
+          rebound = [rid for rid in before_records if semantic_identity(after_by_id[rid]) != before_identity[rid]]
+          assert not rebound, f'pre-cutover semantic identities rebound: {rebound}'
+
+          provisional = [r for r in new_records]
+          admission = {r['id']: admit_candidate(r, list(before_records.values())).code for r in provisional}
+          assert all(code == 'candidate_requires_steward_confirmation' for code in admission.values()), admission
+
+          candidate_compact = encode(candidate, profile='pems/1', serializer='jcs/1')
+          candidate_compact_bytes = canonicalize(candidate_compact)
+          assert decode(json.loads(candidate_compact_bytes), supported_profiles={'pems/1'}) == candidate
+          assert canonicalize(encode(candidate, profile='pems/1', serializer='jcs/1')) == candidate_compact_bytes
+          candidate_expanded_bytes = canonicalize(candidate)
+          candidate_human = render_human_markdown(candidate).encode('utf-8')
+
+          evidence = {
+              'status':'candidate_valid_pending_steward_admission',
+              'source_canonical_commit':BASE_COMMIT,
+              'source_canonical_path':'docs/project-chat-handoff.cove.json',
+              'source_canonical_sha256':hashlib.sha256(compact_bytes).hexdigest(),
+              'before_admitted_identity_count':len(before_records),
+              'preserved_existing_identity_count':len(before_records),
+              'missing_existing_ids':missing,
+              'rebound_existing_ids':rebound,
+              'new_provisional_identity_count':len(provisional),
+              'new_provisional_ids':sorted(r['id'] for r in provisional),
+              'admission_results':admission,
+              'existing_source_observation_ids':['pems:source_observation:5b206d4358781f93074b','pems:source_observation:8c186a6ca2398e0cfe5e'],
+              'new_source_observation_id':observation_id,
+              'replacement_ids':replacement_ids,
+              'record_count':len(candidate['records']),
+              'relation_count':len(candidate.get('relations', [])),
+              'expanded_bytes':len(candidate_expanded_bytes),
+              'compact_bytes':len(candidate_compact_bytes),
+              'expanded_sha256':hashlib.sha256(candidate_expanded_bytes).hexdigest(),
+              'compact_sha256':hashlib.sha256(candidate_compact_bytes).hexdigest(),
+              'human_sha256':hashlib.sha256(candidate_human).hexdigest(),
+              'schema_valid':schema.valid,
+              'semantic_valid':semantic.valid,
+              'round_trip_valid':True,
+              'canonical_byte_repeatability':True,
+              'canonical_authority_changed':False,
+          }
+          (OUT/'postcutover-reconciliation.candidate.pems.json').write_bytes(candidate_expanded_bytes+b'\n')
+          (OUT/'postcutover-reconciliation.candidate.cove.json').write_bytes(candidate_compact_bytes+b'\n')
+          (OUT/'postcutover-reconciliation.candidate.md').write_bytes(candidate_human)
+          (OUT/'postcutover-reconciliation.evidence.json').write_text(json.dumps(evidence,sort_keys=True,indent=2)+'\n',encoding='utf-8')
+
+          note = f'''\n\n## ARCH-20260814T091100-0700-018\n\n- timestamp: `2026-08-14T09:11:00-07:00`\n- author: Engineering Knowledge Systems Architect\n- type: handoff\n- status: open\n- acknowledges: `STEWARD-20260814-014` and project-owner authorization of the bounded post-Phase-8 reconciliation tranche\n- subject: Post-cutover canonical-memory reconciliation candidate validated for Steward admission\n\n### Assessment\n\nThe bounded post-cutover representation reconciliation is technically complete as a noncanonical candidate. The current canonical COVE and compatibility derivative were first proven equivalent, then the stale pre-cutover continuity semantics were reconciled without modifying any of the 156 admitted semantic identities.\n\nThe critical identity constraint required supersession rather than in-place rewriting for stale `decision` records because `pems/1` defines decision summary as semantic identity. Five replacement decisions, one canonical-COVE source identity, and one immutable source observation were therefore generated as seven provisional identities. Every provisional identity correctly returns `candidate_requires_steward_confirmation`; the Architect has not admitted them on the Steward's behalf.\n\n### Validation evidence\n\n- Existing admitted identities preserved: **156 / 156**; missing: none; rebound: none.\n- New provisional identities: **7**; all require Steward confirmation.\n- Existing Phase 7 source observations remain present: `pems:source_observation:5b206d4358781f93074b` and `pems:source_observation:8c186a6ca2398e0cfe5e`.\n- New immutable canonical-COVE observation candidate: `{observation_id}` at branch source commit `{BASE_COMMIT}`.\n- Candidate record count: **{len(candidate['records'])}**; relations: **{len(candidate.get('relations', []))}**.\n- Schema valid: yes; semantic graph valid: yes; COVE round trip: yes; repeated canonical bytes: byte-identical.\n- Candidate expanded SHA-256: `{evidence['expanded_sha256']}`.\n- Candidate compact SHA-256: `{evidence['compact_sha256']}`.\n- Candidate human reconstruction SHA-256: `{evidence['human_sha256']}`.\n\nThe candidate updates current authority to `docs/project-chat-handoff.cove.json`, records Phase 7 as accepted complete, records Phase 8 as technically complete pending Steward governance closeout, preserves completed Phase 7/candidate-path statements historically, and updates the Steward continuity summary/current focus. No canonical artifact was changed by the Architect.\n\n### Steward action requested\n\nReview the seven provisional identities and the reconciliation semantics. If accepted, admit/assign their canonical IDs, regenerate the canonical COVE and deterministic compatibility derivative from the admitted candidate using the accepted `pems/1` → `cove/1` → `jcs/1` path, verify the same preservation/determinism evidence, and record final governance closeout.\n\n### Human reasoning\n\nThe stale status text could not simply be edited in place. In PEMS, a decision's wording is its identity, so changing “JSON is canonical” into “COVE is canonical” under the same ID would make one identity mean two different things. Keeping the old statement as superseded history and proposing a new identity preserves the audit trail while making the current state truthful. The seven new identities are intentionally provisional because final semantic admission belongs to the Steward.\n'''
+          (OUT/'architect-note.md').write_text(note,encoding='utf-8')
+          print(json.dumps(evidence, sort_keys=True))
+          PY
+      - name: Publish Architect evidence to continuity branch
+        env:
+          BASE_HANDOFF_COMMIT: ccbeac9d1a5a4b7b9baec69f811a9afd1c6d9fdc
+        run: |
+          git fetch origin project-chat-handoff
+          test "$(git rev-parse origin/project-chat-handoff)" = "$BASE_HANDOFF_COMMIT" || { echo 'project-chat-handoff moved during reconciliation'; exit 1; }
+          git worktree add /tmp/handoff origin/project-chat-handoff
+          mkdir -p /tmp/handoff/docs/handoff/pems
+          cp /tmp/reconciliation/postcutover-reconciliation.candidate.pems.json /tmp/handoff/docs/handoff/pems/
+          cp /tmp/reconciliation/postcutover-reconciliation.candidate.cove.json /tmp/handoff/docs/handoff/pems/
+          cp /tmp/reconciliation/postcutover-reconciliation.candidate.md /tmp/handoff/docs/handoff/pems/
+          cp /tmp/reconciliation/postcutover-reconciliation.evidence.json /tmp/handoff/docs/handoff/pems/
+          cat /tmp/reconciliation/architect-note.md >> /tmp/handoff/docs/handoff/architect_notes.md
+          cd /tmp/handoff
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/handoff/architect_notes.md docs/handoff/pems/postcutover-reconciliation.*
+          git commit -m 'Record post-cutover PEMS reconciliation evidence'
+          git push origin HEAD:project-chat-handoff
