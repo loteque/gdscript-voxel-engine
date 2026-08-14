@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   remediation:
@@ -154,3 +154,25 @@ jobs:
             phase7-after.json
             pre-phase8-seed.pems.json
             pre-phase8-remediation-evidence.json
+
+      - name: Append durable Architect remediation completion record
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_NOTES_BLOB="099e4ed97349b4bb9910c4e011294f8c34c0de14"
+          git -C governance pull --ff-only origin project-chat-handoff
+          test "$(git -C governance rev-parse HEAD:docs/handoff/architect_notes.md)" = "$EXPECTED_NOTES_BLOB"
+          grep -q '^## ARCH-20260813T235900-0700-015$' docs/handoff/pems/pre-phase8-remediation-completion-note.md
+          cat docs/handoff/pems/pre-phase8-remediation-completion-note.md >> governance/docs/handoff/architect_notes.md
+          git -C governance config user.name "loteque"
+          git -C governance config user.email "69282314+loteque@users.noreply.github.com"
+          git -C governance add docs/handoff/architect_notes.md
+          git -C governance diff --cached --check
+          git -C governance commit -m "Record Architect pre-Phase-8 remediation completion"
+          git -C governance push origin HEAD:project-chat-handoff
+          NEW_BLOB="$(git -C governance rev-parse HEAD:docs/handoff/architect_notes.md)"
+          test "$NEW_BLOB" != "$EXPECTED_NOTES_BLOB"
+          tail -n 120 governance/docs/handoff/architect_notes.md | grep -q 'ARCH-20260813T235900-0700-015'
+          tail -n 120 governance/docs/handoff/architect_notes.md | grep -q 'system is now technically ready for a separate Phase 8 adoption decision'
+          echo "ARCHITECT_NOTES_COMMIT=$(git -C governance rev-parse HEAD)"
+          echo "ARCHITECT_NOTES_BLOB=$NEW_BLOB"
