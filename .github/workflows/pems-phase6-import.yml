@@ -1,0 +1,81 @@
+name: PEMS Phase 6 Current Handoff Import
+
+on:
+  push:
+    branches:
+      - phase6-current-handoff-importer
+    paths:
+      - "tools/pems/**"
+      - "tests/test_pems_current_handoff_import.py"
+      - ".github/workflows/pems-phase6-import.yml"
+  workflow_dispatch:
+
+jobs:
+  phase6-import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Phase 6 branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PEMS dependencies
+        run: python -m pip install -r tools/pems/requirements.txt
+
+      - name: Run importer tests
+        run: python -m unittest tests.test_pems_current_handoff_import
+
+      - name: Materialize canonical handoff snapshot from authority branch
+        shell: bash
+        run: |
+          git fetch origin project-chat-handoff
+          HANDOFF_COMMIT="$(git rev-parse origin/project-chat-handoff)"
+          echo "HANDOFF_COMMIT=$HANDOFF_COMMIT" >> "$GITHUB_ENV"
+          git show "origin/project-chat-handoff:docs/project-chat-handoff.json" > /tmp/project-chat-handoff.json
+
+      - name: Convert real canonical handoff twice
+        run: |
+          python -m tools.pems.import_current_handoff /tmp/project-chat-handoff.json --source-commit "$HANDOFF_COMMIT" --output /tmp/import-a.json
+          python -m tools.pems.import_current_handoff /tmp/project-chat-handoff.json --source-commit "$HANDOFF_COMMIT" --output /tmp/import-b.json
+          cmp /tmp/import-a.json /tmp/import-b.json
+
+      - name: Validate real conversion evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from tools.pems.pems_v1 import admit_candidate, validate_schema, validate_semantics
+
+          document = json.loads(Path('/tmp/import-a.json').read_text(encoding='utf-8'))
+          schema = validate_schema(document)
+          semantics = validate_semantics(document)
+          assert schema.valid, schema.diagnostics
+          assert semantics.valid, semantics.diagnostics
+
+          records = document['records']
+          assert records
+          assert all(record['id'].startswith('import:') for record in records)
+          assert all(admit_candidate(record, []).code == 'candidate_requires_steward_confirmation' for record in records)
+
+          sources = [record for record in records if record['kind'] == 'source']
+          observations = [record for record in records if record['kind'] == 'source_observation']
+          projects = [record for record in records if record['kind'] == 'project']
+          chats = [record for record in records if record['kind'] == 'chat']
+          continuations = [record for record in records if record['kind'] == 'continuation']
+          modules = [record for record in records if record['kind'] == 'module']
+
+          assert len(sources) == 1
+          assert len(observations) == 1
+          assert len(projects) == 1
+          assert chats
+          assert len(continuations) == len(chats)
+          assert modules
+          assert observations[0]['data']['evidence_state'] == 'immutable_snapshot'
+          assert observations[0]['data']['evidence_locator']['commit']
+          print(f"Phase 6 real-handoff evidence: {len(records)} records, {len(chats)} chats, {len(modules)} modules")
+          PY
