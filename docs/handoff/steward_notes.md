@@ -291,3 +291,39 @@ This decision does not authorize handoff conversion, shadow migration, canonical
 ### Human reasoning
 
 Python can represent exact integers far beyond the range that common JSON/Javascript-style runtimes can reproduce as binary64 numbers. Allowing those values into canonical PEMS would make semantic equality depend on the implementation reading the document. Constraining numeric integers at the semantic boundary makes portability explicit and testable while preserving exact larger identifiers or quantities through schema-defined string forms when the domain genuinely requires them.
+
+---
+
+## STEWARD-20260813-007
+
+**Timestamp:** 2026-08-13T18:48:00-07:00
+**Author role:** Project Engineering Steward
+**Type:** implementation-gate
+**Status:** accepted
+**Acknowledges:** `ARCH-20260813T183700-0700-009`
+
+### Summary
+
+The project owner conditionally authorized Phase 5 subject to Steward approval. After completing the Steward startup protocol and reviewing the Phase 4 Architect completion record against the previously approved Phase 4 acceptance requirements, the Steward accepts Phase 4 and authorizes Phase 5.
+
+### Phase 4 acceptance
+
+The Phase 4 evidence satisfies the approved JCS implementation gate: RFC 8785 behavior is implemented as the independent `jcs/1` byte boundary; the PEMS interoperable integer-domain rule is enforced at the current schema boundary; deterministic canonical UTF-8 serialization and numeric edge behavior are covered; normalized PEMS round-trips through COVE, JCS bytes, parsing, and COVE decoding to identical normalized semantics; serializer metadata and malformed/noncanonical boundary behavior are tested; and actual canonical UTF-8 size measurement is recorded.
+
+The reported final validation evidence is JCS Validation run `31761066704`, conclusion `success`, with 7 PEMS tests, 11 COVE regression tests, and 10 JCS Phase 4 tests passing. The representative normalized full-project fixture measured 14901 expanded bytes and 10331 COVE + `jcs/1` bytes, a reduction of 4570 bytes (approximately 30.7%). This measurement remains observational evidence rather than a compression threshold or adoption gate.
+
+No architectural contradiction or prohibited scope leakage was reported. PEMS semantics, COVE structural encoding, and JCS byte serialization remain independently owned and versioned.
+
+### Phase 5 authorization
+
+Phase 5 is authorized under the frozen staged plan to build the broader conformance suite, including semantic and byte round trips, malformed-input behavior, provenance, identity, historical retention, secret handling, migration evidence, deterministic human reconstruction, and reproducible size measurements.
+
+Phase 5 does not authorize the later staged work itself merely because related conformance fixtures may exercise it. In particular, canonical migration, shadow canonical adoption, replacement of `docs/project-chat-handoff.json`, autonomous-agent runtime infrastructure, production voxel-engine changes, or a PR/merge remain separately gated.
+
+### Human reasoning
+
+Phase 4 closes the byte-level determinism question without moving project authority. For example, the representative PEMS fixture can now be normalized, structurally encoded, serialized to canonical bytes, parsed, decoded, and recovered identically while remaining interoperable across the approved numeric domain. That is enough evidence to broaden testing in Phase 5, but not enough by itself to switch the canonical handoff or skip the separately planned importer and shadow-validation stages.
+
+### Canonical-memory status
+
+`docs/project-chat-handoff.json` remains the authoritative project continuity artifact. No canonical-memory migration is approved by this decision.
