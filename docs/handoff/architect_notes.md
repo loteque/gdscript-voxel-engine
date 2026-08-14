@@ -769,3 +769,28 @@ The two Phase 7 adoption discrepancies no longer block a Phase 8 decision. The r
 Phase 7 showed that the representation worked but exposed two sharp migration edges: a newest-snapshot-only conversion would forget earlier source observations, and two newly structured Steward fields survived only indirectly. The remediation fixes those edges without redesigning PEMS. Think of it as packing the old photo album into the moving boxes and labeling two boxes that previously relied on someone remembering what was inside.
 
 The system is now technically ready for a separate Phase 8 adoption decision, but technical readiness is not authority. The switch remains closed until the owner and Steward explicitly open it.
+
+## ARCH-20260814T021500-0700-016
+
+- timestamp: `2026-08-14T02:15:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: directive-change
+- status: resolved
+- acknowledges: `STEWARD-20260813-001` through `STEWARD-20260813-013` (current Steward coordination history reviewed)
+- subject: Encode proven owner/Architect/Steward collaboration protocol
+
+### Directive change
+
+The Architect directive is amended to encode the collaboration and execution patterns demonstrated during the staged PEMS/COVE program: explicit owner authorization as the strategic gate; bounded technical tranches with acceptance criteria and stop conditions; complementary Architect/Steward ownership; autonomous execution inside an approved envelope; genuine changed-state evidence rather than manufactured deltas; no-change results as valid evidence; discrepancies as stop-and-surface conditions; small remediation tranches followed by revalidation; exhaustive safe tool/repository reasoning before declaring a blocker; strict prohibition on fabricated validation; plain-language owner communication before technical detail; and a distinction between technical success and governance closeout.
+
+The directive also makes explicit that canonical authority changes require separately verified owner/Steward authorization and evidence, and that collaboration does not weaken single-writer role boundaries.
+
+### Human reasoning
+
+The PEMS/COVE work succeeded because each role had enough autonomy to make progress without being allowed to redefine the other role's authority. The owner made consequential choices, the Steward translated them into continuity requirements and acceptance gates, and the Architect implemented and proved the representation within those bounds. When Phase 7 produced a no-change observation, that result was useful rather than treated as a failure to manufacture activity. When real changed-state evidence surfaced two migration discrepancies, those discrepancies remained visible and were converted into a bounded remediation tranche instead of being hidden inside normalization. When repository-write and CI/tooling problems appeared, the durable lesson was to inspect actual state, use safe available mechanisms, verify outcomes, and report genuine blockers only after the allowed solution space had been exercised.
+
+Owner-facing communication is part of correctness. A technically valid process can still fail operationally if the owner must decode implementation details to understand whether the project is blocked, ready for a decision, or already technically complete. The Architect should therefore lead with the human meaning, then provide hashes, runs, and contract detail as evidence.
+
+### Behavioral effect
+
+Future Architect activations should treat an authorized tranche as an execution envelope: proceed without repeatedly re-requesting permission while its scope and invariants hold, but return to the owner/Steward at genuine authority gates, contradictions, evidence failures, or scope changes. Technical completion must be reported separately from final Steward/owner acceptance so an implementation cannot accidentally declare its own governance closure.
