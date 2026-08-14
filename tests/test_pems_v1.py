@@ -55,17 +55,15 @@ class PemsV1Phase2Tests(unittest.TestCase):
         self.assertEqual(canonical["id"], decision.canonical_id)
 
     def test_admission_rejects_canonical_id_rebinding(self) -> None:
-        canonical = self.success["records"][0]
+        canonical = next(
+            record
+            for record in self.success["records"]
+            if record["id"] == "module:chunk-streamer"
+        )
         candidate = copy.deepcopy(canonical)
         candidate["data"] = copy.deepcopy(candidate["data"])
-        # Every project record in the frozen schema has a display_name field.
-        candidate["data"]["display_name"] = "Different semantic identity"
+        candidate["data"]["path"] = "voxel/chunking/DifferentChunkStreamer.gd"
         decision = admit_candidate(candidate, [canonical])
-        # A display-name-only change is not necessarily identity-changing, so force
-        # the identity-bearing repository field when present.
-        if decision.valid and "repository" in candidate["data"]:
-            candidate["data"]["repository"] = "different/repository"
-            decision = admit_candidate(candidate, [canonical])
         self.assertFalse(decision.valid)
         self.assertEqual("canonical_id_collision", decision.code)
 
