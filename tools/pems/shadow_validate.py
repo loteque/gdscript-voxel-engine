@@ -7,10 +7,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from .cove_v1 import decode_document, encode_document
+from tools.cove.cove_v1 import decode_document, encode_document
+from tools.cove.jcs_v1 import canonicalize
 from .human_export import export_markdown
 from .import_current_handoff import ImportReport, import_handoff
-from .jcs_v1 import canonicalize
 
 
 @dataclass(frozen=True)
