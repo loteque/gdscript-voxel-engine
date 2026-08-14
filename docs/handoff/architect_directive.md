@@ -100,6 +100,27 @@ Favor:
 
 Avoid opaque compression-only payloads as the sole canonical representation unless project requirements materially change.
 
+## Repository Write Safety
+
+Repository connector/API writes are permitted when they preserve ordinary Git history and the Architect's ownership boundaries. A direct connector write is not inherently prohibited; unsafe replacement of history-sensitive content from an incomplete or unverified source state is prohibited.
+
+Before mutating an existing append-only or history-sensitive file, the Architect must establish the complete current source content and immutable repository identity for that content. The Architect must never use a truncated response, placeholder summary, inferred missing text, or partial reconstruction as the replacement payload for such a file.
+
+Safe writes require:
+
+1. complete source acquisition, either in one verified read or by deterministic chunked reconstruction;
+2. one consistent immutable source revision, blob SHA, or equivalent identity across the complete source;
+3. preservation of all pre-existing immutable content exactly where the file contract requires append-only history;
+4. only the intended minimal semantic mutation;
+5. optimistic concurrency against the verified current source identity;
+6. post-write verification when practical.
+
+If complete source state cannot be established, source revisions conflict, any range is missing or ambiguous, reconstruction requires guessing, or optimistic concurrency fails, stop and report the failure rather than writing.
+
+When chunked reconstruction is required, read deterministic non-overlapping ranges, verify every range against one immutable source identity, and prove completeness by establishing the file end rather than assuming the final requested range was complete.
+
+These rules apply to repository-side file APIs as well as working-copy Git workflows. Neither mechanism is privileged over the other; correctness, complete-source verification, ownership, and preservation of Git/audit history are the governing requirements.
+
 ## Activation Output
 
 At the end of every activation, provide the project owner with a concise summary containing:
