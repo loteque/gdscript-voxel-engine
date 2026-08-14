@@ -3,9 +3,9 @@
 
 Godot's generated PWA worker is intentionally cache-first. That is desirable for
 immutable release builds, but a long-lived Integration Preview can otherwise keep
-an older HTML/JavaScript/PCK set alive after a new deployment. This patch adds a
-second install/activate pair that immediately promotes the new worker, claims open
-preview clients, and reloads them so the new worker serves the new cache version.
+an older HTML/JavaScript/PCK set alive after a new deployment. This patch promotes
+the newly deployed worker immediately and lets it claim open preview clients.
+Navigation remains browser-owned so worker activation cannot interrupt startup.
 """
 
 from __future__ import annotations
@@ -19,17 +19,13 @@ PATCH = r'''
 
 // MUTABLE_PREVIEW_IMMEDIATE_UPDATE
 // Integration Preview is mutable. Promote each newly deployed worker immediately
-// so open clients cannot remain pinned to the previous Godot package cache.
+// and let it control existing clients without forcing navigation during activation.
 self.addEventListener('install', (event) => {
 	event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', (event) => {
-	event.waitUntil(
-		self.clients.claim()
-			.then(() => self.clients.matchAll({ type: 'window' }))
-			.then((clients) => Promise.all(clients.map((client) => client.navigate(client.url))))
-	);
+	event.waitUntil(self.clients.claim());
 });
 '''
 
