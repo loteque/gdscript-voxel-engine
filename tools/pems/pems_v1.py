@@ -587,7 +587,7 @@ def admit_candidate(
             "/id",
             f"Canonical ID {candidate_id!r} is already bound to a different semantic identity.",
         )
-        return AdmissionDecision(False, code, candidate_id, (diagnostic,))
+        return AdmissionDecision(False, code, None, (diagnostic,))
 
     same_identity = [
         record
@@ -605,7 +605,7 @@ def admit_candidate(
             "/id",
             f"Semantic identity already exists as {canonical_id!r}; parallel canonical-looking ID {candidate_id!r} is not admitted.",
         )
-        return AdmissionDecision(False, diagnostic.code, canonical_id, (diagnostic,))
+        return AdmissionDecision(False, diagnostic.code, None, (diagnostic,))
 
     return AdmissionDecision(True, "candidate_requires_steward_confirmation", candidate_id)
 
