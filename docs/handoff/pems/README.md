@@ -55,7 +55,7 @@ All relations contain a stable Steward-admitted `id`, a closed relation `kind`, 
 
 ## Structural validation versus semantic validation
 
-JSON Schema validates field presence, types, enums, closed objects, nullable fields, and secret-disposition shape. It deliberately does **not** pretend to perform graph reconciliation.
+JSON Schema validates field presence, types, enums, closed objects, nullable fields, numeric interoperability bounds, and secret-disposition shape. It deliberately does **not** pretend to perform graph reconciliation.
 
 The PEMS validator/normalizer must additionally enforce:
 
@@ -73,6 +73,14 @@ The PEMS validator/normalizer must additionally enforce:
 12. candidate/import IDs remain provisional until Steward admission.
 
 These rules are represented as named cases in `fixtures/failure-cases.json` so Phase 2 can implement them explicitly.
+
+## Interoperable numeric domain
+
+PEMS v1 JSON-number integers are restricted to the inclusive range `[-9007199254740991, 9007199254740991]`. This is a semantic portability rule approved in `STEWARD-20260813-006`, not a COVE transform or a JCS-library workaround.
+
+Exact integers outside that range must not be silently rounded, clamped, truncated, or stringified. If a future record kind legitimately requires a larger exact integer, its normative schema must model that value explicitly as a string representation. In the current closed pems/1 vocabulary, the only integer-valued schema members are evidence-locator line numbers; their schema bounds therefore enforce the complete currently admitted numeric-integer surface.
+
+This bound keeps canonical PEMS reproducible across implementations whose JSON number handling follows the interoperable IEEE-754 binary64 model used by RFC 8785 JCS.
 
 ## Source and observation provenance
 
@@ -110,7 +118,7 @@ A schema cannot recognize every credential-looking string. Phase 2 semantic vali
 
 The normalized semantic document keeps JSON object property ordering non-semantic. Arrays with set semantics are sorted and deduplicated by bytewise UTF-8 lexical ordering of IDs. Ordered domain sequences retain their defined order. Record and relation collections are sorted by their canonical IDs.
 
-This is semantic normalization only. Exact JSON byte serialization belongs to a separate serializer contract and is not specified here.
+This is semantic normalization only. Exact JSON byte serialization belongs to the independent `jcs/1` serializer contract and is not defined by PEMS.
 
 ## Fixture protocol
 
