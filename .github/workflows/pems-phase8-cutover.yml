@@ -1,0 +1,35 @@
+name: PEMS Phase 8 Cutover
+on:
+  push:
+    branches: [pems-phase8-cutover]
+permissions:
+  contents: write
+jobs:
+  cutover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r tools/pems/requirements.txt -r tools/cove/requirements.txt pytest
+      - name: Full representation regression
+        run: pytest -q tests/test_pems_v1.py tests/test_cove_v1.py tests/test_jcs_v1.py tests/test_pems_cove_conformance.py tests/test_pems_current_handoff_import.py tests/test_pems_phase7_shadow.py tests/test_pems_phase8_remediation.py
+      - name: Generate admitted canonical corpus
+        run: python -m tools.pems.phase8_cutover
+      - name: Verify deterministic regeneration
+        run: |
+          sha256sum docs/project-chat-handoff.cove.json docs/project-chat-handoff.json docs/handoff/pems/project-chat-handoff.md > /tmp/before
+          python -m tools.pems.phase8_cutover
+          sha256sum docs/project-chat-handoff.cove.json docs/project-chat-handoff.json docs/handoff/pems/project-chat-handoff.md > /tmp/after
+          diff -u /tmp/before /tmp/after
+      - name: Commit canonical cutover artifacts
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add docs/project-chat-handoff.cove.json docs/project-chat-handoff.json docs/handoff/pems/phase8-admission-manifest.json docs/handoff/pems/project-chat-handoff.md docs/handoff/pems/phase8-cutover-evidence.json
+          if git diff --cached --quiet; then echo 'Artifacts already current'; exit 0; fi
+          git commit -m 'Adopt canonical PEMS/COVE project memory'
+          git push origin HEAD:pems-phase8-cutover
