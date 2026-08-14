@@ -1,0 +1,156 @@
+name: PEMS Pre-Phase-8 Remediation
+
+on:
+  push:
+    branches:
+      - pems-phase8-remediation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remediation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out remediation branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check out canonical handoff branch
+        uses: actions/checkout@v4
+        with:
+          ref: project-chat-handoff
+          path: governance
+          fetch-depth: 0
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest -r tools/pems/requirements.txt -r tools/cove/requirements.txt
+
+      - name: Run remediation and regression tests
+        run: |
+          python -m pytest -q \
+            tests/test_pems_phase8_remediation.py \
+            tests/test_pems_current_handoff_import.py \
+            tests/test_pems_phase7_shadow.py \
+            tests/test_pems_cove_conformance.py \
+            tests/test_pems_v1.py \
+            tests/test_cove_v1.py \
+            tests/test_jcs_v1.py
+
+      - name: Build real Phase 7 migration seed and verify remediation
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREVIOUS_SOURCE_COMMIT="18ece6c5791da00ff5c14eb79172cf6d7fea5860"
+          CURRENT_SOURCE_COMMIT="ff2718a00b3a267407beb446607ea6eeb664e66e"
+          PREVIOUS_BLOB="7f848c9259c63d8095a4b310bcfe6fab11495a88"
+          CURRENT_BLOB="e54e268cdd4fc4dad9a340c5a19958b734a74186"
+
+          test "$(git -C governance rev-parse "$PREVIOUS_SOURCE_COMMIT:docs/project-chat-handoff.json")" = "$PREVIOUS_BLOB"
+          test "$(git -C governance rev-parse "$CURRENT_SOURCE_COMMIT:docs/project-chat-handoff.json")" = "$CURRENT_BLOB"
+
+          git -C governance show "$PREVIOUS_SOURCE_COMMIT:docs/project-chat-handoff.json" > phase7-before.json
+          git -C governance show "$CURRENT_SOURCE_COMMIT:docs/project-chat-handoff.json" > phase7-after.json
+
+          python -m tools.pems.migration_seed \
+            "$PREVIOUS_SOURCE_COMMIT:phase7-before.json" \
+            "$CURRENT_SOURCE_COMMIT:phase7-after.json" \
+            --output pre-phase8-seed.pems.json
+
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          from tools.cove.cove_v1 import decode, encode
+          from tools.cove.jcs_v1 import canonicalize, measure_utf8_bytes, parse_canonical, serialize_cove
+          from tools.pems.human_export import render_human_markdown
+          from tools.pems.migration_seed import import_handoff_with_engineering_memory, seed_migration
+          from tools.pems.pems_v1 import admit_candidate, validate_schema, validate_semantics
+
+          old_commit = '18ece6c5791da00ff5c14eb79172cf6d7fea5860'
+          new_commit = 'ff2718a00b3a267407beb446607ea6eeb664e66e'
+          before = json.loads(Path('phase7-before.json').read_text(encoding='utf-8'))
+          after = json.loads(Path('phase7-after.json').read_text(encoding='utf-8'))
+
+          old_import = import_handoff_with_engineering_memory(before, source_commit=old_commit)
+          new_import = import_handoff_with_engineering_memory(after, source_commit=new_commit)
+          seed = seed_migration([(before, old_commit), (after, new_commit)])
+          repeated = seed_migration([(before, old_commit), (after, new_commit)])
+          assert seed.document == repeated.document
+          assert validate_schema(seed.document).valid
+          assert validate_semantics(seed.document).valid
+          assert len(seed.source_observation_ids) == 2
+          assert old_import.source_observation_id in seed.source_observation_ids
+          assert new_import.source_observation_id in seed.source_observation_ids
+          assert old_import.source_observation_id in seed.retained_historical_ids
+
+          records = seed.document['records']
+          decision_summaries = {
+              record['data']['summary'] for record in records if record['kind'] == 'decision'
+          }
+          requirement_summaries = {
+              record['data']['summary'] for record in records if record['kind'] == 'requirement'
+          }
+          assert any("'phase7_status'" in summary and '"authorized_in_progress"' in summary for summary in decision_summaries)
+          assert any("'phase8_status'" in summary and '"not_authorized"' in summary for summary in decision_summaries)
+          assert any("'current_canonical_authority'" in summary and '"docs/project-chat-handoff.json"' in summary for summary in decision_summaries)
+          assert any('Repository write safety [active]:' in summary for summary in requirement_summaries)
+
+          old_only = set(old_import.provisional_ids) - set(new_import.provisional_ids)
+          assert old_only
+          assert old_only <= set(seed.retained_historical_ids)
+          seeded_by_id = {record['id']: record for record in records}
+          assert all(seeded_by_id[record_id]['lifecycle'] == 'historical' for record_id in old_only)
+
+          for record in records:
+              admission = admit_candidate(record, [])
+              assert admission.code == 'candidate_requires_steward_confirmation'
+
+          artifact = encode(seed.document, profile='pems/1', serializer='jcs/1')
+          wire = serialize_cove(artifact)
+          decoded = decode(parse_canonical(wire), supported_profiles={'pems/1'})
+          assert decoded == seed.document
+          assert wire == serialize_cove(encode(decoded, profile='pems/1', serializer='jcs/1'))
+
+          human = render_human_markdown(seed.document)
+          assert 'phase8_status' in human
+          assert 'Repository write safety [active]:' in human
+          measured = measure_utf8_bytes(seed.document, artifact)
+
+          evidence = {
+              'authority': 'noncanonical_remediation_evidence',
+              'source_commits': [old_commit, new_commit],
+              'source_observation_ids': list(seed.source_observation_ids),
+              'retained_historical_ids': list(seed.retained_historical_ids),
+              'record_count': len(records),
+              'provisional_id_count': len(seed.provisional_ids),
+              'expanded_jcs_bytes': measured['expanded_jcs_bytes'],
+              'cove_jcs_bytes': measured['cove_jcs_bytes'],
+              'pems_sha256': hashlib.sha256(canonicalize(seed.document)).hexdigest(),
+              'cove_jcs_sha256': hashlib.sha256(wire).hexdigest(),
+              'human_sha256': hashlib.sha256(human.encode('utf-8')).hexdigest(),
+              'structured_engineering_memory_direct_mapping': True,
+              'history_seed_preserves_previous_observation': True,
+              'all_ids_provisional_pending_steward_admission': True,
+              'phase8_adoption_authorized': False,
+          }
+          Path('pre-phase8-remediation-evidence.json').write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + '\n', encoding='utf-8'
+          )
+          print(json.dumps(evidence, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload remediation evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: pems-pre-phase8-remediation-evidence
+          path: |
+            phase7-before.json
+            phase7-after.json
+            pre-phase8-seed.pems.json
+            pre-phase8-remediation-evidence.json
