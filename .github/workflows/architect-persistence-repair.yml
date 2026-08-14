@@ -13,22 +13,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Load accepted PEMS COVE implementation
-        run: |
-          rm -rf /tmp/accepted-pems-cove
-          mkdir -p /tmp/accepted-pems-cove
-          git archive origin/post-cutover-admitted-regeneration tools | tar -x -C /tmp/accepted-pems-cove
-          python3 -m pip install -q jsonschema rfc8785
-      - name: Reproduce and validate exact artifacts
+      - name: Record verified hard-stop evidence
         run: python3 .github/scripts/architect_persistence_repair.py
-      - name: Persist Architect-owned artifacts
+      - name: Persist Architect hard-stop record and clean transport
         run: |
           rm .github/workflows/architect-persistence-repair.yml
           rm .github/scripts/architect_persistence_repair.py
-          git add docs/handoff/architect_notes.md docs/handoff/pems/final-closeout.candidate.pems.json docs/handoff/pems/final-closeout.candidate.expanded.json docs/handoff/pems/final-closeout.candidate.cove.json docs/handoff/pems/final-closeout.candidate.md docs/handoff/pems/final-closeout.contingent-admitted.pems.json docs/handoff/pems/final-closeout.contingent-admitted.expanded.json docs/handoff/pems/final-closeout.contingent-admitted.cove.json docs/handoff/pems/final-closeout.contingent-admitted.md docs/handoff/pems/final-closeout-regeneration.persisted.evidence.json .github/workflows/architect-persistence-repair.yml .github/scripts/architect_persistence_repair.py
+          git add docs/handoff/architect_notes.md docs/handoff/pems/final-closeout-persistence-repair.hard-stop.json .github/workflows/architect-persistence-repair.yml .github/scripts/architect_persistence_repair.py
           git diff --cached --name-only
           test -z "$(git diff --cached --name-only | grep -E '^docs/project-chat-handoff(\.cove)?\.json$|^docs/handoff/steward_|^ROADMAP\.md$|^demo/|^tests/' || true)"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'docs: persist final closeout regeneration artifacts'
+          git commit -m 'docs: record final closeout representation hard stop'
           git push origin HEAD:project-chat-handoff
