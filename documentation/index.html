@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GDScript Voxel Terrain Documentation</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header><div class="wrap"><p class="eyebrow">pxlpush · Godot 4</p><h1>GDScript Voxel Terrain</h1><p class="lead">Engine documentation, architecture, validation practices, and the development strategy behind a streamed procedural voxel terrain engine.</p><nav><a href="#engine">Engine</a><a href="#architecture">Architecture</a><a href="#development">Development</a><a href="#roadmap">Roadmap</a><a href="../preview/integration/">Integration Preview</a></nav></div></header>
+<main class="wrap">
+<section id="engine"><h2>Engine at a glance</h2><p>The engine separates sampled scalar-field generation and meshing from runtime terrain residency. Terrain is generated and baked offline; runtime systems consume precomputed chunk assets.</p><div class="pipeline"><pre>OFFLINE
+PointFieldResource
+        ↓
+SurfaceNetsMesher
+        ↓
+ArrayMesh
+        ↓
+ChunkAssetBaker
+        ↓
+TerrainChunkAsset
+        ↓
+TerrainChunkManifest</pre><pre>RUNTIME
+TerrainChunkManifest
+        ↓
+ChunkStreamer
+        ├─ residency policy
+        ├─ nearest-first scheduling
+        ├─ loading budgets
+        ├─ asynchronous loading
+        ├─ residency hysteresis
+        └─ resident MeshInstance3D</pre></div></section>
+<section id="architecture"><h2>Subsystem ownership</h2><div class="cards"><article><h3>PointFieldResource</h3><p>Authoritative scalar-field representation. Owns sample geometry, densities, indexing, sampling, validation, serialization, and generation-time field logic.</p></article><article><h3>SurfaceNetsMesher</h3><p>Consumes a point field and produces mesh geometry. It does not own field generation or runtime streaming.</p></article><article><h3>ChunkAssetBaker</h3><p>Owns offline chunk asset creation and persistence.</p></article><article><h3>TerrainChunkManifest</h3><p>Catalogs precomputed chunk assets and their spatial metadata.</p></article><article><h3>ChunkStreamer</h3><p>Owns runtime residency, loading execution, scheduling, and resident scene instances. It does not invoke procedural terrain generation.</p></article></div><p class="note"><strong>Architectural rule:</strong> preserve subsystem contracts before optimizing. Performance work should remain behind stable interfaces unless measured evidence justifies a deliberate contract change.</p></section>
+<section id="development"><h2>How the project develops</h2><ol><li><strong>Feature branches:</strong> work is performed on branches named for the feature, never generic change branches.</li><li><strong>Architecture first:</strong> substantial work identifies ownership, contracts, edge cases, and validation before production changes.</li><li><strong>Automated proof:</strong> deterministic headless tests validate observable behavior and architecture guards.</li><li><strong>Human-visible proof:</strong> substantial engine features have validation scenes using real public APIs and runtime paths.</li><li><strong>Browser proof:</strong> relevant validation is exposed through the long-lived GitHub Pages Integration Preview.</li><li><strong>Decision records:</strong> durable architecture belongs in ADRs; measured evidence in performance records; roadmap changes preserve their history.</li></ol><p>The project treats feature delivery as a chain: production behavior → automated proof → human-visible proof → published browser proof.</p></section>
+<section id="roadmap"><h2>Current roadmap</h2><p>The current milestone is <strong>resource-loading analysis</strong>. Large single-LOD validation identified precomputed resource-loading throughput as the first material scaling pressure visible in current instrumentation. The goal is diagnosis before optimization.</p><div class="road"><span>Resource-loading analysis</span><b>→</b><span>Loading architecture decision</span><b>→</b><span>LOD architecture</span><b>→</b><span>Larger volumetric asteroid</span><b>→</b><span>Several-kilometer asteroid</span></div><p>Dual Contouring remains planned future meshing work, but is not currently on the critical path to asteroid-scale streaming.</p></section>
+<section><h2>Documentation records</h2><p>This site is a navigational layer over project truth. Current implementation is verified against the repository. Durable decisions are preserved in <code>docs/architecture/decisions/</code>, roadmap history in <code>docs/roadmap/history/</code>, measurements in <code>docs/performance/</code>, and the mutable current direction in <code>ROADMAP.md</code>.</p><p><a class="button" href="https://github.com/loteque/gdscript-voxel-engine">Browse the repository</a></p></section>
+</main>
+<footer><div class="wrap">Project Historian documentation · generated from repository state and accepted project records.</div></footer>
+</body>
+</html>
