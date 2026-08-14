@@ -34,7 +34,10 @@ def test_reconciliation_change_surfaces_identity_and_provenance_delta():
     transition = report["transitions"][0]
     assert transition["source_changed"] is True
     assert transition["source_observation_changed"] is True
-    assert len(transition["added_candidate_ids"]) == 1
+    added = transition["added_candidate_ids"]
+    assert len(added) == 2
+    assert sum(item.startswith("import:expectation:") for item in added) == 1
+    assert sum(item.startswith("import:source_observation:") for item in added) == 1
     assert transition["removed_candidate_ids"] == []
     assert transition["canonical_bytes_stable_when_source_unchanged"] is None
 
