@@ -2,6 +2,15 @@
 
 All notable changes to this project are recorded here by project version.
 
+## 0.13.3
+
+### Changed
+- Promoted `NoClipCameraController` into `common/input` as the authoritative project-independent free-flight camera component while preserving the historical demo path through a thin compatibility adapter.
+- Updated mobile touch-control validation to consume the common camera directly without broadening the touch-control contract.
+
+### Added
+- Added independent headless validation for the common no-clip camera's public look behavior, pitch limits, and movement input contract.
+
 ## 0.13.2
 
 ### Fixed
