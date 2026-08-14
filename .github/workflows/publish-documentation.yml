@@ -1,0 +1,77 @@
+name: Publish Documentation
+
+on:
+  push:
+    branches:
+      - documentation-site
+    paths:
+      - 'documentation/**'
+      - '.github/workflows/publish-documentation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish documentation archive
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout documentation branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Pages archive worktree
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARCHIVE="$RUNNER_TEMP/pages-archive"
+
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git fetch origin gh-pages:refs/heads/gh-pages
+            git worktree add "$ARCHIVE" gh-pages
+          else
+            git worktree add -b gh-pages "$ARCHIVE"
+            git -C "$ARCHIVE" rm -rf .
+          fi
+
+          rm -rf "$ARCHIVE/documentation"
+          mkdir -p "$ARCHIVE/documentation"
+          cp -a documentation/. "$ARCHIVE/documentation/"
+          touch "$ARCHIVE/.nojekyll"
+
+          git -C "$ARCHIVE" config user.name "github-actions[bot]"
+          git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$ARCHIVE" add -A
+
+          if git -C "$ARCHIVE" diff --cached --quiet; then
+            echo "Published documentation is already current."
+          else
+            git -C "$ARCHIVE" commit -m "Publish project documentation"
+            git -C "$ARCHIVE" push origin gh-pages
+          fi
+
+      - name: Package Pages site
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/pages-site"
+          git -C "$RUNNER_TEMP/pages-archive" archive HEAD | tar -x -C "$RUNNER_TEMP/pages-site"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ runner.temp }}/pages-site
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
