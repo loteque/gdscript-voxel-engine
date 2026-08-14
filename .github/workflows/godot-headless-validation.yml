@@ -76,6 +76,8 @@ jobs:
         run: godot --headless --path . demo/ChunkValidationDemo.tscn --quit-after 8
       - name: Run loading indicator UI tests
         run: godot --headless --path . --script tests/test_loading_indicator_ui.gd
+      - name: Run common no-clip camera tests
+        run: godot --headless --path . --script tests/test_common_no_clip_camera.gd
       - name: Run mobile touch control tests
         run: godot --headless --path . --script tests/test_mobile_touch_controls.gd
       - name: Run main scene loading wiring test
