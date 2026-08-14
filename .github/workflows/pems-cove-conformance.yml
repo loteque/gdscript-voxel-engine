@@ -1,0 +1,35 @@
+name: PEMS COVE Phase 5 Conformance
+
+on:
+  push:
+    branches:
+      - cove-deterministic-serialization
+    paths:
+      - "docs/handoff/pems/**"
+      - "tools/pems/**"
+      - "tools/cove/**"
+      - "tests/test_pems_v1.py"
+      - "tests/test_cove_v1.py"
+      - "tests/test_jcs_v1.py"
+      - "tests/test_pems_cove_conformance.py"
+      - ".github/workflows/pems-cove-conformance.yml"
+  workflow_dispatch:
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install validation dependencies
+        run: pip install -r tools/pems/requirements.txt -r tools/cove/requirements.txt
+      - name: Run PEMS semantic tests
+        run: python -m unittest tests.test_pems_v1 -v
+      - name: Run COVE structural tests
+        run: python -m unittest tests.test_cove_v1 -v
+      - name: Run JCS byte tests
+        run: python -m unittest tests.test_jcs_v1 -v
+      - name: Run Phase 5 cross-layer conformance
+        run: python -m unittest tests.test_pems_cove_conformance -v
