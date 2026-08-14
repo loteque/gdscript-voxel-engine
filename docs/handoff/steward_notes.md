@@ -257,3 +257,37 @@ Phase 4 does not authorize:
 ### Human reasoning
 
 The project needs canonical bytes that remain portable across implementations, not merely a Python function that returns the same string twice. Freezing RFC 8785 as the standard while keeping the dependency evidence-gated preserves interoperability as the contract and treats libraries as replaceable implementation details.
+
+---
+
+## STEWARD-20260813-006
+
+**Timestamp:** 2026-08-13
+**Type:** owner-decision
+**Status:** accepted
+
+### Summary
+
+The project owner approved the Phase 4 numeric interoperability constraint, gated by Project Engineering Steward approval. The Steward approves the constraint as a normative PEMS v1 semantic rule required for portable `jcs/1` serialization.
+
+### Normative PEMS numeric-domain decision
+
+- Integer values represented as JSON numbers in PEMS v1 MUST lie within the inclusive interoperable range `[-9007199254740991, 9007199254740991]`.
+- Exact integer values outside that range MUST NOT be represented as PEMS JSON numbers.
+- When a PEMS record kind legitimately needs an exact integer outside that range, it must use an explicitly modeled string representation permitted by that record kind's normative schema. A serializer must not silently stringify, clamp, round, truncate, or otherwise reinterpret an out-of-range integer.
+- This constraint belongs to the PEMS semantic contract. It is not a COVE transform and not a JCS-library workaround.
+- COVE remains structurally lossless and domain-neutral; JCS remains the independently versioned canonical byte-serialization layer.
+
+### Phase 4 implementation consequence
+
+The Architect is authorized to update the PEMS v1 schema, validation behavior, normative fixtures, documentation, and Phase 4 integration tests only as necessary to encode and prove this approved numeric-domain rule. Existing semantic behavior unrelated to numeric interoperability must remain unchanged.
+
+Phase 4 must demonstrate that out-of-range numeric integers fail at the PEMS semantic/schema boundary rather than surviving until serializer-specific failure, and that valid normalized PEMS documents remain round-trippable through COVE and `jcs/1` canonical UTF-8 bytes.
+
+### Boundaries
+
+This decision does not authorize handoff conversion, shadow migration, canonical adoption, autonomous-agent runtime infrastructure, or production voxel-engine changes. `docs/project-chat-handoff.json` remains canonical until a later explicit migration decision.
+
+### Human reasoning
+
+Python can represent exact integers far beyond the range that common JSON/Javascript-style runtimes can reproduce as binary64 numbers. Allowing those values into canonical PEMS would make semantic equality depend on the implementation reading the document. Constraining numeric integers at the semantic boundary makes portability explicit and testable while preserving exact larger identifiers or quantities through schema-defined string forms when the domain genuinely requires them.
