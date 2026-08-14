@@ -32,6 +32,32 @@ The engine is expected to grow toward larger streamed terrain, LOD, and potentia
 
 Extract a new subsystem or abstraction only when it materially improves correctness, ownership, maintainability, performance, or extensibility.
 
+## Common Library Promotion
+
+The repository maintains a distinction between project-level code, reusable voxel-engine systems, and genuinely cross-project Godot components.
+
+The intended dependency direction is:
+
+```text
+project / demos
+        ↓
+voxel terrain engine
+        ↓
+common library
+```
+
+Dependencies must not point upward through these layers.
+
+Promote a component into the common library only when its demonstrated responsibility is genuinely project-independent. A strong candidate should be understandable and useful outside voxel terrain, avoid dependencies on terrain-specific types or assumptions, and retain validation that can be expressed independently of terrain behavior.
+
+Do not promote code merely because it is reused within this repository. Scalar-field representation, terrain meshers, chunk assets, terrain manifests, and terrain streaming remain voxel-engine concerns even when they are reusable across voxel projects.
+
+Do not use the common library as a generic `misc`, `shared`, or `utils` folder. Extraction should clarify ownership and establish one authoritative reusable capability rather than create parallel copies or broaden responsibilities to make a component appear generic.
+
+Before extracting a component, inspect its current consumers and dependencies, confirm the cross-project contract, preserve appropriate validation, and update consumers to use the promoted component through its public API.
+
+The durable architectural contract and promotion criteria are documented in `docs/architecture/common-library-contract.md`.
+
 ## GDScript Conventions
 
 Follow the official Godot GDScript style guide.
