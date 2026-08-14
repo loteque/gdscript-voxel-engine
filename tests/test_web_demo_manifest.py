@@ -7,6 +7,7 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_SCRIPT = REPOSITORY_ROOT / ".github" / "scripts" / "build_demo_manifest.py"
+PREVIEW_WORKER_SCRIPT = REPOSITORY_ROOT / ".github" / "scripts" / "prepare_mutable_preview_service_worker.py"
 DEPLOY_WORKFLOW = REPOSITORY_ROOT / ".github" / "workflows" / "deploy-web-demo.yml"
 EXPORT_PRESETS = REPOSITORY_ROOT / "export_presets.cfg"
 
@@ -69,6 +70,34 @@ class WebDemoManifestTests(unittest.TestCase):
         self.assertIn('variant/thread_support=true', presets)
         self.assertIn('progressive_web_app/enabled=true', presets)
         self.assertIn('progressive_web_app/ensure_cross_origin_isolation_headers=true', presets)
+
+    def test_mutable_streaming_preview_promotes_new_service_worker(self) -> None:
+        workflow = DEPLOY_WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("Refresh mutable streaming preview clients", workflow)
+        self.assertIn("if: steps.publication.outputs.publication_type == 'preview'", workflow)
+        self.assertIn("prepare_mutable_preview_service_worker.py", workflow)
+        self.assertIn("build/web/streaming/index.service.worker.js", workflow)
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            worker = Path(temporary_directory) / "index.service.worker.js"
+            worker.write_text(
+                "const CACHE_VERSION = 'test';\n"
+                "self.addEventListener('install', (event) => {});\n"
+                "self.addEventListener('activate', (event) => {});\n"
+                "self.addEventListener(\n\t'fetch',\n\t(event) => {}\n);\n",
+                encoding="utf-8",
+            )
+            command = ["python", str(PREVIEW_WORKER_SCRIPT), str(worker)]
+            subprocess.run(command, cwd=REPOSITORY_ROOT, check=True)
+            once = worker.read_text(encoding="utf-8")
+            subprocess.run(command, cwd=REPOSITORY_ROOT, check=True)
+            twice = worker.read_text(encoding="utf-8")
+
+            self.assertEqual(once, twice)
+            self.assertIn("MUTABLE_PREVIEW_IMMEDIATE_UPDATE", once)
+            self.assertIn("self.skipWaiting()", once)
+            self.assertIn("self.clients.claim()", once)
+            self.assertIn("client.navigate(client.url)", once)
 
     def _build_manifest(self, archive: Path) -> None:
         subprocess.run(["python", str(MANIFEST_SCRIPT), str(archive)], cwd=REPOSITORY_ROOT, check=True)
