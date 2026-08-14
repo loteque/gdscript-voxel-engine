@@ -794,3 +794,39 @@ Owner-facing communication is part of correctness. A technically valid process c
 ### Behavioral effect
 
 Future Architect activations should treat an authorized tranche as an execution envelope: proceed without repeatedly re-requesting permission while its scope and invariants hold, but return to the owner/Steward at genuine authority gates, contradictions, evidence failures, or scope changes. Technical completion must be reported separately from final Steward/owner acceptance so an implementation cannot accidentally declare its own governance closure.
+
+## ARCH-20260814T023100-0700-017
+
+- timestamp: `2026-08-14T02:31:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: `STEWARD-20260814-014`
+- subject: PEMS/COVE Phase 8 technical cutover and continuity synchronization complete
+
+### Assessment
+
+Phase 8 technical implementation, validation, canonical-artifact generation, Steward identity admission, and continuity-branch synchronization are complete. Final governance closure remains reserved to the Project Engineering Steward.
+
+GitHub Actions run `31786729203` (`PEMS Phase 8 Cutover`) completed successfully. The validated cutover artifacts were committed by `a7b0e755e583b18eb8a1c671e3a66eeec8c50604` (`Adopt canonical PEMS/COVE project memory`). After branch divergence made a direct historical merge inappropriate, clean synchronization PR #55 carried only the five validated Phase 8 authority artifacts onto the current `project-chat-handoff` branch and merged as `a0efd72c5ea571d24d925dcbaf8778fa9cdee3ed`.
+
+### Verified canonical state
+
+The synchronized files on `project-chat-handoff` match the validated cutover artifacts by Git blob identity:
+
+- `docs/project-chat-handoff.cove.json` is canonical authority; canonical COVE + `jcs/1` bytes: 35,872; SHA-256 `7e2f6300fa6bd5a3aa982a7e6286e7d6285c1d41bc417c4753042562c5b7c99d`.
+- `docs/project-chat-handoff.json` is the deterministic compatibility/expanded derivative; bytes: 62,069; SHA-256 `f6f2e9c097b2ba690d24e3bbb7053a0fb91e46e6fd947f9b215b7ae0de405d7a`.
+- deterministic human reconstruction SHA-256 is `ad740bad0d7916d9d988e440a90e5745e270dbbe7b38da574b041a8375da6585`.
+- `docs/handoff/pems/phase8-admission-manifest.json`, `docs/handoff/pems/phase8-cutover-evidence.json`, and `docs/handoff/pems/project-chat-handoff.md` match their cutover-branch blobs exactly.
+
+The evidence records 156 admitted identities / 156 records and zero relations. Both validated immutable source observations remain present: `pems:source_observation:5b206d4358781f93074b` and `pems:source_observation:8c186a6ca2398e0cfe5e`. Historical identity `pems:decision:b54a6445b1ce2b815b56` is retained alongside the prior source observation, preserving the Phase 7 historical-retention requirement.
+
+### Authority and stage boundary
+
+The canonical project-memory authority is now `docs/project-chat-handoff.cove.json`. `docs/project-chat-handoff.json` is a deterministic compatibility/human-readable derivative and must not silently regain authority through convenience or stale branch-local assumptions.
+
+No production voxel-engine behavior was changed by this closeout. The representation cutover is technically complete and synchronized; the remaining state transition is the Steward's final acceptance/governance completion record.
+
+### Human reasoning
+
+The important closeout property is not merely that the cutover workflow was green. The exact bytes that passed the Phase 8 evidence gate are now the bytes present on the continuity branch, while newer role-governance directives were preserved instead of being overwritten by historical implementation-branch divergence. That separates representation proof from authority bookkeeping cleanly and leaves one final, truthful gate: Steward acceptance of the already-verified repository state.
