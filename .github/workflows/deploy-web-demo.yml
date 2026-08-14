@@ -191,6 +191,13 @@ jobs:
             "Chunk Streamer Runtime Workload Isolation" \
             "$STREAMING_MANIFEST_URL"
 
+      - name: Refresh mutable streaming preview clients
+        if: steps.publication.outputs.publication_type == 'preview'
+        shell: bash
+        run: |
+          python .github/scripts/prepare_mutable_preview_service_worker.py \
+            build/web/streaming/index.service.worker.js
+
       - name: Preserve exported builds
         shell: bash
         run: |
@@ -262,7 +269,7 @@ jobs:
           python .github/scripts/build_demo_manifest.py "$ARCHIVE"
 
           git -C "$ARCHIVE" config user.name "github-actions[bot]"
-          git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$ARCHIVE" config user.email "41898282+github-actions-bot@users.noreply.github.com"
           git -C "$ARCHIVE" add -A
 
           if git -C "$ARCHIVE" diff --cached --quiet; then
