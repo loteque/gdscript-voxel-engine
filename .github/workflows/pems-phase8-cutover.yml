@@ -17,7 +17,7 @@ jobs:
           python-version: '3.12'
       - run: pip install -r tools/pems/requirements.txt -r tools/cove/requirements.txt pytest
       - name: Full representation regression
-        run: pytest -q tests/test_pems_v1.py tests/test_cove_v1.py tests/test_jcs_v1.py tests/test_pems_cove_conformance.py tests/test_pems_current_handoff_import.py tests/test_pems_phase7_shadow.py tests/test_pems_phase8_remediation.py
+        run: python -m pytest -q tests/test_pems_v1.py tests/test_cove_v1.py tests/test_jcs_v1.py tests/test_pems_cove_conformance.py tests/test_pems_current_handoff_import.py tests/test_pems_phase7_shadow.py tests/test_pems_phase8_remediation.py
       - name: Generate admitted canonical corpus
         run: python -m tools.pems.phase8_cutover
       - name: Verify deterministic regeneration
