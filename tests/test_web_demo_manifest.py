@@ -97,7 +97,8 @@ class WebDemoManifestTests(unittest.TestCase):
             self.assertIn("MUTABLE_PREVIEW_IMMEDIATE_UPDATE", once)
             self.assertIn("self.skipWaiting()", once)
             self.assertIn("self.clients.claim()", once)
-            self.assertIn("client.navigate(client.url)", once)
+            self.assertNotIn("client.navigate", once)
+            self.assertNotIn("clients.matchAll", once)
 
     def _build_manifest(self, archive: Path) -> None:
         subprocess.run(["python", str(MANIFEST_SCRIPT), str(archive)], cwd=REPOSITORY_ROOT, check=True)
