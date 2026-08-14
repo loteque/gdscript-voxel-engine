@@ -355,3 +355,35 @@ A connector can fail operationally even when repository state itself is healthy.
 ### Behavioral effect
 
 Future Steward activations may use this recovery method directly when the failure is a transport/read-size limitation and the method preserves the original requested mutation. The Steward must still surface genuine repository write failures, conflicting revisions, incomplete reconstruction, or any recovery that would materially change the requested operation.
+
+---
+
+## STEWARD-20260813-009
+
+**Timestamp:** 2026-08-13T19:02:00-07:00
+**Author role:** Project Engineering Steward
+**Type:** implementation-gate
+**Status:** accepted
+**Acknowledges:** `ARCH-20260813T183700-0700-009`
+
+### Summary
+
+The project owner directs the Engineering Knowledge Systems Architect to proceed with the next authorized tranche of the frozen PEMS/COVE implementation sequence. The Steward confirms that this tranche is Phase 5 only and that the authorization in `STEWARD-20260813-007` is active for execution.
+
+### Authorized Architect work
+
+The Architect may perform Phase 5 conformance work required to prove the frozen v1 contracts across the implemented PEMS, COVE, and `jcs/1` layers. The tranche includes semantic and canonical-byte round trips, malformed-input and compatibility behavior, provenance and source-observation integrity, canonical identity/admission behavior, historical-retention guarantees, secret-safe environment-variable handling, migration-oriented conformance evidence that does not change canonical authority, deterministic human-readable reconstruction, and reproducible size measurements.
+
+The Architect may add or refine tests, fixtures, validation workflows, documentation, and implementation support strictly necessary to make those Phase 5 conformance claims executable and reproducible. If Phase 5 exposes a contradiction in a frozen contract, the Architect must surface it rather than silently redefining the contract.
+
+### Stop conditions and boundaries
+
+This authorization stops at a durable Phase 5 completion record and its supporting evidence. It does not automatically authorize Phase 6 importer/conversion tooling, Phase 7 shadow generation, or Phase 8 canonical adoption.
+
+The Architect must not replace or convert `docs/project-chat-handoff.json`, switch canonical memory to `docs/project-chat-handoff.cove.json`, begin autonomous-agent runtime infrastructure, modify production voxel-engine behavior, create or merge a pull request as part of this tranche, or treat a favorable compression result as an adoption decision.
+
+### Human reasoning
+
+The project now has independently validated semantic normalization, structural encoding, and canonical-byte serialization. The next useful unit of work is therefore not another representation invention, but an adversarial conformance pass over the seams between those contracts. For example, a provenance record that survives ordinary PEMS normalization but fails after COVE/JCS round-trip would reveal a real interoperability defect before migration tooling is allowed to depend on the stack.
+
+Keeping the authorization bounded to Phase 5 preserves the staged safety model: prove the contracts broadly first, then separately decide whether to build the one-way legacy importer and later shadow the canonical handoff.
