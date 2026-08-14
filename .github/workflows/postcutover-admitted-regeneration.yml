@@ -1,0 +1,171 @@
+name: Post-cutover admitted regeneration
+
+on:
+  push:
+    branches:
+      - post-cutover-admitted-regeneration
+    paths:
+      - .github/workflows/postcutover-admitted-regeneration.yml
+      - docs/handoff/pems/postcutover-reconciliation.candidate.pems.json
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PEMS/COVE dependencies
+        run: |
+          python -m pip install -r tools/pems/requirements.txt -r tools/cove/requirements.txt pytest
+      - name: Run frozen representation tests
+        run: |
+          python -m pytest -q tests/test_pems_v1.py tests/test_cove_v1.py tests/test_jcs_v1.py tests/test_pems_cove_conformance.py
+      - name: Regenerate admitted corpus and evidence
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+          import hashlib
+          import json
+          from pathlib import Path
+
+          from tools.pems.pems_v1 import normalize_document, validate_schema, validate_semantics, semantic_identity
+          from tools.pems.human_export import render_human_markdown
+          from tools.cove.cove_v1 import encode, decode
+          from tools.cove.jcs_v1 import canonicalize, serialize_cove, parse_canonical
+
+          ROOT = Path('.')
+          candidate_path = ROOT / 'docs/handoff/pems/postcutover-reconciliation.candidate.pems.json'
+          old_cove_path = ROOT / 'docs/project-chat-handoff.cove.json'
+          schema_path = ROOT / 'docs/handoff/pems/pems-v1.schema.json'
+
+          id_map = {
+              'candidate:decision:0e968ebd710a96368b0c': 'pems:decision:0e968ebd710a96368b0c',
+              'candidate:decision:2197184a0ef4b2a120e4': 'pems:decision:2197184a0ef4b2a120e4',
+              'candidate:decision:48d62ed965c497ae93c0': 'pems:decision:48d62ed965c497ae93c0',
+              'candidate:decision:abe7b5d5efc6d7232e72': 'pems:decision:abe7b5d5efc6d7232e72',
+              'candidate:decision:afe31f1b2c7b06bbb403': 'pems:decision:afe31f1b2c7b06bbb403',
+              'candidate:source:eb92b21e7f3c92db6d23': 'pems:source:eb92b21e7f3c92db6d23',
+              'candidate:source_observation:be6819991bf46e7cc226': 'pems:source_observation:be6819991bf46e7cc226',
+          }
+
+          def remap(value):
+              if isinstance(value, str):
+                  return id_map.get(value, value)
+              if isinstance(value, list):
+                  return [remap(item) for item in value]
+              if isinstance(value, dict):
+                  return {key: remap(item) for key, item in value.items()}
+              return value
+
+          candidate = json.loads(candidate_path.read_text(encoding='utf-8'))
+          admitted = normalize_document(remap(candidate))
+          schema = json.loads(schema_path.read_text(encoding='utf-8'))
+
+          schema_result = validate_schema(admitted, schema=schema)
+          assert schema_result.valid, schema_result.diagnostics
+          semantic_result = validate_semantics(admitted)
+          assert semantic_result.valid, semantic_result.diagnostics
+
+          old_artifact = json.loads(old_cove_path.read_text(encoding='utf-8'))
+          old_expanded = normalize_document(decode(old_artifact, supported_profiles={'pems/1'}))
+          old_records = {record['id']: record for record in old_expanded['records']}
+          new_records = {record['id']: record for record in admitted['records']}
+
+          assert len(old_records) == 156, len(old_records)
+          assert len(admitted['records']) == 163, len(admitted['records'])
+          assert len(admitted.get('relations', [])) == 0
+          assert set(old_records).issubset(new_records)
+          missing = sorted(set(old_records) - set(new_records))
+          rebound = sorted(
+              record_id for record_id, old_record in old_records.items()
+              if semantic_identity(old_record) != semantic_identity(new_records[record_id])
+          )
+          assert not missing, missing
+          assert not rebound, rebound
+
+          admitted_ids = set(new_records)
+          assert set(id_map.values()).issubset(admitted_ids)
+          assert not any(record_id.startswith('candidate:') or record_id.startswith('import:') for record_id in admitted_ids)
+
+          required_history = {
+              'pems:source_observation:5b206d4358781f93074b',
+              'pems:source_observation:8c186a6ca2398e0cfe5e',
+              'pems:source_observation:be6819991bf46e7cc226',
+              'pems:decision:b54a6445b1ce2b815b56',
+          }
+          assert required_history.issubset(admitted_ids)
+
+          compact = encode(admitted, profile='pems/1', serializer='jcs/1')
+          compact_bytes = serialize_cove(compact)
+          expanded_bytes = canonicalize(admitted)
+          human_bytes = render_human_markdown(admitted).encode('utf-8')
+
+          compact_repeat = encode(admitted, profile='pems/1', serializer='jcs/1')
+          compact_repeat_bytes = serialize_cove(compact_repeat)
+          assert compact_repeat_bytes == compact_bytes
+          assert normalize_document(decode(compact, supported_profiles={'pems/1'})) == admitted
+          parsed_compact = parse_canonical(compact_bytes)
+          assert normalize_document(decode(parsed_compact, supported_profiles={'pems/1'})) == admitted
+          assert canonicalize(admitted) == expanded_bytes
+          assert render_human_markdown(admitted).encode('utf-8') == human_bytes
+
+          out_dir = ROOT / 'docs/handoff/pems'
+          pems_out = out_dir / 'postcutover-reconciliation.admitted.pems.json'
+          cove_out = out_dir / 'postcutover-reconciliation.admitted.cove.json'
+          expanded_out = out_dir / 'postcutover-reconciliation.admitted.expanded.json'
+          human_out = out_dir / 'postcutover-reconciliation.admitted.md'
+          evidence_out = out_dir / 'postcutover-reconciliation.admitted.evidence.json'
+
+          pems_out.write_bytes(expanded_bytes)
+          expanded_out.write_bytes(expanded_bytes)
+          cove_out.write_bytes(compact_bytes)
+          human_out.write_bytes(human_bytes)
+
+          sha256 = lambda data: hashlib.sha256(data).hexdigest()
+          evidence = {
+              'status': 'admitted_regeneration_valid_ready_for_steward_canonical_write',
+              'semantic': 'pems/1',
+              'codec': 'cove/1',
+              'serializer': 'jcs/1',
+              'record_count_before': 156,
+              'record_count_after': 163,
+              'relation_count': 0,
+              'original_ids_preserved': 156,
+              'missing_original_ids': missing,
+              'rebound_original_ids': rebound,
+              'admitted_id_map': id_map,
+              'history_preserved_ids': sorted(required_history),
+              'schema_valid': schema_result.valid,
+              'semantic_valid': semantic_result.valid,
+              'cove_round_trip_valid': True,
+              'canonical_byte_repeat_identical': True,
+              'expanded_byte_repeat_identical': True,
+              'human_reconstruction_repeat_identical': True,
+              'artifacts': {
+                  str(pems_out): {'bytes': len(expanded_bytes), 'sha256': sha256(expanded_bytes)},
+                  str(expanded_out): {'bytes': len(expanded_bytes), 'sha256': sha256(expanded_bytes)},
+                  str(cove_out): {'bytes': len(compact_bytes), 'sha256': sha256(compact_bytes)},
+                  str(human_out): {'bytes': len(human_bytes), 'sha256': sha256(human_bytes)},
+              },
+              'source_candidate': str(candidate_path),
+              'source_canonical': str(old_cove_path),
+          }
+          evidence_bytes = json.dumps(evidence, ensure_ascii=False, sort_keys=True, indent=2).encode('utf-8') + b'\n'
+          evidence_out.write_bytes(evidence_bytes)
+          print(json.dumps(evidence, indent=2, sort_keys=True))
+          PY
+      - name: Commit noncanonical admitted artifacts
+        run: |
+          git config user.name 'Engineering Knowledge Systems Architect'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/handoff/pems/postcutover-reconciliation.admitted.*
+          git commit -m 'Generate admitted post-cutover reconciliation evidence'
+          git push origin HEAD:post-cutover-admitted-regeneration
