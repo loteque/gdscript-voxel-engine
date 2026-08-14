@@ -1,5 +1,6 @@
 name: PEMS Phase 8 Cutover
 on:
+  workflow_dispatch:
   push:
     branches: [pems-phase8-cutover]
 permissions:
