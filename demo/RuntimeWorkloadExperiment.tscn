@@ -19,3 +19,22 @@ current = true
 [node name="Sun" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-55, -30, 0)
 shadow_enabled = true
+
+[node name="StartupProbe" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="Panel" type="ColorRect" parent="StartupProbe"]
+offset_left = 16.0
+offset_top = 72.0
+offset_right = 560.0
+offset_bottom = 150.0
+color = Color(0.02, 0.05, 0.08, 0.94)
+
+[node name="Label" type="Label" parent="StartupProbe/Panel"]
+layout_mode = 0
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 530.0
+offset_bottom = 66.0
+theme_override_font_sizes/font_size = 20
+text = "Runtime experiment scene loaded\nWaiting for GDScript startup…"
