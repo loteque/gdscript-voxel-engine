@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = 'preview-6b07f715640fc5ca7bf8f8cc50550c03ae9d04ee';
+const CACHE_VERSION = 'preview-ea1c1730024aa7cf0e98c881eae68a96a6bb8fc7';
 /** @type {string} */
 const CACHE_PREFIX = 'smooth_voxel_tec-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
