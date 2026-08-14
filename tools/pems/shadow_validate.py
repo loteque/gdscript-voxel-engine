@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from tools.cove.cove_v1 import decode_document, encode_document
-from tools.cove.jcs_v1 import canonicalize
-from .human_export import export_markdown
+from tools.cove.cove_v1 import decode, encode
+from tools.cove.jcs_v1 import serialize_cove
+from .human_export import render_human_markdown
 from .import_current_handoff import ImportReport, import_handoff
 
 
@@ -42,13 +42,13 @@ def observe(handoff: Mapping[str, Any], *, label: str, source_commit: str) -> Sh
     if first_bytes != _canonical_json(second.document):
         raise ValueError("nondeterministic_import")
 
-    cove = encode_document(first.document)
-    compact = canonicalize(cove)
-    decoded = decode_document(json.loads(compact.decode("utf-8")))
+    cove = encode(first.document, profile="pems/1", serializer="jcs/1")
+    compact = serialize_cove(cove)
+    decoded = decode(json.loads(compact.decode("utf-8")), supported_profiles={"pems/1"})
     if decoded != first.document:
         raise ValueError("cove_jcs_round_trip_mismatch")
 
-    human = export_markdown(first.document).encode("utf-8")
+    human = render_human_markdown(first.document).encode("utf-8")
     return ShadowObservation(
         label=label,
         source_commit=source_commit,
