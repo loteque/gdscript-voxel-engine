@@ -1,0 +1,33 @@
+name: PEMS Validation
+
+on:
+  push:
+    branches:
+      - pems-validation-normalization
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-pems:
+    name: Validate PEMS v1 Phase 2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install PEMS validation dependencies
+        run: python -m pip install -r tools/pems/requirements.txt
+
+      - name: Run frozen PEMS fixture suite
+        run: python tools/pems/run_fixtures.py
+
+      - name: Run PEMS Phase 2 unit tests
+        run: python -m unittest tests/test_pems_v1.py
