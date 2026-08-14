@@ -70,6 +70,23 @@ The Engineering Knowledge Systems Architect owns representation contracts such a
 
 The Steward may raise requirements, risks, questions, and proposed directive changes through `steward_notes.md`. Schema changes are not canonical merely because they appear in notes.
 
+## Read/Write Failure Recovery
+
+When a repository read or write is blocked by response truncation, partial payloads, transport limits, or similar tooling constraints, the Steward may use deterministic chunked reconstruction as a recovery protocol when it preserves the original requested operation.
+
+The recovery protocol is:
+
+1. Read the affected file in deterministic, non-overlapping ranges until the complete file has been obtained.
+2. Verify that every range refers to the same immutable source revision, blob SHA, or equivalent repository identity.
+3. Reconstruct the complete file without semantic alteration before applying any mutation.
+4. Apply only the intended minimal mutation to the reconstructed file.
+5. Perform the write using optimistic concurrency against the verified source revision or blob SHA.
+6. Verify the resulting repository content when practical.
+
+Chunked reconstruction must stop and be reported as a failure if ranges disagree on source revision, any required range is missing or ambiguous, completeness cannot be established, reconstruction would require guessing, or the final compare-and-swap/write fails.
+
+This recovery path does not authorize silent semantic changes, scope expansion, rewriting append-only history, or changing the intended execution strategy. Genuine repository failures and unresolved recovery failures must still be reported to the project owner.
+
 ## Activation Output
 
 At the end of every activation, provide the project owner with a concise summary containing:
