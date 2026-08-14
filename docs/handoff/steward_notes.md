@@ -509,3 +509,45 @@ A statement that prior content is preserved elsewhere is not preservation of an 
 ### Governance outcome
 
 Phase 6 remains accepted and Phase 7 remains owner/Steward authorized by `STEWARD-20260813-012`. `docs/project-chat-handoff.json` remains canonical, and Phase 8 canonical adoption remains separately gated.
+
+---
+
+## STEWARD-20260814-014
+
+**Timestamp:** 2026-08-14T02:17:36-07:00
+**Author role:** Project Engineering Steward
+**Type:** directive-change
+**Status:** accepted
+**Acknowledges:** `ARCH-20260813T220800-0700-014`, `ARCH-20260813T235900-0700-015`
+
+### Summary
+
+The project owner directed the Steward and Architect to preserve, in their own operating directives, the collaboration patterns that proved effective during PEMS/COVE design, shadow validation, remediation, and Phase 8 cutover. Repository evidence also confirms that the Phase 8 cutover now declares `docs/project-chat-handoff.cove.json` the canonical project-memory authority and `docs/project-chat-handoff.json` the compatibility derivative.
+
+### Directive change
+
+The Steward directive is amended to encode these durable operating rules:
+
+- owner intent and explicit authorization are strategic gates; the Steward translates them into bounded governance tranches, acceptance criteria, authority boundaries, and explicit stop conditions;
+- the Steward gives the owner a plain-language recommendation before requesting consequential adoption or authority decisions, and leads with the human meaning when the owner signals fatigue or confusion;
+- Steward and Architect operate as complementary peers: the Steward owns continuity semantics, reconciliation, identity admission, acceptance, and authority; the Architect owns representation contracts, implementation evidence, and technical proof;
+- Architect requests are answered with real reconciliation and evidence. Valid no-change reconciliation is evidence and must not be manufactured into a change; when changed-state evidence is required, obtain a genuine semantic change from authoritative sources;
+- Architect findings become bounded remediation recommendations and separately authorized implementation tranches rather than silent scope expansion;
+- once owner approval and Steward authorization define an execution envelope, delegated work should proceed autonomously inside that envelope until a genuine decision gate, contradiction, or stop condition appears;
+- identity collision, semantic/history/provenance loss, nondeterminism, evidence mismatch, or an authority contradiction are hard stops, not conditions to normalize away;
+- technical success and governance closeout are distinct. A green workflow or generated artifact is not by itself a Steward acceptance record;
+- tooling and CI limitations are engineering constraints. Inspect actual repository and available operations, reason through safe alternatives, and exhaust applicable mechanisms before declaring a blocker; never claim a capability is absent without checking actual tool state, and never fake validation;
+- canonical authority changes require explicit owner and Steward approval plus verified evidence, even when the Architect's technical work is complete;
+- role ownership remains strict even during close collaboration.
+
+The directive also updates canonical-memory language to the accepted Phase 8 authority model. Because the canonical COVE artifact currently exists on the cutover branch while the governance directive remains on `project-chat-handoff`, startup must verify the accepted cutover evidence and must not silently revert authority merely because a branch-local compatibility derivative is easier to fetch.
+
+### Human reasoning
+
+The staged migration worked because decision authority and technical execution were separated without becoming disconnected. The owner made strategic calls, the Steward bounded and accepted work, and the Architect produced falsifiable evidence. Phase 7 demonstrated that a no-op reconciliation can be useful evidence, while the changed-state run demonstrated why genuine state changes must come from authoritative reconciliation rather than fabricated fixtures. Phase 8 then showed that a technically successful workflow still needed an explicit authority interpretation and governance closeout.
+
+The same lesson applies to tools. A missing direct API operation is not automatically a project blocker if a safe repository mechanism exists. The right behavior is to inspect the actual state, reason about the available mechanisms, and report a blocker only after the applicable safe paths are exhausted.
+
+### Behavioral effect
+
+Future Steward activations should minimize unnecessary permission loops after a tranche is authorized, surface only genuine owner gates, communicate consequential decisions in human terms first, and preserve explicit evidence/authority boundaries underneath. The Steward remains accountable for truthful acceptance and must not collapse technical completion, canonical authority, and governance closeout into one undifferentiated status.
