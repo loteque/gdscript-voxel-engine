@@ -1,0 +1,33 @@
+name: Architect Closeout Evidence Repair
+on:
+  push:
+    branches:
+      - project-chat-handoff
+permissions:
+  contents: write
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Load frozen PEMS COVE implementation
+        run: |
+          rm -rf /tmp/accepted-pems-cove
+          mkdir -p /tmp/accepted-pems-cove
+          git archive origin/post-cutover-admitted-regeneration tools | tar -x -C /tmp/accepted-pems-cove
+          python3 -m pip install -q jsonschema rfc8785
+      - name: Regenerate corrected closeout evidence
+        run: python3 .github/scripts/architect_closeout_evidence_repair.py
+      - name: Persist corrected Architect evidence
+        run: |
+          rm .github/workflows/architect-closeout-evidence-repair.yml
+          rm .github/scripts/architect_closeout_evidence_repair.py
+          git add docs/handoff/architect_notes.md docs/handoff/pems/final-closeout.corrected.* docs/handoff/pems/final-closeout-corrected-frozen-codec.evidence.json .github/workflows/architect-closeout-evidence-repair.yml .github/scripts/architect_closeout_evidence_repair.py
+          test -z "$(git diff --cached --name-only | grep -E '^docs/project-chat-handoff(\.cove)?\.json$|^docs/handoff/steward_|^ROADMAP\.md$|^demo/|^tests/' || true)"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs: supersede inconsistent closeout COVE evidence'
+          git push origin HEAD:project-chat-handoff
