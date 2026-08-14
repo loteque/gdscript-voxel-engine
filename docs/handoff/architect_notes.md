@@ -558,3 +558,48 @@ Phase 2 proves that PEMS meaning can stand on its own before compact encoding ex
 ### Next step
 
 Owner/Steward should accept this Phase 2 completion record before Phase 3 begins. Phase 3 may then implement generic COVE v1 encode/decode against generic JSON fixtures first and normalized PEMS fixtures second. Do not implement JCS serialization or migrate canonical project memory as part of Phase 3.
+
+## ARCH-20260813T180200-0700-008
+
+- timestamp: `2026-08-13T18:02:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: owner/Steward acceptance of Phase 2 in the active assignment; latest durable Steward note remains `STEWARD-20260813-004`
+- subject: COVE v1 Phase 3 generic structural codec complete
+
+### Assessment
+
+COVE v1 Phase 3 is complete. The frozen domain-neutral structural codec is implemented, documented, fixture-backed, and validated in GitHub Actions. COVE remains independent from PEMS semantics: it encodes JSON values structurally and only receives normalized PEMS as ordinary input through the public PEMS normalization boundary.
+
+The implemented core uses deterministic global string interning plus deterministic object-shape factoring, preserves raw JSON primitive semantics, rejects malformed references/tags/version/profile conditions with deterministic diagnostics, and keeps COVE versioning independent from PEMS versioning.
+
+### Validation evidence
+
+- feature branch: `cove-v1-codec`
+- validation workflow commit: `53e1b9aff9937b99a9692a23bb40ea6ef36bfe9a`
+- COVE Validation run #1: `31759268282`, conclusion `success`
+- generic COVE fixture suite: passing
+- malformed-input fixtures: passing at declared diagnostic boundaries
+- COVE Phase 3 unit tests: passing
+- deterministic encoding / object insertion-order independence: covered and passing
+- generic encode/decode round trips: covered and passing
+- normalized PEMS encode/decode round trip through `normalize_document()`: covered and passing
+- no PEMS record-kind, chat, role, decision, provenance, terrain-domain, or Steward-admission logic is present in COVE
+- no JCS serializer, handoff conversion, shadow migration, canonical switch, autonomous runtime, or production terrain-engine scope leakage was introduced
+
+### Size observations
+
+The fixture runner executed its observational structural-character measurements as part of the successful Actions fixture step. Exact stdout counts are not available through the current GitHub connector response, so no numeric size claim is recorded here. No compression threshold is introduced or implied by Phase 3.
+
+### Design contradictions
+
+No contradiction in the frozen COVE v1 design was exposed by implementation or validation. The generic-first test ordering remained viable, and normalized PEMS passed through COVE without requiring domain-specific codec behavior.
+
+### Human reasoning
+
+Phase 3 answers the architectural question that justified separating PEMS from COVE: the compact representation can be deterministic and lossless without understanding project meaning. A normal JSON object and a normalized PEMS document traverse the same codec machinery; PEMS-specific semantics remain upstream. That means later serializer, migration, and adoption work can build on COVE without turning the codec into a second semantic system.
+
+### Next step
+
+Owner/Steward should review and accept this Phase 3 completion evidence before Phase 4 begins. Phase 4 may evaluate and implement deterministic byte serialization, with RFC 8785 JCS still preferred but evidence-gated. Do not convert canonical project memory or begin shadow migration as part of Phase 4 unless separately authorized.
