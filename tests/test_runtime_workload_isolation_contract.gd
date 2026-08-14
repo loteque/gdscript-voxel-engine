@@ -4,6 +4,7 @@ extends SceneTree
 
 const SCENE_PATH := "res://demo/RuntimeWorkloadExperiment.tscn"
 const RUNNER_PATH := "res://demo/experiments/RuntimeExperimentShell.gd"
+const BOOTSTRAP_PATH := "res://demo/experiments/RuntimeExperimentBootstrap.gd"
 const UI_PATH := "res://demo/experiments/RuntimeWorkloadExperimentUI.gd"
 const LOADER_CONTROL_PATH := "res://demo/experiments/RuntimeWorkloadLoaderControl.gd"
 const EXPORTER_PATH := "res://demo/experiments/RuntimeWorkloadEvidenceExporter.gd"
@@ -26,6 +27,10 @@ func _init() -> void:
 				instance.get_meta("_runtime_workload_ui_script", null) is Script,
 				"Experiment scene must retain the runtime workload UI as an explicit export dependency."
 			)
+			_check(
+				instance.get_meta("_runtime_workload_shell_script", null) is Script,
+				"Experiment scene must retain the experiment shell as an explicit export dependency."
+			)
 			if instance.has_method("get_experiment_title"):
 				_check(instance.get_experiment_title() == EXPECTED_TITLE, "Experiment title must match the approved UI title.")
 			if instance.has_method("get_expected_run_count"):
@@ -38,6 +43,12 @@ func _init() -> void:
 		_check(runner_source.contains(mode), "Experiment runner must contain workload mode %s." % mode)
 	for field in ["load_observations", "frame_timing", "p95_msec", "p99_msec", "revision"]:
 		_check(runner_source.contains(field), "Evidence runner must expose %s." % field)
+
+	var bootstrap_source := _read_text(BOOTSTRAP_PATH)
+	_check(FileAccess.file_exists(BOOTSTRAP_PATH), "Runtime workload startup bootstrap must exist.")
+	_check(bootstrap_source.contains("preload(\"res://demo/experiments/RuntimeWorkloadExperimentUI.gd\")"), "Startup must preload the UI explicitly.")
+	_check(bootstrap_source.contains("await get_tree().process_frame"), "Startup must yield a frame before synchronous fixture loading.")
+	_check(bootstrap_source.contains("Startup 1/3"), "Startup must expose visible progress before fixture loading.")
 	_check(FileAccess.file_exists(UI_PATH), "Runtime workload experiment UI must exist.")
 	_check(FileAccess.file_exists(LOADER_CONTROL_PATH), "Loader-only control must exist.")
 	_check(FileAccess.file_exists(EXPORTER_PATH), "Evidence exporter must exist.")
