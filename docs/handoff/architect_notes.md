@@ -603,3 +603,65 @@ Phase 3 answers the architectural question that justified separating PEMS from C
 ### Next step
 
 Owner/Steward should review and accept this Phase 3 completion evidence before Phase 4 begins. Phase 4 may evaluate and implement deterministic byte serialization, with RFC 8785 JCS still preferred but evidence-gated. Do not convert canonical project memory or begin shadow migration as part of Phase 4 unless separately authorized.
+
+## ARCH-20260813T183700-0700-009
+
+- timestamp: `2026-08-13T18:37:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: `STEWARD-20260813-005`, `STEWARD-20260813-006`
+- subject: PEMS/COVE Phase 4 deterministic JCS serialization complete
+
+### Assessment
+
+Phase 4 is complete. RFC 8785 is now implemented as the independent `jcs/1` canonical UTF-8 serialization boundary over COVE, with `rfc8785==0.1.4` as the evidence-backed current Python implementation. PEMS, COVE, and JCS remain independently versioned and responsibility-separated.
+
+The owner/Steward-approved PEMS integer portability rule is enforced structurally in the current closed pems/1 vocabulary. The only integer-valued schema members currently admitted are `source_observation.data.evidence_locator.line_start` and `line_end`; both are bounded to the inclusive interoperable range ending at `9007199254740991`. Larger exact integers are not silently converted and require an explicitly modeled string representation in a future schema if a domain actually needs them.
+
+### Implementation and validation evidence
+
+- feature branch: `cove-deterministic-serialization`
+- JCS byte boundary: `cef49e2c8d3ce8881192a1a108cc7ee5cd339c50`
+- pinned `rfc8785==0.1.4` dependency: `4763635d6da43b452c9e077e551dfd0bff1a004b`
+- generic JCS tests: `5b924d1eb0282a1c67f04cbfc82565f5fc36bc60`
+- initial JCS validation workflow: `821008afecbd5ccbc81d3f52c124d5aeece82461`
+- PEMS numeric schema bound: `f789e5bd98c3984c8ea1f8c6e712c4c75d6d38ed`
+- PEMS boundary unit test: `c03cecb3369ce6fe89a2305f154818ffc461e42e`
+- normalized PEMS -> COVE -> JCS -> parse -> COVE decode round-trip test: `d8bac6dbdf77422b514b7ede3eab1dbc14cfe700`
+- Phase 4 CI includes PEMS boundary, COVE regression, and JCS tests: `8549d52b771a781b57e42f32caee3e32a9dcad66`
+- normative PEMS numeric documentation: `5e825b5f25761e079fac3b16f52e2b5b768ea6ce`
+- JCS Validation run #6: `31761066704`, conclusion `success`
+- PEMS tests: 7 passing
+- COVE regression tests: 11 passing
+- JCS Phase 4 tests: 10 passing
+
+The JCS tests cover the published RFC 8785 sample, representative number serialization boundaries, negative zero canonicalization, deterministic key ordering, safe/unsafe integer behavior, malformed and noncanonical input rejection, serializer metadata, generic COVE round trips, and normalized PEMS byte round trips. RFC 8785 itself records multiple independent implementation families and reference test data; this phase uses that published ecosystem evidence rather than adding a second JCS library dependency solely for duplicate CI serialization.
+
+### Byte-size observation
+
+The successful CI run measured actual canonical UTF-8 bytes for the normalized full-project PEMS fixture:
+
+- expanded normalized PEMS: `14901` bytes
+- COVE + `jcs/1`: `10331` bytes
+- reduction: `4570` bytes, approximately `30.7%`
+
+This is observational evidence for one representative fixture, not a normative compression threshold or adoption gate.
+
+### Numeric-domain finding
+
+The approved numeric restriction belongs to PEMS meaning, while JCS simply serializes conforming values. In the current closed pems/1 vocabulary, enforcing maximum bounds on the only integer-valued schema fields covers the complete admitted integer-number surface. No duplicate recursive numeric validator was added. Any future schema revision that introduces another integer-valued PEMS member must carry the same portability rule or explicitly model a string form.
+
+### Scope and contradictions
+
+No further contract contradiction was exposed. No handoff conversion, legacy importer, shadow migration, canonical-memory switch, autonomous-agent runtime infrastructure, PR/merge, or production voxel-engine change was introduced.
+
+### Human reasoning
+
+Phase 4 proves the byte boundary without moving project authority. A normalized PEMS document can become a domain-neutral COVE structure, then deterministic RFC 8785 UTF-8 bytes, and return to identical normalized semantics. The numeric bound prevents Python-only arbitrary-precision integers from becoming canonical project meaning that other common JSON runtimes cannot reproduce exactly.
+
+The measured size result is encouraging, but it should remain evidence rather than policy. The next phase should broaden conformance and migration evidence before any discussion of canonical adoption.
+
+### Next step
+
+Owner/Steward should review and accept Phase 4 before Phase 5 begins. Phase 5 may build the broader conformance suite described by the frozen staged plan. Canonical migration remains separately gated and is not authorized by this completion record.
