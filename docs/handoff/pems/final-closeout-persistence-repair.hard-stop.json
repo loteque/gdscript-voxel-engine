@@ -1,0 +1,94 @@
+{
+  "authority": {
+    "architect_admission_performed": false,
+    "canonical_authority_unchanged": "docs/project-chat-handoff.cove.json",
+    "steward_ready_165_artifacts_persisted": false
+  },
+  "base_canonical": {
+    "commit": "3ad4794f6ef89ecdde5077acee49c7d6844961f8",
+    "cove": {
+      "bytes": 38053,
+      "git_blob_sha": "0ed7fd47dc5bf6a81078389cd9bc65e0864ad3be",
+      "sha256": "ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa"
+    },
+    "expanded": {
+      "bytes": 65793,
+      "git_blob_sha": "10de73e29e0118b63a365dd47b566307c9a0b98b",
+      "sha256": "bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038"
+    },
+    "record_count": 163
+  },
+  "candidate_to_contingent_admitted_id_map": {
+    "candidate:decision:5fa3241c8b9bc2787b6d": "pems:decision:5fa3241c8b9bc2787b6d",
+    "candidate:source_observation:15b32d4adb9bcfa4fc94": "pems:source_observation:15b32d4adb9bcfa4fc94"
+  },
+  "codec_control": {
+    "accepted_tooling_source": "post-cutover-admitted-regeneration/tools/cove/cove_v1.py + jcs_v1.py",
+    "canonical_163_reencode_byte_equal_to_repository": true,
+    "canonical_163_reencode_bytes": 38053,
+    "canonical_163_reencode_sha256": "ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa",
+    "canonical_163_round_trip_equal": true,
+    "verification_run": 31834134158
+  },
+  "diagnostic_runs": {
+    "candidate_and_contingent_measurement": 31834079062,
+    "candidate_structure_search": 31834003919,
+    "canonical_codec_control": 31834134158,
+    "initial_independent_reproduction": 31833922912
+  },
+  "hard_stop_reason": "The recovery evidence claims COVE bytes that cannot be produced from the exactly reproduced normalized 165-record PEMS by the frozen cove/1 implementation. The same implementation reproduces the current 163-record canonical COVE byte-for-byte, so treating the recovery COVE digest as canonical-ready would violate deterministic representation authority.",
+  "reproduction": {
+    "candidate_cove_frozen_codec": {
+      "bytes": 38640,
+      "sha256": "681ed3f58702956a26dda22846ef67aba2e1a903a6956706a4779b6715d3bdca"
+    },
+    "candidate_expanded_namespace_preserving": {
+      "bytes": 66895,
+      "sha256": "7db2ef31ba88c9cedb077e63a2fbaf6403358e97747cc2a7c635a6f240442a5a"
+    },
+    "candidate_human_namespace_preserving": {
+      "bytes": 68552,
+      "sha256": "6ff21d766ad23fa487632320a99d98b48fe63b7e734e71dc65101e454edb8228"
+    },
+    "candidate_recovery_claim": {
+      "cove": {
+        "bytes": 38628,
+        "sha256": "0b4a7478469c28e9d44b8358dd0ca21ec8cbb1135bb33ba29afe14f2bddb0a43"
+      },
+      "expanded": {
+        "bytes": 66895,
+        "sha256": "1d2378cf19a247256c327dd8f12ed639c7508dba555fa7c7a92df44fd98b98ba"
+      },
+      "human": {
+        "bytes": 68552,
+        "sha256": "2d63d2c6765bd92d906a330864e8f59c0350c885d824f56279a660184675f9f0"
+      },
+      "matches_reproduction": false
+    },
+    "contingent_admitted_cove_frozen_codec": {
+      "bytes": 38630,
+      "sha256": "ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3"
+    },
+    "contingent_admitted_cove_recovery_claim": {
+      "bytes": 38618,
+      "matches_reproduction": false,
+      "sha256": "a7ca5962c354161840822ce406bddd405296e4855afd2b0481f05f904291dc1a"
+    },
+    "contingent_admitted_expanded": {
+      "bytes": 66860,
+      "matches_recovery": true,
+      "sha256": "090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7"
+    },
+    "contingent_admitted_human": {
+      "bytes": 68522,
+      "matches_recovery": true,
+      "sha256": "f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c"
+    },
+    "existing_ids_preserved": 163,
+    "identity_rebindings": [],
+    "missing_existing_ids": [],
+    "record_count_after": 165
+  },
+  "required_next_action": "Reconcile or supersede the inconsistent recovery COVE evidence under explicit Architect/Steward governance before final 165-record canonical admission/install.",
+  "status": "hard_stop_representation_evidence_contradiction"
+}
