@@ -327,3 +327,31 @@ Phase 4 closes the byte-level determinism question without moving project author
 ### Canonical-memory status
 
 `docs/project-chat-handoff.json` remains the authoritative project continuity artifact. No canonical-memory migration is approved by this decision.
+
+---
+
+## STEWARD-20260813-008
+
+**Timestamp:** 2026-08-13T18:57:44-07:00
+**Author role:** Project Engineering Steward
+**Type:** directive-change
+**Status:** accepted
+**Acknowledges:** none
+
+### Summary
+
+The project owner approved adding chunked line-range reading and full-file reconstruction as an acceptable Steward recovery protocol when repository reads or writes are blocked by response truncation, partial payloads, or similar transport/tooling limits.
+
+### Directive change
+
+The Steward directive will explicitly permit recovery by reading an affected file in deterministic, non-overlapping chunks, verifying that every chunk refers to the same immutable source revision or blob SHA, reconstructing the complete file byte-for-byte or text-for-text, applying the intended minimal mutation to that reconstruction, and performing the write with optimistic concurrency against the verified source revision.
+
+The recovery protocol does not permit silent semantic changes, skipping failure reporting, or changing project scope. If chunks disagree on revision, any range is missing or ambiguous, reconstruction cannot be proven complete, or the final compare-and-swap/write fails, the Steward must stop and report the failure rather than guessing.
+
+### Human reasoning
+
+A connector can fail operationally even when repository state itself is healthy. For example, a large append-only notes file may be returned only partially while line-range reads remain reliable. Treating chunked reconstruction as an approved recovery path lets the Steward preserve immutable history and complete the intended write without inventing a new semantic strategy. Requiring one consistent blob SHA across all chunks prevents a reconstruction from quietly combining two different file revisions.
+
+### Behavioral effect
+
+Future Steward activations may use this recovery method directly when the failure is a transport/read-size limitation and the method preserves the original requested mutation. The Steward must still surface genuine repository write failures, conflicting revisions, incomplete reconstruction, or any recovery that would materially change the requested operation.
