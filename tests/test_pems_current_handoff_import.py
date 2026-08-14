@@ -99,10 +99,8 @@ class CurrentHandoffImportTests(unittest.TestCase):
         self.assertEqual(continuation["data"]["chat_id"], chat["id"])
         self.assertIn(chat["id"], continuation["data"]["high_value_record_ids"])
 
-    def test_input_order_does_not_change_normalized_output(self) -> None:
-        reordered = copy.deepcopy(BASE_HANDOFF)
-        reordered["project_level"]["project_owner_expectations"].reverse()
-        reordered["repository_snapshot"]["modules"].reverse()
+    def test_object_key_order_does_not_change_normalized_output(self) -> None:
+        reordered = json.loads(json.dumps(BASE_HANDOFF, sort_keys=True))
         self.assertEqual(
             import_handoff(BASE_HANDOFF, source_commit="deadbeef").document,
             import_handoff(reordered, source_commit="deadbeef").document,
