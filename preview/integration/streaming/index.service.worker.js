@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1786727433|2817367';
+const CACHE_VERSION = '1786727613|2897626';
 /** @type {string} */
 const CACHE_PREFIX = 'smooth_voxel_tec-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
@@ -162,5 +162,20 @@ self.addEventListener('message', (event) => {
 			self.skipWaiting().then(() => self.clients.claim()).then(() => self.clients.matchAll()).then((all) => all.forEach((c) => c.navigate(c.url)));
 		}
 	});
+});
+
+// MUTABLE_PREVIEW_IMMEDIATE_UPDATE
+// Integration Preview is mutable. Promote each newly deployed worker immediately
+// so open clients cannot remain pinned to the previous Godot package cache.
+self.addEventListener('install', (event) => {
+	event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate', (event) => {
+	event.waitUntil(
+		self.clients.claim()
+			.then(() => self.clients.matchAll({ type: 'window' }))
+			.then((clients) => Promise.all(clients.map((client) => client.navigate(client.url))))
+	);
 });
 
