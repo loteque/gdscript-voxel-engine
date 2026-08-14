@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1.0",
   "document_type": "voxel_terrain_project_chat_handoff",
-  "generated_at": "2026-08-13T13:08:00-07:00",
+  "generated_at": "2026-08-13T21:09:00-07:00",
   "handoff_instructions": {
     "required_first_response": "After receiving this file, ask the project owner which recorded chat and role they want you to continue as before doing project work.",
     "required_question": "Which chat and role from this handoff would you like me to continue as?",
@@ -29,7 +29,11 @@
       "Added release/version validation, demo-manifest tooling, architecture/roadmap records, and performance reporting conventions.",
       "Recorded the offline/runtime terrain boundary as an ADR and elevated resource loading ahead of LOD in ROADMAP.md.",
       "Created docs/project-chat-handoff.json on the project-chat-handoff branch as a mutable project continuity artifact.",
-      "Defined the Project Engineering Steward role to reconcile project/chat memory against authoritative sources."
+      "Defined the Project Engineering Steward role to reconcile project/chat memory against authoritative sources.",
+      "Froze and implemented the PEMS/COVE v1 engineering-memory representation through Phase 6, with RFC 8785 behavior accepted as the independent jcs/1 deterministic byte contract.",
+      "Accepted the deterministic one-way current-handoff importer as Phase 6 evidence while keeping all importer-generated semantic IDs provisional pending Steward admission.",
+      "Authorized and began Phase 7 longitudinal shadow validation while docs/project-chat-handoff.json remains canonical and Phase 8 canonical adoption remains separately gated.",
+      "Established complete-source repository-write safety for history-sensitive files: verified complete source state, one immutable source identity, optimistic concurrency, and post-write verification; placeholders and partial replacement payloads are prohibited."
     ],
     "confirmed_architecture": {
       "offline": [
@@ -98,7 +102,24 @@
         "executable_behavior": "tests and validation scenes",
         "continuity_context": "docs/project-chat-handoff.json"
       },
-      "mutation_policy": "Rebuild and replace the canonical JSON when reconciling; preserve meaningful history but update stale current-state claims."
+      "mutation_policy": "Rebuild and replace the canonical JSON when reconciling; preserve meaningful history but update stale current-state claims.",
+      "representation_workstream": {
+        "pems_contract": "pems/1",
+        "cove_contract": "cove/1",
+        "serializer_contract": "jcs/1 (RFC 8785 behavior)",
+        "phase6_status": "accepted_complete",
+        "phase6_importer": "Deterministic one-way conversion from docs/project-chat-handoff.json to normalized PEMS; generated semantic IDs remain provisional until Steward admission.",
+        "phase7_status": "authorized_in_progress",
+        "phase7_scope": "Longitudinal noncanonical shadow validation across real Steward reconciliations, including deterministic regeneration, identity/admission behavior, provenance evolution, human reconstruction, and size evidence.",
+        "phase8_status": "not_authorized",
+        "current_canonical_authority": "docs/project-chat-handoff.json",
+        "future_candidate_canonical_path": "docs/project-chat-handoff.cove.json",
+        "shadow_authority": "noncanonical_evidence_only"
+      },
+      "repository_write_safety": {
+        "status": "active",
+        "rule": "History-sensitive writes require complete verified source state, one consistent immutable source identity, exact preservation where append-only history applies, optimistic concurrency, and post-write verification. Truncated, placeholder, inferred, or partial replacement payloads are prohibited."
+      }
     }
   },
   "repository_snapshot": {
@@ -327,10 +348,10 @@
       "title": "Project Engineering Steward / Handoff Memory",
       "date": "2026-08-13",
       "role": "Project Engineering Steward: Staff/Principal-level architecture steward and technical project historian responsible for engineering memory, continuity, and reconciliation.",
-      "summary": "Created the mutable project handoff JSON on the project-chat-handoff branch, defined the role responsible for maintaining it, and established handoff behavior for future chats. The owner then established recurring reconciliation whose purpose is to regenerate and replace the JSON from changed chat context and authoritative project sources rather than append to it.",
+      "summary": "Created the mutable project handoff JSON on the project-chat-handoff branch, defined the role responsible for maintaining it, established receiving-chat handoff behavior, and evolved the engineering-memory representation through the frozen PEMS/COVE v1 sequence. Phases 1 through 6 are accepted complete; Phase 7 longitudinal shadow validation is authorized and in progress while the existing JSON remains canonical. The Steward also established complete-source repository-write safety after append-only history failures exposed the danger of placeholder or partial replacement payloads.",
       "relationship_with_project_owner": "The owner expects this role to preserve trustworthy engineering continuity, distinguish current truth from historical/proposed information, keep the JSON mutable, avoid inventing missing context, and use Git, ADRs, ROADMAP.md, tests, and validation scenes as authoritative sources for their respective domains. A receiving chat must select a recorded chat and role before resuming project work.",
       "external_file_names_used": [],
-      "modules_created_or_materially_developed": ["docs/project-chat-handoff.json"],
+      "modules_created_or_materially_developed": ["docs/project-chat-handoff.json", "docs/handoff/steward_directive.md", "docs/handoff/steward_notes.md"],
       "environment_variables": {"status": "none_recorded_in_available_chat_context", "variables": []},
       "database_tables": {"status": "none_created_or_recorded", "tables": []},
       "key_decisions_or_outcomes": [
@@ -339,7 +360,11 @@
         "A receiving chat must ask which recorded chat and role to continue as.",
         "The Project Engineering Steward owns reconciliation and replaces the JSON with a freshly generated canonical snapshot.",
         "Meaningful historical disagreement should be preserved while current authoritative state is clearly distinguished.",
-        "Steward reconciliation modifies only the handoff JSON, not production code or authoritative project documents."
+        "Steward reconciliation modifies only Steward-owned continuity artifacts, not production code or authoritative project documents.",
+        "PEMS/COVE v1 is the frozen engineering-memory representation contract; jcs/1 is the accepted deterministic byte contract and remains independently versioned.",
+        "The Phase 6 importer is accepted as deterministic one-way evidence; importer-generated semantic IDs remain provisional until Steward admission.",
+        "Phase 7 shadow artifacts are noncanonical evidence. docs/project-chat-handoff.json remains authoritative until a separate Phase 8 owner/Steward adoption decision.",
+        "History-sensitive repository writes require complete verified source state, one immutable source identity, optimistic concurrency, and post-write verification; placeholders and partial replacements are prohibited."
       ]
     }
   ]
