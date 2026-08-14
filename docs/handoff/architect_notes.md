@@ -830,3 +830,41 @@ No production voxel-engine behavior was changed by this closeout. The representa
 ### Human reasoning
 
 The important closeout property is not merely that the cutover workflow was green. The exact bytes that passed the Phase 8 evidence gate are now the bytes present on the continuity branch, while newer role-governance directives were preserved instead of being overwritten by historical implementation-branch divergence. That separates representation proof from authority bookkeeping cleanly and leaves one final, truthful gate: Steward acceptance of the already-verified repository state.
+
+
+## ARCH-20260814T091100-0700-018
+
+- timestamp: `2026-08-14T09:11:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: open
+- acknowledges: `STEWARD-20260814-014` and project-owner authorization of the bounded post-Phase-8 reconciliation tranche
+- subject: Post-cutover canonical-memory reconciliation candidate validated for Steward admission
+
+### Assessment
+
+The bounded post-cutover representation reconciliation is technically complete as a noncanonical candidate. The current canonical COVE and compatibility derivative were first proven equivalent, then the stale pre-cutover continuity semantics were reconciled without modifying any of the 156 admitted semantic identities.
+
+The critical identity constraint required supersession rather than in-place rewriting for stale `decision` records because `pems/1` defines decision summary as semantic identity. Five replacement decisions, one canonical-COVE source identity, and one immutable source observation were therefore generated as seven provisional identities. Every provisional identity correctly returns `candidate_requires_steward_confirmation`; the Architect has not admitted them on the Steward's behalf.
+
+### Validation evidence
+
+- Existing admitted identities preserved: **156 / 156**; missing: none; rebound: none.
+- New provisional identities: **7**; all require Steward confirmation.
+- Existing Phase 7 source observations remain present: `pems:source_observation:5b206d4358781f93074b` and `pems:source_observation:8c186a6ca2398e0cfe5e`.
+- New immutable canonical-COVE observation candidate: `candidate:source_observation:be6819991bf46e7cc226` at branch source commit `ccbeac9d1a5a4b7b9baec69f811a9afd1c6d9fdc`.
+- Candidate record count: **163**; relations: **0**.
+- Schema valid: yes; semantic graph valid: yes; COVE round trip: yes; repeated canonical bytes: byte-identical.
+- Candidate expanded SHA-256: `866e24f9457cfb416a1744d84776e3dbe72e714899d61177d2c599819e1a7e8c`.
+- Candidate compact SHA-256: `429f529c18db2a5d395eccbb5d45c86e744c5a75512be3bc71cabc23afc9d64e`.
+- Candidate human reconstruction SHA-256: `0b48e0dbfbc38642af0df6bc91c63fc9eb28e00972c3fc0df093a1924f2815fe`.
+
+The candidate updates current authority to `docs/project-chat-handoff.cove.json`, records Phase 7 as accepted complete, records Phase 8 as technically complete pending Steward governance closeout, preserves completed Phase 7/candidate-path statements historically, and updates the Steward continuity summary/current focus. No canonical artifact was changed by the Architect.
+
+### Steward action requested
+
+Review the seven provisional identities and the reconciliation semantics. If accepted, admit/assign their canonical IDs, regenerate the canonical COVE and deterministic compatibility derivative from the admitted candidate using the accepted `pems/1` → `cove/1` → `jcs/1` path, verify the same preservation/determinism evidence, and record final governance closeout.
+
+### Human reasoning
+
+The stale status text could not simply be edited in place. In PEMS, a decision's wording is its identity, so changing “JSON is canonical” into “COVE is canonical” under the same ID would make one identity mean two different things. Keeping the old statement as superseded history and proposing a new identity preserves the audit trail while making the current state truthful. The seven new identities are intentionally provisional because final semantic admission belongs to the Steward.

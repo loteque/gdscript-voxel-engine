@@ -1,0 +1,53 @@
+{
+  "admission_results": {
+    "candidate:decision:0e968ebd710a96368b0c": "candidate_requires_steward_confirmation",
+    "candidate:decision:2197184a0ef4b2a120e4": "candidate_requires_steward_confirmation",
+    "candidate:decision:48d62ed965c497ae93c0": "candidate_requires_steward_confirmation",
+    "candidate:decision:abe7b5d5efc6d7232e72": "candidate_requires_steward_confirmation",
+    "candidate:decision:afe31f1b2c7b06bbb403": "candidate_requires_steward_confirmation",
+    "candidate:source:eb92b21e7f3c92db6d23": "candidate_requires_steward_confirmation",
+    "candidate:source_observation:be6819991bf46e7cc226": "candidate_requires_steward_confirmation"
+  },
+  "before_admitted_identity_count": 156,
+  "canonical_authority_changed": false,
+  "canonical_byte_repeatability": true,
+  "compact_bytes": 38088,
+  "compact_sha256": "429f529c18db2a5d395eccbb5d45c86e744c5a75512be3bc71cabc23afc9d64e",
+  "existing_source_observation_ids": [
+    "pems:source_observation:5b206d4358781f93074b",
+    "pems:source_observation:8c186a6ca2398e0cfe5e"
+  ],
+  "expanded_bytes": 65943,
+  "expanded_sha256": "866e24f9457cfb416a1744d84776e3dbe72e714899d61177d2c599819e1a7e8c",
+  "human_sha256": "0b48e0dbfbc38642af0df6bc91c63fc9eb28e00972c3fc0df093a1924f2815fe",
+  "missing_existing_ids": [],
+  "new_provisional_identity_count": 7,
+  "new_provisional_ids": [
+    "candidate:decision:0e968ebd710a96368b0c",
+    "candidate:decision:2197184a0ef4b2a120e4",
+    "candidate:decision:48d62ed965c497ae93c0",
+    "candidate:decision:abe7b5d5efc6d7232e72",
+    "candidate:decision:afe31f1b2c7b06bbb403",
+    "candidate:source:eb92b21e7f3c92db6d23",
+    "candidate:source_observation:be6819991bf46e7cc226"
+  ],
+  "new_source_observation_id": "candidate:source_observation:be6819991bf46e7cc226",
+  "preserved_existing_identity_count": 156,
+  "rebound_existing_ids": [],
+  "record_count": 163,
+  "relation_count": 0,
+  "replacement_ids": {
+    "pems:decision:042dc3b317ef40f58f1a": "candidate:decision:abe7b5d5efc6d7232e72",
+    "pems:decision:6c24dc31880b86935095": "candidate:decision:48d62ed965c497ae93c0",
+    "pems:decision:8d0c6d046cdc11f3f4ff": "candidate:decision:2197184a0ef4b2a120e4",
+    "pems:decision:bfcfdfd0ffc93a3f7e74": "candidate:decision:afe31f1b2c7b06bbb403",
+    "pems:decision:ee29b74c5edefb5f52da": "candidate:decision:0e968ebd710a96368b0c"
+  },
+  "round_trip_valid": true,
+  "schema_valid": true,
+  "semantic_valid": true,
+  "source_canonical_commit": "ccbeac9d1a5a4b7b9baec69f811a9afd1c6d9fdc",
+  "source_canonical_path": "docs/project-chat-handoff.cove.json",
+  "source_canonical_sha256": "7e2f6300fa6bd5a3aa982a7e6286e7d6285c1d41bc417c4753042562c5b7c99d",
+  "status": "candidate_valid_pending_steward_admission"
+}
