@@ -37,44 +37,101 @@ jobs:
             tests/test_pems_current_handoff_import.py \
             tests/test_pems_cove_conformance.py
 
-      - name: Verify Steward no-change reconciliation and generate shadow evidence
+      - name: Verify real changed-state Steward reconciliation and generate shadow evidence
         shell: bash
         run: |
           set -euo pipefail
-          git -C governance fetch origin main
-          MAIN_SHA="$(git -C governance rev-parse origin/main)"
-          HANDOFF_SOURCE_COMMIT="$(git -C governance log -1 --format=%H -- docs/project-chat-handoff.json)"
-          RECORDED_MAIN_SHA="$(python - <<'PY'
-          import json
-          from pathlib import Path
-          doc = json.loads(Path('governance/docs/project-chat-handoff.json').read_text(encoding='utf-8'))
-          print(doc['repository_snapshot']['main_commit_sha'])
-          PY
-          )"
-          test "$MAIN_SHA" = "$RECORDED_MAIN_SHA"
+          PREVIOUS_SOURCE_COMMIT="18ece6c5791da00ff5c14eb79172cf6d7fea5860"
+          CURRENT_SOURCE_COMMIT="ff2718a00b3a267407beb446607ea6eeb664e66e"
+          PREVIOUS_BLOB="7f848c9259c63d8095a4b310bcfe6fab11495a88"
+          CURRENT_BLOB="e54e268cdd4fc4dad9a340c5a19958b734a74186"
+
+          test "$(git -C governance rev-parse HEAD)" = "$CURRENT_SOURCE_COMMIT"
+          test "$(git -C governance rev-parse "$PREVIOUS_SOURCE_COMMIT:docs/project-chat-handoff.json")" = "$PREVIOUS_BLOB"
+          test "$(git -C governance rev-parse "$CURRENT_SOURCE_COMMIT:docs/project-chat-handoff.json")" = "$CURRENT_BLOB"
+
+          git -C governance show "$PREVIOUS_SOURCE_COMMIT:docs/project-chat-handoff.json" > phase7-before.json
+          git -C governance show "$CURRENT_SOURCE_COMMIT:docs/project-chat-handoff.json" > phase7-after.json
 
           python -m tools.pems.shadow_validate \
-            "phase7-observation-1:${HANDOFF_SOURCE_COMMIT}:governance/docs/project-chat-handoff.json" \
-            "phase7-observation-2-no-change:${HANDOFF_SOURCE_COMMIT}:governance/docs/project-chat-handoff.json" \
+            "phase7-before-changed-state:${PREVIOUS_SOURCE_COMMIT}:phase7-before.json" \
+            "phase7-after-changed-state:${CURRENT_SOURCE_COMMIT}:phase7-after.json" \
             --output phase7-shadow-report.json
 
           python - <<'PY'
           import json
           from pathlib import Path
+          from tools.pems.import_current_handoff import import_handoff
+
+          before = json.loads(Path('phase7-before.json').read_text(encoding='utf-8'))
+          after = json.loads(Path('phase7-after.json').read_text(encoding='utf-8'))
           report = json.loads(Path('phase7-shadow-report.json').read_text(encoding='utf-8'))
+
+          assert before['repository_snapshot']['main_commit_sha'] == after['repository_snapshot']['main_commit_sha'] == '1f72f8d61e0799cf94a5dedb3953d533068bf502'
+          assert before['generated_at'] == '2026-08-13T13:08:00-07:00'
+          assert after['generated_at'] == '2026-08-13T21:09:00-07:00'
           assert report['authority'] == 'noncanonical_evidence'
           assert len(report['observations']) == 2
+
           transition = report['transitions'][0]
-          assert transition['source_changed'] is False
-          assert transition['canonical_bytes_stable_when_source_unchanged'] is True
-          assert transition['human_export_stable_when_source_unchanged'] is True
-          assert transition['added_candidate_ids'] == []
-          assert transition['removed_candidate_ids'] == []
+          assert transition['source_changed'] is True
+          assert transition['source_observation_changed'] is True
+          assert transition['canonical_bytes_stable_when_source_unchanged'] is None
+          assert transition['human_export_stable_when_source_unchanged'] is None
+          assert transition['stable_candidate_ids']
+          assert transition['added_candidate_ids']
+          assert transition['removed_candidate_ids']
+          assert transition['expanded_byte_delta'] != 0
+          assert transition['compact_byte_delta'] != 0
+
+          old_import = import_handoff(before, source_commit='18ece6c5791da00ff5c14eb79172cf6d7fea5860')
+          new_import = import_handoff(after, source_commit='ff2718a00b3a267407beb446607ea6eeb664e66e')
+          old_records = {record['id']: record for record in old_import.document['records']}
+          new_records = {record['id']: record for record in new_import.document['records']}
+
+          # Stable semantic identity survives a content-bearing reconciliation.
+          stable_chat_ids = [
+              record_id for record_id, record in old_records.items()
+              if record['kind'] == 'chat' and record['data']['title'] == 'Project Engineering Steward / Handoff Memory'
+          ]
+          assert len(stable_chat_ids) == 1
+          steward_chat_id = stable_chat_ids[0]
+          assert steward_chat_id in new_records
+          assert old_records[steward_chat_id]['data']['summary'] != new_records[steward_chat_id]['data']['summary']
+          assert 'Phase 7 longitudinal shadow validation is authorized and in progress' in new_records[steward_chat_id]['data']['summary']
+
+          # Newly reconciled governance outcomes become provisional decision candidates.
+          new_decision_summaries = {
+              record['data']['summary'] for record in new_records.values()
+              if record['kind'] == 'decision'
+          }
+          expected_new_decisions = {
+              'PEMS/COVE v1 is the frozen engineering-memory representation contract; jcs/1 is the accepted deterministic byte contract and remains independently versioned.',
+              'The Phase 6 importer is accepted as deterministic one-way evidence; importer-generated semantic IDs remain provisional until Steward admission.',
+              'Phase 7 shadow artifacts are noncanonical evidence. docs/project-chat-handoff.json remains authoritative until a separate Phase 8 owner/Steward adoption decision.',
+              'History-sensitive repository writes require complete verified source state, one immutable source identity, optimistic concurrency, and post-write verification; placeholders and partial replacements are prohibited.',
+          }
+          assert expected_new_decisions <= new_decision_summaries
+
+          # Every generated record remains at the Steward admission boundary.
+          assert len(new_import.provisional_ids) == len(new_import.document['records'])
+
+          # Surface an intentional Phase 7 preservation limitation: structured engineering_memory
+          # is not directly mapped by the Phase 6 importer. Its newly reconciled meaning is only
+          # represented where the canonical handoff also records it in imported chat/decision fields.
+          structured_delta = after['project_level']['engineering_memory']['representation_workstream']
+          assert structured_delta['phase7_status'] == 'authorized_in_progress'
+          assert not any(record['data'] == structured_delta for record in new_import.document['records'])
+
           print(json.dumps(report, indent=2, sort_keys=True))
+          print('PHASE7_STRUCTURED_ENGINEERING_MEMORY_DIRECT_MAPPING=false')
           PY
 
-      - name: Upload Phase 7 no-change evidence
+      - name: Upload Phase 7 changed-state evidence
         uses: actions/upload-artifact@v4
         with:
-          name: phase7-shadow-no-change-evidence
-          path: phase7-shadow-report.json
+          name: phase7-shadow-changed-state-evidence
+          path: |
+            phase7-before.json
+            phase7-after.json
+            phase7-shadow-report.json
