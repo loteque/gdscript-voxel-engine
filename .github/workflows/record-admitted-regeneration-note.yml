@@ -1,0 +1,77 @@
+name: Record admitted regeneration Architect note
+
+on:
+  push:
+    branches:
+      - post-cutover-admitted-regeneration
+    paths:
+      - .github/workflows/record-admitted-regeneration-note.yml
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: project-chat-handoff
+          fetch-depth: 0
+      - name: Verify expected Steward branch state
+        run: |
+          test "$(git rev-parse HEAD)" = "8fb8493ac4dba7f5786e02b3ade07c35817285e3"
+          test -f docs/handoff/pems/postcutover-reconciliation.admitted.evidence.json
+          test -f docs/handoff/architect_notes.md
+      - name: Append immutable Architect completion record
+        run: |
+          if grep -q 'ARCH-20260814T095400-0700-019' docs/handoff/architect_notes.md; then
+            echo 'Architect note already present; refusing duplicate append.' >&2
+            exit 1
+          fi
+          cat >> docs/handoff/architect_notes.md <<'EOF'
+
+## ARCH-20260814T095400-0700-019
+
+- timestamp: `2026-08-14T09:54:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: `ARCH-20260814T091100-0700-018`, Project Engineering Steward admission of the seven post-cutover candidate identities, and project-owner authorization to proceed
+- subject: Admitted post-cutover PEMS/COVE regeneration validated and ready for Steward canonical write
+
+### Assessment
+
+The Steward-admitted post-cutover corpus has been regenerated using the accepted Phase 8 `pems/1` validator/normalizer, `cove/1` codec, `jcs/1` RFC 8785 serializer, and deterministic human exporter. The seven provisional identities were changed only by the Steward-authorized namespace-preserving admission map from `candidate:` to `pems:`; all references to those identities were reconciled through the same map before normalization.
+
+The admitted corpus contains 163 records and zero relations. All 156 pre-existing admitted identities remain present, no original semantic identity is rebound, and the two prior Phase 7 source observations plus retained historical decision remain preserved. The new canonical-COVE source and immutable observation are admitted as `pems:source:eb92b21e7f3c92db6d23` and `pems:source_observation:be6819991bf46e7cc226`.
+
+### Validation evidence
+
+GitHub Actions run `31821261733` completed successfully on technical branch `post-cutover-admitted-regeneration`. The frozen PEMS, COVE, JCS, and PEMS/COVE conformance tests passed before regeneration. The regeneration gate then independently asserted schema validity, semantic graph validity, 156/156 original-ID preservation, zero rebinding, complete admitted-ID resolution, provenance/history retention, COVE decode round trip, canonical-JCS parse/decode round trip, repeated compact-byte identity, repeated expanded-byte identity, and repeated human reconstruction identity.
+
+Validated noncanonical admitted artifacts synchronized to `project-chat-handoff` by commit `8fb8493ac4dba7f5786e02b3ade07c35817285e3`:
+
+- `docs/handoff/pems/postcutover-reconciliation.admitted.pems.json`: 65,793 bytes; SHA-256 `bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038`; Git blob `10de73e29e0118b63a365dd47b566307c9a0b98b`.
+- `docs/handoff/pems/postcutover-reconciliation.admitted.expanded.json`: identical deterministic expanded bytes and SHA-256 `bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038`; Git blob `10de73e29e0118b63a365dd47b566307c9a0b98b`.
+- `docs/handoff/pems/postcutover-reconciliation.admitted.cove.json`: 38,053 bytes; SHA-256 `ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa`; Git blob `0ed7fd47dc5bf6a81078389cd9bc65e0864ad3be`.
+- `docs/handoff/pems/postcutover-reconciliation.admitted.md`: 67,534 bytes; SHA-256 `5c13788936512a8dcbf80e2dc2880f85f359a5a312760a889995683b87224cd7`; Git blob `31f0b3aa01aab1a64a531eab3113d9a47a31710f`.
+- `docs/handoff/pems/postcutover-reconciliation.admitted.evidence.json`: machine-readable validation and admission evidence; Git blob `de0fbd8ca1a1220372afcd1f4a36aa18fbd3038c`.
+
+The Architect did not modify `docs/project-chat-handoff.cove.json`, `docs/project-chat-handoff.json`, `docs/handoff/steward_notes.md`, or `docs/handoff/steward_directive.md`. Canonical authority remains with the current Steward-owned COVE artifact until the Steward performs the final canonical replacement using these admitted bytes.
+
+### Steward action requested
+
+Replace `docs/project-chat-handoff.cove.json` with the exact bytes from `docs/handoff/pems/postcutover-reconciliation.admitted.cove.json` and regenerate/replace `docs/project-chat-handoff.json` with the exact admitted expanded bytes, using the Steward repository-write safety protocol and optimistic concurrency. Verify the committed canonical blobs/hashes and then record governance closeout. No representation-contract change or further Architect design decision is required by this evidence.
+
+### Human reasoning
+
+Admission was the final identity boundary. Once the Steward confirmed the seven names, the remaining work was deliberately mechanical: apply that exact map everywhere references occur, normalize, validate, encode, serialize twice, decode twice, and compare. The result behaves like changing seven library-card numbers while proving every book, citation, and historical checkout record still points to the same meaning. The canonical shelf itself remains untouched until the Steward performs the governed replacement.
+EOF
+      - name: Commit and push Architect note
+        run: |
+          git config user.name 'Engineering Knowledge Systems Architect'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/handoff/architect_notes.md
+          git commit -m 'Record admitted post-cutover regeneration handoff'
+          git push origin HEAD:project-chat-handoff
