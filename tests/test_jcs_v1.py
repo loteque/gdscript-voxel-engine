@@ -4,6 +4,8 @@ import unittest
 
 from tools.cove.cove_v1 import decode, encode
 from tools.cove.jcs_v1 import JcsError, canonicalize, measure_utf8_bytes, parse_canonical, serialize_cove
+from tools.pems import load_json, normalize_document, validate_schema, validate_semantics
+from tools.pems.pems_v1 import default_success_fixture_path
 
 
 class JcsV1Tests(unittest.TestCase):
@@ -60,6 +62,28 @@ class JcsV1Tests(unittest.TestCase):
         measurement = measure_utf8_bytes(value, artifact)
         self.assertEqual(measurement["expanded_jcs_bytes"], len(canonicalize(value)))
         self.assertEqual(measurement["cove_jcs_bytes"], len(data))
+
+    def test_normalized_pems_round_trips_through_cove_and_jcs(self):
+        pems = load_json(default_success_fixture_path())
+        self.assertTrue(validate_schema(pems).valid)
+        self.assertTrue(validate_semantics(pems).valid)
+        normalized = normalize_document(pems)
+
+        artifact = encode(normalized, profile="pems/1", serializer="jcs/1")
+        canonical_bytes = serialize_cove(artifact)
+        reparsed_artifact = parse_canonical(canonical_bytes)
+        decoded = decode(reparsed_artifact, supported_profiles={"pems/1"})
+
+        self.assertEqual(normalized, decoded)
+        self.assertEqual(canonical_bytes, serialize_cove(artifact))
+
+        measurement = measure_utf8_bytes(normalized, artifact)
+        self.assertEqual(measurement["expanded_jcs_bytes"], len(canonicalize(normalized)))
+        self.assertEqual(measurement["cove_jcs_bytes"], len(canonical_bytes))
+        print(
+            "PEMS_JCS_BYTES expanded=%d cove=%d"
+            % (measurement["expanded_jcs_bytes"], measurement["cove_jcs_bytes"])
+        )
 
     def test_serializer_metadata_required(self):
         artifact = encode({"a": 1}, profile="generic/1")
