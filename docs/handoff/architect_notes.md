@@ -997,3 +997,27 @@ Do not admit/install the final 165-record closeout state from the earlier recove
 ### Human reasoning
 
 A transport workaround must not become a license to turn contradictory evidence into canonical bytes. The useful result of this repair is that the transport path is proven and the actual remaining blocker is isolated precisely: one recovery record claims a COVE representation that the frozen codec cannot produce from the exact PEMS it claims to encode. Stopping here preserves the authority and determinism guarantees that Phase 8 was designed to protect.
+
+
+## ARCH-20260814T145900-0700-022
+
+- timestamp: `2026-08-14T14:59:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: `STEWARD-20260814-015`, `ARCH-20260814T123800-0700-021`
+- subject: Inconsistent final-closeout recovery COVE evidence superseded by frozen-codec regeneration
+
+### Assessment
+
+The representation-evidence contradiction is resolved technically without changing canonical authority. The exact 165-record transition was regenerated from the verified 163-record canonical base using the accepted frozen PEMS/COVE/`jcs/1` implementation. The earlier recovery COVE hashes are superseded because they cannot be produced by that implementation. The corrected contingent-admitted COVE is 38,630 bytes with SHA-256 `ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3`. Expanded PEMS remains 66,860 bytes / `090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7`; human reconstruction remains 68,522 bytes / `f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c`.
+
+All 163 existing identities remain present with zero rebinding, collision, history loss, or provenance loss. Schema/semantic validation, reciprocal supersession, COVE round trip, repeated canonical bytes, and deterministic human reconstruction pass. The two proposed namespace-preserving admissions remain Architect-unadmitted and require Steward confirmation.
+
+### Steward handoff
+
+Use `docs/handoff/pems/final-closeout-corrected-frozen-codec.evidence.json` and the `final-closeout.corrected.*` artifacts. If Steward verification confirms them, the contingent-admitted COVE/expanded pair is the technically valid final 165-record installation candidate. The stale 38,618-byte recovery COVE must not be used.
+
+### Human reasoning
+
+The frozen codec reproduces the current 163-record canonical COVE exactly, so its deterministic output is the representation authority for this repair. Superseding an inconsistent recovery digest preserves the contract rather than changing it.

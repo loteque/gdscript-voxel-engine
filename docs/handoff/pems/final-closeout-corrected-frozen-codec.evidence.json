@@ -1,0 +1,91 @@
+{
+  "accepted_tooling_source": "origin/post-cutover-admitted-regeneration",
+  "artifacts": {
+    "docs/handoff/pems/final-closeout.corrected.candidate.cove.json": {
+      "bytes": 38640,
+      "git_blob_sha": "5fc36ca7e4d51f9c91c881ae5c2a3d3822092e15",
+      "sha256": "681ed3f58702956a26dda22846ef67aba2e1a903a6956706a4779b6715d3bdca"
+    },
+    "docs/handoff/pems/final-closeout.corrected.candidate.expanded.json": {
+      "bytes": 66895,
+      "git_blob_sha": "7fdab3d1bde8751ae92298210d3ffb751feb3684",
+      "sha256": "7db2ef31ba88c9cedb077e63a2fbaf6403358e97747cc2a7c635a6f240442a5a"
+    },
+    "docs/handoff/pems/final-closeout.corrected.candidate.md": {
+      "bytes": 68552,
+      "git_blob_sha": "688d3525902dc5fac9bbad92076e7043c34a9a84",
+      "sha256": "6ff21d766ad23fa487632320a99d98b48fe63b7e734e71dc65101e454edb8228"
+    },
+    "docs/handoff/pems/final-closeout.corrected.candidate.pems.json": {
+      "bytes": 66895,
+      "git_blob_sha": "7fdab3d1bde8751ae92298210d3ffb751feb3684",
+      "sha256": "7db2ef31ba88c9cedb077e63a2fbaf6403358e97747cc2a7c635a6f240442a5a"
+    },
+    "docs/handoff/pems/final-closeout.corrected.contingent-admitted.cove.json": {
+      "bytes": 38630,
+      "git_blob_sha": "093040e24ffe37c432e5bbad872344cbbc9f045b",
+      "sha256": "ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3"
+    },
+    "docs/handoff/pems/final-closeout.corrected.contingent-admitted.expanded.json": {
+      "bytes": 66860,
+      "git_blob_sha": "14cc12dd8f0b9c6bdc7c5776780c6d7fdcf9b5e1",
+      "sha256": "090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7"
+    },
+    "docs/handoff/pems/final-closeout.corrected.contingent-admitted.md": {
+      "bytes": 68522,
+      "git_blob_sha": "57390ff9ffb3af05cae6e441c93d7e9a28ef1a75",
+      "sha256": "f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c"
+    },
+    "docs/handoff/pems/final-closeout.corrected.contingent-admitted.pems.json": {
+      "bytes": 66860,
+      "git_blob_sha": "14cc12dd8f0b9c6bdc7c5776780c6d7fdcf9b5e1",
+      "sha256": "090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7"
+    }
+  },
+  "authority": {
+    "architect_admission_performed": false,
+    "canonical_authority_unchanged": "docs/project-chat-handoff.cove.json",
+    "contingent_variant_requires_steward_confirmation": true
+  },
+  "base": {
+    "cove": {
+      "bytes": 38053,
+      "git_blob_sha": "0ed7fd47dc5bf6a81078389cd9bc65e0864ad3be",
+      "sha256": "ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa"
+    },
+    "expanded": {
+      "bytes": 65793,
+      "git_blob_sha": "10de73e29e0118b63a365dd47b566307c9a0b98b",
+      "sha256": "bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038"
+    },
+    "record_count": 163
+  },
+  "candidate_to_contingent_admitted_id_map": {
+    "candidate:decision:5fa3241c8b9bc2787b6d": "pems:decision:5fa3241c8b9bc2787b6d",
+    "candidate:source_observation:15b32d4adb9bcfa4fc94": "pems:source_observation:15b32d4adb9bcfa4fc94"
+  },
+  "existing_ids_preserved": 163,
+  "identity_collisions": [],
+  "missing_existing_ids": [],
+  "rebound_existing_ids": [],
+  "record_count_after": 165,
+  "status": "corrected_frozen_codec_evidence_ready_for_steward_review",
+  "supersedes_recovery_cove_claims": {
+    "candidate": {
+      "bytes": 38628,
+      "sha256": "0b4a7478469c28e9d44b8358dd0ca21ec8cbb1135bb33ba29afe14f2bddb0a43"
+    },
+    "contingent_admitted": {
+      "bytes": 38618,
+      "sha256": "a7ca5962c354161840822ce406bddd405296e4855afd2b0481f05f904291dc1a"
+    }
+  },
+  "validation": {
+    "canonical_163_codec_control_byte_equal": true,
+    "cove_round_trip": true,
+    "human_reconstruction_deterministic": true,
+    "repeated_bytes_identical": true,
+    "schema_valid": true,
+    "semantic_valid": true
+  }
+}
