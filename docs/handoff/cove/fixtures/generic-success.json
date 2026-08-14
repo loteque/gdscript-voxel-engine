@@ -1,0 +1,13 @@
+{
+  "profile": "generic/1",
+  "cases": [
+    {"name": "null", "value": null},
+    {"name": "booleans-and-numbers", "value": [true, false, 0, -7, 3.5]},
+    {"name": "empty-structures", "value": {"array": [], "object": {}}},
+    {"name": "repeated-strings", "value": {"left": "repeat", "right": "repeat", "nested": ["repeat", "other"]}},
+    {"name": "repeated-shapes", "value": [{"name": "alpha", "value": 1}, {"value": 2, "name": "beta"}]},
+    {"name": "nested-structures", "value": {"catalog": [{"id": "a", "tags": ["x", "y"]}, {"tags": [], "id": "b"}], "meta": {"enabled": true, "note": null}}},
+    {"name": "unicode-byte-order", "value": {"é": "accent", "z": "latin", "😀": "emoji"}},
+    {"name": "root-string", "value": "standalone"}
+  ]
+}
