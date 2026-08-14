@@ -665,3 +665,79 @@ The measured size result is encouraging, but it should remain evidence rather th
 ### Next step
 
 Owner/Steward should review and accept Phase 4 before Phase 5 begins. Phase 5 may build the broader conformance suite described by the frozen staged plan. Canonical migration remains separately gated and is not authorized by this completion record.
+
+## ARCH-20260814T021245-0700-010
+
+- timestamp: `2026-08-14T02:12:45-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: successful Phase 8 cutover evidence and Steward-confirmed initial corpus admission
+- subject: PEMS/COVE Phase 8 canonical cutover complete
+
+### Assessment
+
+Phase 8 is complete. The previously shadow-only PEMS/COVE representation has passed the authorized cutover gates and is now the canonical project-memory representation on `pems-phase8-cutover`.
+
+Canonical authority is now `docs/project-chat-handoff.cove.json`. The expanded `docs/project-chat-handoff.json` remains a generated compatibility derivative, and `docs/handoff/pems/project-chat-handoff.md` remains the deterministic human reconstruction. This authority switch does not elevate project memory above repository truth, ADRs, ROADMAP.md, tests, or validation artifacts; it changes only the canonical representation of the continuity layer.
+
+### Verified execution evidence
+
+- GitHub Actions workflow run: `31786729203`
+- workflow conclusion: `success`
+- full representation regression: `success`
+- admitted canonical corpus generation: `success`
+- deterministic regeneration verification: `success`
+- canonical cutover artifact commit step: `success`
+- cutover commit: `a7b0e755e583b18eb8a1c671e3a66eeec8c50604`
+- cutover commit message: `Adopt canonical PEMS/COVE project memory`
+
+The successful workflow generated and committed the canonical compact artifact, expanded compatibility derivative, admission manifest, deterministic human reconstruction, and Phase 8 cutover evidence.
+
+### Canonical corpus and admission
+
+The committed Phase 8 evidence records:
+
+- admission: `steward_confirmed_initial_corpus`
+- admitted identity count: `156`
+- record count: `156`
+- relation count: `0`
+- retained historical decision: `pems:decision:b54a6445b1ce2b815b56`
+- retained historical source observation: `pems:source_observation:5b206d4358781f93074b`
+- source observations preserved: `pems:source_observation:5b206d4358781f93074b`, `pems:source_observation:8c186a6ca2398e0cfe5e`
+- source snapshots preserved: `18ece6c5791da00ff5c14eb79172cf6d7fea5860`, `ff2718a00b3a267407beb446607ea6eeb664e66e`
+
+The admission manifest preserves the imported-to-canonical semantic ID mapping used for the initial corpus. Historical preservation therefore survived the authority switch rather than being collapsed into only the latest observation.
+
+### Exact representation evidence
+
+- canonical compact artifact: `docs/project-chat-handoff.cove.json`
+- compact bytes: `35872`
+- compact SHA-256: `7e2f6300fa6bd5a3aa982a7e6286e7d6285c1d41bc417c4753042562c5b7c99d`
+- expanded compatibility derivative: `docs/project-chat-handoff.json`
+- expanded bytes: `62069`
+- expanded SHA-256: `f6f2e9c097b2ba690d24e3bbb7053a0fb91e46e6fd947f9b215b7ae0de405d7a`
+- deterministic human reconstruction: `docs/handoff/pems/project-chat-handoff.md`
+- human SHA-256: `ad740bad0d7916d9d988e440a90e5745e270dbbe7b38da574b041a8375da6585`
+
+These values match `docs/handoff/pems/phase8-cutover-evidence.json` as committed by the successful cutover.
+
+### Governance reconciliation
+
+The Architect recognizes the Steward-confirmed initial corpus admission as the semantic authority decision required by the frozen PEMS identity contract. The Architect's completion determination is limited to representation, determinism, provenance preservation, and successful execution of the adoption gates. Ongoing reconciliation of project meaning, canonical ID admission for future records, retention decisions, and continuity sufficiency remain Steward responsibilities.
+
+The compact COVE artifact is authoritative only after successful PEMS semantic admission. COVE remains domain-neutral, `jcs/1` remains the independent deterministic byte contract, and neither codec nor serializer acquires Steward semantics through this cutover.
+
+### Operational follow-up
+
+1. Future Steward reconciliations should treat `docs/project-chat-handoff.cove.json` as the canonical continuity artifact and regenerate both compatibility derivatives deterministically.
+2. `docs/project-chat-handoff.json` must not regain independent authority through manual edits; changes should originate from admitted PEMS state and regenerate the derivative.
+3. Deterministic regeneration and full representation regression should remain mandatory cutover/reconciliation safeguards.
+4. The legacy JSON compatibility derivative may be retired only through a separate explicit compatibility decision after all receiving workflows and tooling have migrated.
+5. Any future PEMS, COVE, or JCS major-version change requires its own versioned migration and evidence; Phase 8 does not authorize silent contract evolution.
+
+### Human reasoning
+
+The cutover is complete because the authority change is now backed by the same properties that were deliberately kept separate during the staged migration: PEMS meaning was admitted by the Steward boundary, COVE encoded that admitted meaning without becoming semantic, JCS made the bytes deterministic, historical observations survived migration, the human reconstruction is reproducible, and CI proved regeneration stability before committing the new authority artifacts.
+
+This closes the representation migration without changing production voxel-engine behavior or starting the separately proposed autonomous-agent runtime work.
