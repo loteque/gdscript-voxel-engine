@@ -4,6 +4,7 @@ extends SceneTree
 
 const SCENE_PATH := "res://demo/RuntimeWorkloadExperiment.tscn"
 const RUNNER_PATH := "res://demo/experiments/RuntimeExperimentShell.gd"
+const UI_PATH := "res://demo/experiments/RuntimeWorkloadExperimentUI.gd"
 const LOADER_CONTROL_PATH := "res://demo/experiments/RuntimeWorkloadLoaderControl.gd"
 const EXPORTER_PATH := "res://demo/experiments/RuntimeWorkloadEvidenceExporter.gd"
 const EXPECTED_TITLE := "Chunk Streamer Runtime Workload Isolation"
@@ -21,6 +22,10 @@ func _init() -> void:
 		if instance != null:
 			_check(instance.has_method("get_experiment_title"), "Experiment must expose its title.")
 			_check(instance.has_method("get_expected_run_count"), "Experiment must expose its run count.")
+			_check(
+				instance.get_meta("_runtime_workload_ui_script", null) is Script,
+				"Experiment scene must retain the runtime workload UI as an explicit export dependency."
+			)
 			if instance.has_method("get_experiment_title"):
 				_check(instance.get_experiment_title() == EXPECTED_TITLE, "Experiment title must match the approved UI title.")
 			if instance.has_method("get_expected_run_count"):
@@ -33,6 +38,7 @@ func _init() -> void:
 		_check(runner_source.contains(mode), "Experiment runner must contain workload mode %s." % mode)
 	for field in ["load_observations", "frame_timing", "p95_msec", "p99_msec", "revision"]:
 		_check(runner_source.contains(field), "Evidence runner must expose %s." % field)
+	_check(FileAccess.file_exists(UI_PATH), "Runtime workload experiment UI must exist.")
 	_check(FileAccess.file_exists(LOADER_CONTROL_PATH), "Loader-only control must exist.")
 	_check(FileAccess.file_exists(EXPORTER_PATH), "Evidence exporter must exist.")
 
