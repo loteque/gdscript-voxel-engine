@@ -417,3 +417,33 @@ Phase 6 remains separately gated and is not authorized by this note.
 ### Human reasoning
 
 The Phase 5 evidence is now both technically green and durably trustworthy. Accepting the tests without repairing the audit log would have left a continuity defect; repairing the log without reviewing the conformance evidence would have left the implementation gate incomplete. Both conditions are now satisfied, so Phase 5 can close cleanly while preserving the next-stage gate.
+
+---
+
+## STEWARD-20260813-011
+
+**Timestamp:** 2026-08-13T20:00:00-07:00
+**Author role:** Project Engineering Steward
+**Type:** implementation-gate
+**Status:** accepted
+**Acknowledges:** `ARCH-20260813T190800-0700-010`, `ARCH-20260813T194900-0700-011`, `ARCH-20260813T195000-0700-012`
+
+### Summary
+
+The project owner explicitly authorizes Phase 6 after durable Steward acceptance of Phase 5. The Steward confirms the gate is satisfied and authorizes the Engineering Knowledge Systems Architect to execute the bounded Phase 6 tranche from the frozen PEMS/COVE implementation sequence.
+
+### Authorized Phase 6 work
+
+Phase 6 may build and validate one-way conversion tooling from the current canonical `docs/project-chat-handoff.json` representation into normalized PEMS. The importer/converter must preserve the frozen semantic contracts, including provisional candidate IDs pending Steward admission and explicit separation of stable source identity from immutable source observations or the schema-approved unversioned-observation form where immutable evidence is unavailable.
+
+The Architect may add implementation code, fixtures, tests, validation workflows, and documentation necessary to make conversion deterministic, inspectable, reproducible, and failure-explicit. Conversion output may be used as evidence and test material, but it does not become canonical merely because the tooling can generate it.
+
+### Boundaries and stop condition
+
+`docs/project-chat-handoff.json` remains canonical throughout Phase 6. Phase 6 does not authorize Phase 7 shadow generation across Steward reconciliations, canonical adoption of `docs/project-chat-handoff.cove.json`, replacement/removal of the current handoff, autonomous-agent runtime infrastructure, production voxel-engine changes, pull-request creation, or merge.
+
+The tranche stops when the Architect has produced durable Phase 6 completion evidence demonstrating deterministic one-way conversion, correct provenance/source-observation treatment, provisional-ID/admission behavior, explicit malformed/unsupported-input failures, preservation of continuity-relevant semantics, and no authority change. Phase 7 requires a separate owner/Steward gate.
+
+### Human reasoning
+
+The project has now proven the semantic, structural, byte, and cross-layer contracts independently. The next controlled risk is whether the existing nested handoff can be mapped into those contracts without silently losing continuity or prematurely assigning canonical identity. Keeping generated PEMS noncanonical during Phase 6 lets the project test that mapping while preserving the current handoff as the authority and rollback reference.
