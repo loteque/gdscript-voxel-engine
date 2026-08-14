@@ -1,0 +1,53 @@
+{
+  "admitted_id_map": {
+    "candidate:decision:0e968ebd710a96368b0c": "pems:decision:0e968ebd710a96368b0c",
+    "candidate:decision:2197184a0ef4b2a120e4": "pems:decision:2197184a0ef4b2a120e4",
+    "candidate:decision:48d62ed965c497ae93c0": "pems:decision:48d62ed965c497ae93c0",
+    "candidate:decision:abe7b5d5efc6d7232e72": "pems:decision:abe7b5d5efc6d7232e72",
+    "candidate:decision:afe31f1b2c7b06bbb403": "pems:decision:afe31f1b2c7b06bbb403",
+    "candidate:source:eb92b21e7f3c92db6d23": "pems:source:eb92b21e7f3c92db6d23",
+    "candidate:source_observation:be6819991bf46e7cc226": "pems:source_observation:be6819991bf46e7cc226"
+  },
+  "artifacts": {
+    "docs/handoff/pems/postcutover-reconciliation.admitted.cove.json": {
+      "bytes": 38053,
+      "sha256": "ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa"
+    },
+    "docs/handoff/pems/postcutover-reconciliation.admitted.expanded.json": {
+      "bytes": 65793,
+      "sha256": "bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038"
+    },
+    "docs/handoff/pems/postcutover-reconciliation.admitted.md": {
+      "bytes": 67534,
+      "sha256": "5c13788936512a8dcbf80e2dc2880f85f359a5a312760a889995683b87224cd7"
+    },
+    "docs/handoff/pems/postcutover-reconciliation.admitted.pems.json": {
+      "bytes": 65793,
+      "sha256": "bbbf623aa01608ce30680d4be55ba4f4cff275f5a46ae0ef2c724efb15845038"
+    }
+  },
+  "canonical_byte_repeat_identical": true,
+  "codec": "cove/1",
+  "cove_round_trip_valid": true,
+  "expanded_byte_repeat_identical": true,
+  "history_preserved_ids": [
+    "pems:decision:b54a6445b1ce2b815b56",
+    "pems:source_observation:5b206d4358781f93074b",
+    "pems:source_observation:8c186a6ca2398e0cfe5e",
+    "pems:source_observation:be6819991bf46e7cc226"
+  ],
+  "human_reconstruction_repeat_identical": true,
+  "missing_original_ids": [],
+  "original_ids_preserved": 156,
+  "rebound_original_ids": [],
+  "record_count_after": 163,
+  "record_count_before": 156,
+  "relation_count": 0,
+  "schema_valid": true,
+  "semantic": "pems/1",
+  "semantic_valid": true,
+  "serializer": "jcs/1",
+  "source_candidate": "docs/handoff/pems/postcutover-reconciliation.candidate.pems.json",
+  "source_canonical": "docs/project-chat-handoff.cove.json",
+  "status": "admitted_regeneration_valid_ready_for_steward_canonical_write"
+}
