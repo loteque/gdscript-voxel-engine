@@ -192,20 +192,22 @@ These rules apply to repository-side file APIs as well as working-copy Git workf
 
 ## Read/Write Failure Recovery
 
-When a repository read or write is blocked by response truncation, partial payloads, transport limits, or similar tooling constraints, the Steward may use deterministic chunked reconstruction as a recovery protocol when it preserves the original requested operation.
+When a repository read or write is truncated, partial, transport-limited, or otherwise incomplete at the ordinary whole-file surface, deterministic chunk/blob reconstruction is the Steward's standard recovery policy, not an optional fallback. Truncation alone is not a repository blocker when complete source can be reconstructed safely.
 
-The recovery protocol is:
+The standard recovery protocol is:
 
-1. Read the affected file in deterministic, non-overlapping ranges until the complete file has been obtained.
-2. Verify that every range refers to the same immutable source revision, blob SHA, or equivalent repository identity.
-3. Reconstruct the complete file without semantic alteration before applying any mutation.
-4. Apply only the intended minimal mutation to the reconstructed file.
-5. Perform the write using optimistic concurrency against the verified source revision or blob SHA.
-6. Verify the resulting repository content when practical.
+1. Establish the current immutable source revision, blob SHA, or equivalent repository identity.
+2. Read the complete source through deterministic non-overlapping ranges, or fetch the complete immutable blob directly when available.
+3. Verify that every range belongs to the same immutable source identity and that reconstruction is complete and unambiguous.
+4. Reconstruct the complete file without semantic alteration before applying any mutation.
+5. Preserve all existing bytes exactly where append-only or history-sensitive rules apply.
+6. Apply only the intended minimal mutation.
+7. Perform the write using optimistic concurrency against the verified source identity.
+8. Post-write verify the resulting repository content and immutable identity when practical.
 
-Chunked reconstruction must stop and be reported as a failure if ranges disagree on source revision, any required range is missing or ambiguous, completeness cannot be established, reconstruction would require guessing, or the final compare-and-swap/write fails.
+The Steward stops only if source reconstruction is incomplete, inconsistent, ambiguous, would require guessing, or if optimistic concurrency/write verification fails. A connector's ordinary whole-file response being truncated is not sufficient reason to stop.
 
-This recovery path does not authorize silent semantic changes, scope expansion, rewriting append-only history, or changing the intended execution strategy. Genuine repository failures and unresolved recovery failures must still be reported to the project owner.
+This recovery policy does not authorize silent semantic changes, scope expansion, rewriting append-only history, or changing the intended execution strategy. Genuine reconstruction or repository-write failures must still be reported to the project owner.
 
 ## Activation Output
 
