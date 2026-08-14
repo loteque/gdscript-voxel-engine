@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   validate-jcs:
-    name: Validate jcs/1 Phase 4
+    name: Validate PEMS COVE JCS conformance
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -24,9 +24,11 @@ jobs:
         run: python -m pip install -r tools/pems/requirements.txt
       - name: Install JCS dependency
         run: python -m pip install -r tools/cove/requirements.txt
-      - name: Run PEMS numeric-boundary tests
-        run: python -m unittest tests/test_pems_v1.py
-      - name: Run COVE regression tests
-        run: python -m unittest tests/test_cove_v1.py
-      - name: Run JCS Phase 4 tests
-        run: python -m unittest tests/test_jcs_v1.py
+      - name: Run PEMS semantic tests
+        run: python -m unittest tests/test_pems_v1.py -v
+      - name: Run COVE structural tests
+        run: python -m unittest tests/test_cove_v1.py -v
+      - name: Run JCS byte tests
+        run: python -m unittest tests/test_jcs_v1.py -v
+      - name: Run Phase 5 cross-layer conformance
+        run: python -m unittest tests/test_pems_cove_conformance.py -v
