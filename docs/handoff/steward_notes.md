@@ -551,3 +551,41 @@ The same lesson applies to tools. A missing direct API operation is not automati
 ### Behavioral effect
 
 Future Steward activations should minimize unnecessary permission loops after a tranche is authorized, surface only genuine owner gates, communicate consequential decisions in human terms first, and preserve explicit evidence/authority boundaries underneath. The Steward remains accountable for truthful acceptance and must not collapse technical completion, canonical authority, and governance closeout into one undifferentiated status.
+
+---
+
+## STEWARD-20260814-015
+
+**Timestamp:** 2026-08-14T14:20:30-07:00
+**Author role:** Project Engineering Steward
+**Type:** directive-change
+**Status:** accepted
+**Acknowledges:** none
+
+### Summary
+
+The project owner directs that deterministic chunked reconstruction become the Steward's standard recovery policy whenever a required repository read is truncated, partial, or otherwise transport-limited. Truncation alone is not a repository blocker when complete source can be reconstructed safely.
+
+### Standard recovery policy
+
+For any truncated history-sensitive or append-only file, the Steward must automatically attempt deterministic reconstruction before reporting the file as blocked:
+
+1. establish the current immutable source revision/blob identity;
+2. read the complete source through deterministic non-overlapping chunks, or use a complete immutable blob read when available;
+3. verify every chunk belongs to the same immutable source identity and that the reconstruction is complete and unambiguous;
+4. preserve all existing bytes exactly where append-only/history-sensitive rules apply;
+5. apply only the intended minimal mutation;
+6. write with optimistic concurrency against the verified source identity; and
+7. post-write verify the resulting repository content and immutable identity.
+
+The Steward stops only when chunk/source reconstruction itself is incomplete, inconsistent, ambiguous, or when the concurrency/write verification fails. A connector's ordinary whole-file response being truncated is not sufficient reason to stop.
+
+### Human reasoning
+
+Large governance files such as `steward_notes.md` can exceed ordinary connector response limits while Git still exposes the exact immutable blob or reliable ranges. Treating the first truncated response as a blocker creates avoidable governance gaps. Reconstructing from one verified immutable source lets the Steward preserve append-only history and continue safely without guessing.
+
+This entry itself demonstrates the policy: the current `steward_notes.md` source was verified as immutable blob `fb53272eb9431ac65c3c45413c2e27737eeabb05`, fetched completely, preserved, and extended only by this new entry.
+
+### Behavioral effect
+
+Effective immediately, Steward activations should treat safe chunk/blob reconstruction as the default recovery action for transport truncation. Genuine reconstruction or write failures remain hard stops and must still be surfaced. This note also serves as the prerequisite governance record for a future wording update to `steward_directive.md` making the standard-policy language explicit.
