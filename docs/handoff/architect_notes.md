@@ -615,3 +615,45 @@ The failure in `c46cf4ac8ff797b823f7b1bf19c3c2d87e4c5bae` was not caused by GitH
 ### Behavioral effect
 
 If complete source state cannot be established, revisions disagree, reconstruction would require guessing, or optimistic concurrency fails, the Architect must stop and report the failure rather than write. Post-write verification must confirm the expected preserved history and appended mutation before success is claimed.
+
+## ARCH-20260813T201400-0700-013
+
+- timestamp: `2026-08-13T20:14:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: `STEWARD-20260813-010`, `STEWARD-20260813-011`
+- subject: PEMS Phase 6 one-way current-handoff conversion complete
+
+### Assessment
+
+Phase 6 is complete within the bounded tranche authorized by `STEWARD-20260813-011`. The implementation branch `phase6-current-handoff-importer` now contains deterministic one-way conversion tooling from the current canonical `docs/project-chat-handoff.json` into normalized `pems/1` evidence without changing project-memory authority.
+
+The converter generates only provisional `import:` semantic IDs and verifies every generated record remains at the existing PEMS admission boundary with `candidate_requires_steward_confirmation`. It creates a stable `source` identity for the canonical handoff and a separate `source_observation`; when the source commit is supplied, that observation is an `immutable_snapshot`, and when immutable evidence is unavailable it explicitly falls back to `unversioned_observation` rather than inventing provenance.
+
+### Phase 6 artifacts
+
+- current-handoff importer: `tools/pems/import_current_handoff.py`, commit `9b9ae1574108a5181bc224ba38f4d0198d9119bb`
+- focused importer tests: `tests/test_pems_current_handoff_import.py`, final test-fix commit `12927b6b585ad53dc69e6af03034478f30f51954`
+- validation workflow: `.github/workflows/pems-phase6-import.yml`, validation head `55a58ef654cc5526f2fccb47595867e69bbe3b33`
+- import contract documentation: `docs/handoff/pems/phase6-current-handoff-import.md`, commit `e3a7eb231feb04fc65ee8f3407ebeb1a704d1ca3`
+
+### Validation evidence
+
+GitHub Actions run `31766202500` (`PEMS Phase 6 Current Handoff Import`) completed the Phase 6 validation job successfully before this completion append. The focused suite contains 10 tests covering deterministic conversion, object-key traversal invariance, PEMS schema/semantic validity, source/source-observation separation, immutable versus unversioned evidence behavior, provisional Steward admission behavior, continuity-field preservation, unsupported schema-major rejection, malformed project identity, invalid timestamps, and malformed modules.
+
+The workflow fetched the live canonical handoff from `project-chat-handoff`, bound conversion provenance to that branch commit, converted it twice and compared outputs byte-for-byte, then revalidated the generated PEMS. The live snapshot produced 138 normalized PEMS records covering 14 chats and 23 modules. All generated IDs remained provisional and pending Steward confirmation.
+
+### Authority and stage boundary
+
+`docs/project-chat-handoff.json` remains canonical. The Phase 6 workflow does not write generated PEMS back into canonical project memory and does not create `docs/project-chat-handoff.cove.json` as an authority artifact.
+
+Phase 7 shadow generation across multiple Steward reconciliations is not started or authorized by this completion record. Canonical adoption, replacement/removal of the current handoff, autonomous-agent runtime infrastructure, production voxel-engine changes, pull-request creation, and merge remain outside this tranche.
+
+### Human reasoning
+
+Phase 6 proves the legacy nested handoff can be translated into the frozen semantic contract without prematurely claiming canonical identity or losing the provenance boundary. The key safety property is that conversion is evidence, not authority: even a fully valid normalized PEMS document remains a set of provisional candidates until the Steward admits identities and a later stage explicitly changes canonical memory.
+
+### Stop condition
+
+Phase 6 stops here. Steward/owner review is required before Phase 7 shadow generation.
