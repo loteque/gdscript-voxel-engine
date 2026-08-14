@@ -1,7 +1,7 @@
 extends SceneTree
 
 const MOBILE_TOUCH_CONTROLS := preload("res://voxel/visualization/MobileTouchControls.tscn")
-const NO_CLIP_CAMERA := preload("res://demo/NoClipCameraController.gd")
+const NO_CLIP_CAMERA := preload("res://common/input/NoClipCameraController.gd")
 
 var _failed: bool = false
 
