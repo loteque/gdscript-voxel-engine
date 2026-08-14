@@ -87,82 +87,34 @@ jobs:
     needs: phase6-import
     runs-on: ubuntu-latest
     steps:
+      - name: Check out Phase 6 branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Check out Architect governance branch
         uses: actions/checkout@v4
         with:
           ref: project-chat-handoff
+          path: governance
           fetch-depth: 0
 
       - name: Append immutable Phase 6 completion record
         shell: bash
         run: |
           set -euo pipefail
-          NOTES="docs/handoff/architect_notes.md"
+          NOTES="governance/docs/handoff/architect_notes.md"
+          TEMPLATE="docs/handoff/pems/phase6-architect-completion-note.md.in"
           NOTE_ID="ARCH-20260813T201400-0700-013"
-          git pull --ff-only origin project-chat-handoff
+          git -C governance pull --ff-only origin project-chat-handoff
           if grep -q "^## ${NOTE_ID}$" "$NOTES"; then
             echo "Completion record already exists; no-op."
             exit 0
           fi
-          python - <<'PY'
-          import os
-          from pathlib import Path
-
-          notes = Path("docs/handoff/architect_notes.md")
-          note_id = "ARCH-20260813T201400-0700-013"
-          current = notes.read_text(encoding="utf-8")
-          if f"## {note_id}\n" in current:
-              raise SystemExit(0)
-
-          body = f'''
-
-## {note_id}
-
-- timestamp: `2026-08-13T20:14:00-07:00`
-- author: Engineering Knowledge Systems Architect
-- type: handoff
-- status: resolved
-- acknowledges: `STEWARD-20260813-010`, `STEWARD-20260813-011`
-- subject: PEMS Phase 6 one-way current-handoff conversion complete
-
-### Assessment
-
-Phase 6 is complete within the bounded tranche authorized by `STEWARD-20260813-011`. The implementation branch `phase6-current-handoff-importer` now contains deterministic one-way conversion tooling from the current canonical `docs/project-chat-handoff.json` into normalized `pems/1` evidence without changing project-memory authority.
-
-The converter generates only provisional `import:` semantic IDs and verifies every generated record remains at the existing PEMS admission boundary with `candidate_requires_steward_confirmation`. It creates a stable `source` identity for the canonical handoff and a separate `source_observation`; when the source commit is supplied, that observation is an `immutable_snapshot`, and when immutable evidence is unavailable it explicitly falls back to `unversioned_observation` rather than inventing provenance.
-
-### Phase 6 artifacts
-
-- current-handoff importer: `tools/pems/import_current_handoff.py`, commit `9b9ae1574108a5181bc224ba38f4d0198d9119bb`
-- focused importer tests: `tests/test_pems_current_handoff_import.py`, final test-fix commit `12927b6b585ad53dc69e6af03034478f30f51954`
-- validation workflow: `.github/workflows/pems-phase6-import.yml`, validation head `{os.environ['GITHUB_SHA']}`
-- import contract documentation: `docs/handoff/pems/phase6-current-handoff-import.md`, commit `e3a7eb231feb04fc65ee8f3407ebeb1a704d1ca3`
-
-### Validation evidence
-
-GitHub Actions run `{os.environ['GITHUB_RUN_ID']}` (`PEMS Phase 6 Current Handoff Import`) completed the Phase 6 validation job successfully before this completion append. The focused suite contains 10 tests covering deterministic conversion, object-key traversal invariance, PEMS schema/semantic validity, source/source-observation separation, immutable versus unversioned evidence behavior, provisional Steward admission behavior, continuity-field preservation, unsupported schema-major rejection, malformed project identity, invalid timestamps, and malformed modules.
-
-The workflow fetched the live canonical handoff from `project-chat-handoff`, bound conversion provenance to that branch commit, converted it twice and compared outputs byte-for-byte, then revalidated the generated PEMS. The live snapshot produced 138 normalized PEMS records covering 14 chats and 23 modules. All generated IDs remained provisional and pending Steward confirmation.
-
-### Authority and stage boundary
-
-`docs/project-chat-handoff.json` remains canonical. The Phase 6 workflow does not write generated PEMS back into canonical project memory and does not create `docs/project-chat-handoff.cove.json` as an authority artifact.
-
-Phase 7 shadow generation across multiple Steward reconciliations is not started or authorized by this completion record. Canonical adoption, replacement/removal of the current handoff, autonomous-agent runtime infrastructure, production voxel-engine changes, pull-request creation, and merge remain outside this tranche.
-
-### Human reasoning
-
-Phase 6 proves the legacy nested handoff can be translated into the frozen semantic contract without prematurely claiming canonical identity or losing the provenance boundary. The key safety property is that conversion is evidence, not authority: even a fully valid normalized PEMS document remains a set of provisional candidates until the Steward admits identities and a later stage explicitly changes canonical memory.
-
-### Stop condition
-
-Phase 6 stops here. Steward/owner review is required before Phase 7 shadow generation.
-'''
-          notes.write_text(current + body, encoding="utf-8")
-          PY
-          git config user.name "Engineering Knowledge Systems Architect"
-          git config user.email "69282314+loteque@users.noreply.github.com"
-          git add "$NOTES"
-          git diff --cached --check
-          git commit -m "Record Architect Phase 6 completion"
-          git push origin HEAD:project-chat-handoff
+          sed -e "s/__VALIDATION_HEAD__/${GITHUB_SHA}/g" -e "s/__RUN_ID__/${GITHUB_RUN_ID}/g" "$TEMPLATE" >> "$NOTES"
+          git -C governance config user.name "Engineering Knowledge Systems Architect"
+          git -C governance config user.email "69282314+loteque@users.noreply.github.com"
+          git -C governance add docs/handoff/architect_notes.md
+          git -C governance diff --cached --check
+          git -C governance commit -m "Record Architect Phase 6 completion"
+          git -C governance push origin HEAD:project-chat-handoff
