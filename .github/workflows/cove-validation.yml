@@ -1,0 +1,33 @@
+name: COVE Validation
+
+on:
+  push:
+    branches:
+      - cove-v1-codec
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-cove:
+    name: Validate COVE v1 Phase 3
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install PEMS validation dependencies
+        run: python -m pip install -r tools/pems/requirements.txt
+
+      - name: Run COVE Phase 3 fixture suite
+        run: python -m tools.cove.run_fixtures
+
+      - name: Run COVE Phase 3 unit tests
+        run: python -m unittest tests/test_cove_v1.py
