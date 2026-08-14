@@ -204,3 +204,56 @@ Phase 2 is complete only when the frozen success fixtures normalize deterministi
 ### Human reasoning
 
 Phase 1 turned the design into executable examples and normative structure. Phase 2 should now make PEMS meaning operational without contaminating it with storage compression. Keeping COVE out of this phase preserves the architectural test: PEMS must be independently coherent before any representation optimization is allowed to sit on top of it.
+
+---
+
+## STEWARD-20260813-005
+
+**Timestamp:** 2026-08-13
+**Type:** owner-decision
+**Status:** accepted
+
+### Summary
+
+The project owner approved RFC 8785 JSON Canonicalization Scheme (JCS) as the normative deterministic byte-serialization contract for the PEMS/COVE v1 stack, gated by Project Engineering Steward approval. The Steward approves that contract and authorizes Phase 4 to proceed under an evidence gate.
+
+### Normative serializer decision
+
+- The normative serializer contract is `jcs/1`, defined by RFC 8785 behavior.
+- This decision approves the standard, not any particular implementation library or dependency.
+- Concrete dependency selection remains evidence-gated and belongs to Phase 4 implementation work.
+- PEMS, COVE, and JCS remain independently versioned contracts.
+- JCS remains outside COVE semantic/structural responsibilities; COVE must not gain serializer-specific or PEMS-specific meaning.
+
+### Phase 4 acceptance evidence
+
+Before `jcs/1` is accepted as implemented, Phase 4 must demonstrate:
+
+- published RFC 8785 conformance vectors where available and practical;
+- deterministic canonical UTF-8 bytes across repeated runs;
+- cross-implementation evidence where practical, not only self-consistency;
+- authoritative handling of numeric edge cases, including integers beyond interoperable IEEE-754 precision, negative zero, float rendering, and exponent normalization;
+- explicit documentation of any supported semantic numeric-domain restrictions needed for cross-runtime interoperability;
+- normalized PEMS -> COVE -> canonical bytes -> parse -> COVE decode -> identical normalized PEMS round trips;
+- serializer identifier/version metadata and clear compatibility behavior;
+- appropriate malformed/noncanonical input behavior at the serializer/parsing boundary;
+- actual UTF-8 byte-size measurement distinct from Phase 3 observational character-count measurement.
+
+### Numeric-domain governance
+
+If RFC 8785 interoperability requires constraining the PEMS semantic numeric domain, the Architect must surface that as a normative contract change for owner/Steward approval before changing PEMS schemas, normalizers, fixtures, or admission behavior. Serializer implementation convenience must not silently redefine PEMS meaning.
+
+### Boundaries
+
+Phase 4 does not authorize:
+
+- conversion or replacement of `docs/project-chat-handoff.json`;
+- handoff import tooling;
+- shadow migration;
+- canonical adoption of `docs/project-chat-handoff.cove.json`;
+- autonomous-agent runtime infrastructure;
+- production voxel-engine changes.
+
+### Human reasoning
+
+The project needs canonical bytes that remain portable across implementations, not merely a Python function that returns the same string twice. Freezing RFC 8785 as the standard while keeping the dependency evidence-gated preserves interoperability as the contract and treats libraries as replaceable implementation details.
