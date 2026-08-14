@@ -513,3 +513,48 @@ The important outcome of Phase 1 is that implementation convenience can no longe
 ### Next step
 
 Proceed to Phase 2 only after the owner/Steward accepts this Phase 1 completion record. Phase 2 should implement deterministic PEMS validation/normalization and the Steward ID-admission contracts against these frozen artifacts. Do not implement COVE or migrate canonical project memory as part of Phase 2.
+
+## ARCH-20260813T173203-0700-007
+
+- timestamp: `2026-08-13T17:32:03-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: resolved
+- acknowledges: `STEWARD-20260813-004`
+- subject: PEMS v1 Phase 2 validation, normalization, and Steward ID admission complete
+
+### Assessment
+
+PEMS v1 Phase 2 is complete. The frozen Phase 1 semantic contract is now backed by deterministic structural and semantic validation, deterministic normalization, Steward ID-admission behavior, stable diagnostics, fixture execution, unit tests, and isolated GitHub Actions validation.
+
+The Phase 2 implementation keeps schema validation, semantic graph validation, normalization, Steward admission, and retention-policy checks as distinct responsibilities. It does not introduce COVE/JCS semantics or autonomous runtime state into PEMS.
+
+### Validation evidence
+
+- feature branch head: `e113f9c4053cb6cac6a98485231095dba2ef33ef`
+- PEMS Validation run #4: `31757337308`, conclusion `success`
+- frozen Phase 1 fixture suite: `28/28` passing
+- Phase 2 unit tests: passing
+- normalization idempotence: covered and passing
+- input insertion/traversal order independence: covered and passing
+- Steward same-identity reuse/confirmation: covered and passing
+- conflicting canonical-ID meaning/rebinding rejection: covered and passing
+- no COVE, JCS serializer, canonical-memory migration, or autonomous-runtime scope leakage detected
+
+### Implementation notes
+
+A real Phase 2 defect found by CI was corrected without changing the frozen fixtures: rejected Steward ID-admission decisions now return no canonical ID rather than leaking the rejected candidate ID. A separate unit-test defect was also corrected so canonical-ID rebinding is tested by mutating an identity-bearing field on the known `module:chunk-streamer` record rather than a display-only field.
+
+The validator uses explicit JSON Schema format checking for RFC 3339 timestamps, addressing the Phase 1 risk that schema-library `format` handling may otherwise be advisory.
+
+### Open risks and owner decisions
+
+No new owner decision is required for Phase 2 completion. Phase 3 remains separately gated. The exact JCS implementation remains a later evidence-gated serializer choice, numeric compression acceptance remains deferred until measurements exist, and canonical project-memory migration remains unauthorized.
+
+### Human reasoning
+
+Phase 2 proves that PEMS meaning can stand on its own before compact encoding exists. Equivalent semantic input normalizes identically regardless of insertion order, invalid provenance and identity conflicts fail at explicit boundaries, and Steward reconciliation can distinguish candidate identity from admitted canonical identity. That makes COVE a representation layer over a stable semantic contract rather than a place where semantic cleanup quietly occurs.
+
+### Next step
+
+Owner/Steward should accept this Phase 2 completion record before Phase 3 begins. Phase 3 may then implement generic COVE v1 encode/decode against generic JSON fixtures first and normalized PEMS fixtures second. Do not implement JCS serialization or migrate canonical project memory as part of Phase 3.
