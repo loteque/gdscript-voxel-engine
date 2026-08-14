@@ -97,16 +97,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          NOTE_ID="ARCH-20260813T201400-0700-013"
           NOTES="docs/handoff/architect_notes.md"
+          NOTE_ID="ARCH-20260813T201400-0700-013"
+          git pull --ff-only origin project-chat-handoff
           if grep -q "^## ${NOTE_ID}$" "$NOTES"; then
             echo "Completion record already exists; no-op."
             exit 0
           fi
-          git pull --ff-only origin project-chat-handoff
-          cat >> "$NOTES" <<EOF
+          python - <<'PY'
+          import os
+          from pathlib import Path
 
-## ${NOTE_ID}
+          notes = Path("docs/handoff/architect_notes.md")
+          note_id = "ARCH-20260813T201400-0700-013"
+          current = notes.read_text(encoding="utf-8")
+          if f"## {note_id}\n" in current:
+              raise SystemExit(0)
+
+          body = f'''
+
+## {note_id}
 
 - timestamp: `2026-08-13T20:14:00-07:00`
 - author: Engineering Knowledge Systems Architect
@@ -125,12 +135,12 @@ The converter generates only provisional `import:` semantic IDs and verifies eve
 
 - current-handoff importer: `tools/pems/import_current_handoff.py`, commit `9b9ae1574108a5181bc224ba38f4d0198d9119bb`
 - focused importer tests: `tests/test_pems_current_handoff_import.py`, final test-fix commit `12927b6b585ad53dc69e6af03034478f30f51954`
-- validation workflow: `.github/workflows/pems-phase6-import.yml`, validation head `${GITHUB_SHA}`
+- validation workflow: `.github/workflows/pems-phase6-import.yml`, validation head `{os.environ['GITHUB_SHA']}`
 - import contract documentation: `docs/handoff/pems/phase6-current-handoff-import.md`, commit `e3a7eb231feb04fc65ee8f3407ebeb1a704d1ca3`
 
 ### Validation evidence
 
-GitHub Actions run `${GITHUB_RUN_ID}` (`PEMS Phase 6 Current Handoff Import`) completed the Phase 6 validation job successfully before this completion append. The focused suite contains 10 tests covering deterministic conversion, object-key traversal invariance, PEMS schema/semantic validity, source/source-observation separation, immutable versus unversioned evidence behavior, provisional Steward admission behavior, continuity-field preservation, unsupported schema-major rejection, malformed project identity, invalid timestamps, and malformed modules.
+GitHub Actions run `{os.environ['GITHUB_RUN_ID']}` (`PEMS Phase 6 Current Handoff Import`) completed the Phase 6 validation job successfully before this completion append. The focused suite contains 10 tests covering deterministic conversion, object-key traversal invariance, PEMS schema/semantic validity, source/source-observation separation, immutable versus unversioned evidence behavior, provisional Steward admission behavior, continuity-field preservation, unsupported schema-major rejection, malformed project identity, invalid timestamps, and malformed modules.
 
 The workflow fetched the live canonical handoff from `project-chat-handoff`, bound conversion provenance to that branch commit, converted it twice and compared outputs byte-for-byte, then revalidated the generated PEMS. The live snapshot produced 138 normalized PEMS records covering 14 chats and 23 modules. All generated IDs remained provisional and pending Steward confirmation.
 
@@ -147,7 +157,9 @@ Phase 6 proves the legacy nested handoff can be translated into the frozen seman
 ### Stop condition
 
 Phase 6 stops here. Steward/owner review is required before Phase 7 shadow generation.
-EOF
+'''
+          notes.write_text(current + body, encoding="utf-8")
+          PY
           git config user.name "Engineering Knowledge Systems Architect"
           git config user.email "69282314+loteque@users.noreply.github.com"
           git add "$NOTES"
