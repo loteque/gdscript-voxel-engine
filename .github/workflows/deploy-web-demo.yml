@@ -6,6 +6,7 @@ on:
       - main
       - nf/integration
       - large-asteroid-validation
+      - documentation-site
   workflow_dispatch:
 
 permissions:
@@ -22,7 +23,7 @@ env:
 
 jobs:
   build:
-    name: Export and archive web demos
+    name: Export and archive Pages content
     runs-on: ubuntu-latest
 
     steps:
@@ -56,18 +57,24 @@ jobs:
             echo "streaming_manifest_url=../../../versions.json" >> "$GITHUB_OUTPUT"
             echo "publication_type=preview" >> "$GITHUB_OUTPUT"
             echo "Publishing mutable integration preview"
+          elif [ "$GITHUB_REF_NAME" = "documentation-site" ]; then
+            echo "archive_path=documentation" >> "$GITHUB_OUTPUT"
+            echo "publication_type=documentation" >> "$GITHUB_OUTPUT"
+            echo "Publishing mutable project documentation"
           else
             echo "Unsupported publication branch: $GITHUB_REF_NAME"
             exit 1
           fi
 
       - name: Setup Godot
+        if: steps.publication.outputs.publication_type != 'documentation'
         uses: solarlabyrinth/action-setup-godot@v3
         with:
           version: ${{ env.GODOT_VERSION }}
           export-templates: true
 
       - name: Export terrain demo
+        if: steps.publication.outputs.publication_type != 'documentation'
         shell: bash
         run: |
           mkdir -p build/web/terrain
@@ -78,6 +85,7 @@ jobs:
             build/web/terrain/index.html
 
       - name: Export chunk validation demo
+        if: steps.publication.outputs.publication_type != 'documentation'
         shell: bash
         run: |
           set -euo pipefail
@@ -113,9 +121,11 @@ jobs:
             build/web/chunks/index.html
 
       - name: Bake streaming demo terrain fixture
+        if: steps.publication.outputs.publication_type != 'documentation'
         run: godot --headless --path . --script demo/tools/BakeStreamingDemoFixture.gd
 
       - name: Export runtime streaming validation demo
+        if: steps.publication.outputs.publication_type != 'documentation'
         shell: bash
         run: |
           set -euo pipefail
@@ -151,6 +161,7 @@ jobs:
             build/web/streaming/index.html
 
       - name: Add grouped demo selectors
+        if: steps.publication.outputs.publication_type != 'documentation'
         shell: bash
         env:
           CURRENT_RELEASE_ID: ${{ steps.publication.outputs.release_id }}
@@ -184,6 +195,7 @@ jobs:
             "$STREAMING_MANIFEST_URL"
 
       - name: Preserve exported builds
+        if: steps.publication.outputs.publication_type != 'documentation'
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/web-build/terrain"
@@ -213,7 +225,11 @@ jobs:
 
           rm -rf "$ARCHIVE/build"
 
-          if [ "$PUBLICATION_TYPE" = "release" ]; then
+          if [ "$PUBLICATION_TYPE" = "documentation" ]; then
+            rm -rf "$ARCHIVE/$ARCHIVE_PATH"
+            mkdir -p "$ARCHIVE/$ARCHIVE_PATH"
+            cp -a documentation/. "$ARCHIVE/$ARCHIVE_PATH/"
+          elif [ "$PUBLICATION_TYPE" = "release" ]; then
             if [ -e "$ARCHIVE/$ARCHIVE_PATH" ]; then
               echo "Version $RELEASE_ID is already published. Published versions are immutable."
               exit 1
@@ -251,7 +267,9 @@ jobs:
           fi
 
           touch "$ARCHIVE/.nojekyll"
-          python .github/scripts/build_demo_manifest.py "$ARCHIVE"
+          if [ "$PUBLICATION_TYPE" != "documentation" ]; then
+            python .github/scripts/build_demo_manifest.py "$ARCHIVE"
+          fi
 
           git -C "$ARCHIVE" config user.name "github-actions[bot]"
           git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -260,7 +278,9 @@ jobs:
           if git -C "$ARCHIVE" diff --cached --quiet; then
             echo "Pages archive already matches this publication."
           else
-            if [ "$PUBLICATION_TYPE" = "release" ]; then
+            if [ "$PUBLICATION_TYPE" = "documentation" ]; then
+              git -C "$ARCHIVE" commit -m "Publish project documentation"
+            elif [ "$PUBLICATION_TYPE" = "release" ]; then
               git -C "$ARCHIVE" commit -m "Publish web demos $RELEASE_ID"
             else
               git -C "$ARCHIVE" commit -m "Publish integration web preview"
