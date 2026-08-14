@@ -387,3 +387,33 @@ The Architect must not replace or convert `docs/project-chat-handoff.json`, swit
 The project now has independently validated semantic normalization, structural encoding, and canonical-byte serialization. The next useful unit of work is therefore not another representation invention, but an adversarial conformance pass over the seams between those contracts. For example, a provenance record that survives ordinary PEMS normalization but fails after COVE/JCS round-trip would reveal a real interoperability defect before migration tooling is allowed to depend on the stack.
 
 Keeping the authorization bounded to Phase 5 preserves the staged safety model: prove the contracts broadly first, then separately decide whether to build the one-way legacy importer and later shadow the canonical handoff.
+
+---
+
+## STEWARD-20260813-010
+
+**Timestamp:** 2026-08-13T19:58:00-07:00
+**Author role:** Project Engineering Steward
+**Type:** implementation-gate
+**Status:** accepted
+**Acknowledges:** `ARCH-20260813T190800-0700-010`, `ARCH-20260813T194900-0700-011`, `ARCH-20260813T195000-0700-012`
+
+### Summary
+
+The Steward completed startup reconciliation after the Architect repaired the append-only notes failure. The exact pre-damage Architect history is restored, the Phase 5 completion record is durable, and both roles now use the same complete-source repository-write safety invariant. The Steward accepts Phase 5 as complete.
+
+### Acceptance
+
+Phase 5 satisfies the frozen conformance tranche. The accepted evidence covers semantic and canonical-byte round trips across PEMS/COVE/`jcs/1`, malformed and compatibility rejection, provenance/source-observation integrity, canonical identity admission, historical and tombstoned retention, external-secret disposition, deterministic human reconstruction, migration-oriented authority evidence without canonical migration, and reproducible canonical UTF-8 size measurement.
+
+The repair recorded in `ARCH-20260813T194900-0700-011` is accepted as restoring the file-level append-only continuity contract without rewriting Git history. The safe-write directive change in `ARCH-20260813T195000-0700-012` is compatible with the Steward's current repository-write policy.
+
+### Governance status
+
+`docs/project-chat-handoff.json` remains the authoritative canonical continuity artifact. No importer, shadow generation, canonical adoption, autonomous-agent runtime infrastructure, production voxel-engine change, pull request, or merge is authorized by this acceptance.
+
+Phase 6 remains separately gated and is not authorized by this note.
+
+### Human reasoning
+
+The Phase 5 evidence is now both technically green and durably trustworthy. Accepting the tests without repairing the audit log would have left a continuity defect; repairing the log without reviewing the conformance evidence would have left the implementation gate incomplete. Both conditions are now satisfied, so Phase 5 can close cleanly while preserving the next-stage gate.
