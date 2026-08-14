@@ -28,7 +28,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r tools/pems/requirements.txt -r tools/cove/requirements.txt
+          python -m pip install pytest -r tools/pems/requirements.txt -r tools/cove/requirements.txt
 
       - name: Run Phase 7 focused and regression tests
         run: |
