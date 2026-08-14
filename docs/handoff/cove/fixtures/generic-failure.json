@@ -1,0 +1,70 @@
+{
+  "supported_profiles": ["generic/1"],
+  "cases": [
+    {
+      "name": "unknown-major",
+      "expected_code": "COVE_UNSUPPORTED_VERSION",
+      "artifact": {"c":"cove/2","p":"generic/1","s":null,"d":[],"h":[],"x":null}
+    },
+    {
+      "name": "unsupported-profile",
+      "expected_code": "COVE_UNSUPPORTED_PROFILE",
+      "artifact": {"c":"cove/1","p":"other/1","s":null,"d":[],"h":[],"x":null}
+    },
+    {
+      "name": "malformed-envelope-extra-field",
+      "expected_code": "COVE_MALFORMED_ENVELOPE",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":[],"h":[],"x":null,"extra":true}
+    },
+    {
+      "name": "duplicate-dictionary-string",
+      "expected_code": "COVE_DUPLICATE_STRING",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":["a","a"],"h":[],"x":null}
+    },
+    {
+      "name": "noncanonical-dictionary-order",
+      "expected_code": "COVE_DICTIONARY_ORDER",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":["b","a"],"h":[],"x":null}
+    },
+    {
+      "name": "shape-key-unsorted",
+      "expected_code": "COVE_SHAPE_KEY_ORDER",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":["a","b"],"h":[[1,0]],"x":null}
+    },
+    {
+      "name": "duplicate-shape",
+      "expected_code": "COVE_DUPLICATE_SHAPE",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":["a"],"h":[[0],[0]],"x":null}
+    },
+    {
+      "name": "shape-index-out-of-range",
+      "expected_code": "COVE_SHAPE_INDEX_RANGE",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":[],"h":[],"x":[2,0]}
+    },
+    {
+      "name": "string-index-out-of-range",
+      "expected_code": "COVE_STRING_INDEX_RANGE",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":["a"],"h":[],"x":[0,1]}
+    },
+    {
+      "name": "unknown-tag",
+      "expected_code": "COVE_UNKNOWN_TAG",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":[],"h":[],"x":[9]}
+    },
+    {
+      "name": "string-wrong-arity",
+      "expected_code": "COVE_TAG_ARITY",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":["a"],"h":[],"x":[0,0,0]}
+    },
+    {
+      "name": "object-value-count-mismatch",
+      "expected_code": "COVE_OBJECT_ARITY",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":["a"],"h":[[0]],"x":[2,0]}
+    },
+    {
+      "name": "malformed-tagged-array",
+      "expected_code": "COVE_MALFORMED_TAG",
+      "artifact": {"c":"cove/1","p":"generic/1","s":null,"d":[],"h":[],"x":[]}
+    }
+  ]
+}
