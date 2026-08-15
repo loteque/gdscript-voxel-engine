@@ -589,3 +589,73 @@ This entry itself demonstrates the policy: the current `steward_notes.md` source
 ### Behavioral effect
 
 Effective immediately, Steward activations should treat safe chunk/blob reconstruction as the default recovery action for transport truncation. Genuine reconstruction or write failures remain hard stops and must still be surfaced. This note also serves as the prerequisite governance record for a future wording update to `steward_directive.md` making the standard-policy language explicit.
+
+---
+
+## STEWARD-20260814-016
+
+**Timestamp:** 2026-08-14T17:08:55-07:00
+**Author role:** Project Engineering Steward
+**Type:** final-acceptance
+**Status:** accepted
+**Acknowledges:** `ARCH-20260814T145900-0700-022` and Architect verification artifact `docs/handoff/pems/architect-hourly-20260814T1558-0700.json`
+
+### Summary
+
+The Project Engineering Steward completes the durable governance closeout for the PEMS/COVE Phase 8 and post-cutover reconciliation sequence. The earlier recovery COVE contradiction is superseded by the corrected frozen-codec evidence, the two final namespace-preserving identities are Steward-admitted, and the exact corrected 165-record state is already installed and verified as canonical project memory.
+
+### Final identity admission
+
+The Steward confirms the final namespace-preserving admissions:
+
+- `candidate:decision:5fa3241c8b9bc2787b6d` -> `pems:decision:5fa3241c8b9bc2787b6d`
+- `candidate:source_observation:15b32d4adb9bcfa4fc94` -> `pems:source_observation:15b32d4adb9bcfa4fc94`
+
+These admissions preserve all 163 previously admitted identities and add two records without collision or semantic rebinding. The prior pending-closeout decision `pems:decision:abe7b5d5efc6d7232e72` remains preserved as superseded history.
+
+### Corrected representation evidence accepted
+
+The Steward accepts `docs/handoff/pems/final-closeout-corrected-frozen-codec.evidence.json` and `ARCH-20260814T145900-0700-022` as superseding the stale 38,618-byte recovery COVE claim. The accepted final evidence proves:
+
+- record count: **165**;
+- existing identities preserved: **163 / 163**;
+- missing existing identities: none;
+- identity collisions: none;
+- semantic rebindings: none;
+- schema validation: pass;
+- semantic validation: pass;
+- reciprocal supersession/history preservation: pass;
+- provenance/source-observation preservation: pass;
+- COVE round trip: pass;
+- repeated canonical bytes: byte-identical;
+- deterministic human reconstruction: pass;
+- canonical 163-record codec control: byte-identical to the previously installed canonical source state.
+
+### Canonical installation verified
+
+The corrected final state was installed canonically in commit `e4147cda9b4badec6b6fc6edce7d225b287c7a03` and remains present on `project-chat-handoff` through the current governance commits.
+
+- Canonical authority: `docs/project-chat-handoff.cove.json`
+  - Git blob: `093040e24ffe37c432e5bbad872344cbbc9f045b`
+  - bytes: **38,630**
+  - SHA-256: `ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3`
+- Deterministic compatibility derivative: `docs/project-chat-handoff.json`
+  - Git blob: `14cc12dd8f0b9c6bdc7c5776780c6d7fdcf9b5e1`
+  - bytes: **66,860**
+  - SHA-256: `090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7`
+- Deterministic human reconstruction:
+  - Git blob: `57390ff9ffb3af05cae6e441c93d7e9a28ef1a75`
+  - bytes: **68,522**
+  - SHA-256: `f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c`
+
+Canonical semantics explicitly record `phase8_status = "accepted_complete"`, final Steward governance closeout complete, and immutable observation `pems:source_observation:15b32d4adb9bcfa4fc94`.
+
+### Governance outcome
+
+**PHASE 8 / POST-CUTOVER GOVERNANCE IS COMPLETE.**
+
+Technical regeneration, corrected representation evidence, Steward identity admission, canonical installation, compatibility regeneration, semantic/history/provenance preservation, deterministic byte verification, and durable Steward acceptance are all complete. No further Phase 8 governance action is required unless new contradictory evidence appears.
+
+### Human reasoning
+
+The final closeout was intentionally not declared from the first successful-looking recovery artifacts because their COVE digest contradicted the frozen codec. The Architect isolated and corrected that discrepancy, the Steward installed only the reproducible bytes, and this record closes the last bookkeeping gap after re-verifying canonical blob identity. The result preserves the distinction between a generated claim, technical proof, canonical authority, and durable governance acceptance.
