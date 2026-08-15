@@ -1071,3 +1071,56 @@ Review the six provisional identities and the identity-preserving updates to the
 ### Human reasoning
 
 The promotion is a change in ownership, not a file rename. Both paths still exist and now mean different things, so changing the old demo module's path would have made one semantic identity refer to a different module. Keeping the demo identity at its historical path while proposing a new common-path identity preserves the audit trail and accurately represents the current dependency boundary. The branch head can change under its existing identity because PEMS defines branch identity by repository plus branch name, not by the observed commit.
+
+
+## ARCH-20260815T051000-0700-024
+
+- timestamp: `2026-08-15T05:10:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: open
+- acknowledges: `STEWARD-20260815-018`, `ARCH-20260815T030900-0700-023`
+- subject: Steward-admitted common-camera reconciliation regenerated and validated for canonical review
+
+### Assessment
+
+The bounded admitted-regeneration tranche authorized by `STEWARD-20260815-018` is technically complete. The six Steward-approved namespace-preserving identity mappings were applied to the accepted 171-record common-camera candidate and the resulting admitted document was normalized and regenerated through the accepted frozen `pems/1` -> `cove/1` -> `jcs/1` tooling. Canonical project memory was not modified.
+
+The admitted corpus preserves all 165 preexisting semantic identities with zero missing IDs and zero rebindings. All six Steward-admitted `pems:` identities are present, no `candidate:` or `import:` IDs remain, source/source-observation provenance validates, and the historical demo adapter remains semantically distinct from the authoritative common-library camera module.
+
+### Validation evidence
+
+GitHub Actions run `31883812489` completed successfully. The admitted-regeneration artifacts are committed on `pems-common-camera-reconciliation` at `fcf51632c4633cd3299facd2fd6de9a30f404485`.
+
+- admitted records: **171**;
+- existing identities preserved: **165 / 165**;
+- missing existing identities: **0**;
+- rebound existing identities: **0**;
+- all six admitted identities present: **yes**;
+- remaining provisional/import identities: **0**;
+- schema validation: **pass**;
+- semantic validation: **pass**;
+- canonical 165-record codec control: **byte-identical**;
+- source-observation provenance: **pass**;
+- demo/common semantic distinction: **pass**;
+- COVE round trip: **pass**;
+- JCS parse/decode round trip: **pass**;
+- repeated canonical bytes: **byte-identical**;
+- repeated expanded bytes: **byte-identical**;
+- deterministic human reconstruction: **pass**.
+
+Exact admitted artifacts:
+
+- COVE + `jcs/1`: 40,111 bytes; SHA-256 `a8242844932260d569e2b5b4ea7d99c84649e285f685ebdaaaf460f2c7c1e143`.
+- normalized/expanded PEMS: 69,361 bytes; SHA-256 `7c83ab3fd725279e4aaf3bcb4212239d2779d97f5b3a7f2d93378dd076e06963`.
+- deterministic human reconstruction: 71,100 bytes; SHA-256 `8590ff9be7e105b8ef988fc52c3edd0174e19023e0e82a0d30295902b02d7c04`.
+
+Machine-readable evidence is `docs/handoff/pems/common-camera-reconciliation.admitted.evidence.json`.
+
+### Steward action requested
+
+Review the admitted-regeneration evidence. If it satisfies the canonical-write gate, install the exact admitted COVE and deterministic expanded derivative as the new canonical 171-record state and record the Steward acceptance. Identity admission itself is already complete under `STEWARD-20260815-018`; no additional Architect identity proposal is required.
+
+### Human reasoning
+
+Admission changes references throughout the graph, so the correct final bytes cannot be inferred by textual substitution from the provisional candidate. Regenerating through the frozen codec proves that the six approved identities settle into one deterministic representation while the prior 165 identities and the demo/common ownership distinction remain intact. The remaining decision is therefore a Steward canonical-installation gate, not a representation-design question.
