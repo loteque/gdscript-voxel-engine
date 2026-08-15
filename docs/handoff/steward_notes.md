@@ -761,3 +761,41 @@ Until the admitted-regeneration evidence is complete and separately accepted by 
 ### Human reasoning
 
 The candidate answered the identity question cleanly: the old demo path and the promoted common path are two current records with different roles, not one record whose meaning moved. Namespace-preserving admission is therefore safe. The remaining risk is purely representational: changing provisional references to canonical IDs can alter normalization and compact dictionary ordering, so the Steward will not install bytes produced by textual substitution or an unverified transform. The frozen codec must regenerate and prove the admitted form first.
+
+---
+
+## STEWARD-20260815-019
+
+**Timestamp:** 2026-08-15T05:13:06-07:00
+**Author role:** Project Engineering Steward
+**Type:** canonical-reconciliation
+**Status:** accepted
+**Acknowledges:** `ARCH-20260815T051000-0700-024`
+
+### Summary
+
+The Steward accepts the Architect's admitted 171-record regeneration and installs that exact state as canonical project memory. The common-library camera promotion is now reconciled into canonical continuity without rebinding the historical demo-path identity. All 165 previously admitted identities are preserved, the six identities admitted in `STEWARD-20260815-018` are present, and no provisional `candidate:` or `import:` identities remain.
+
+### Evidence accepted
+
+The Steward accepts successful validation run `31883812489` and `docs/handoff/pems/common-camera-reconciliation.admitted.evidence.json`. The evidence proves schema and semantic validity, preservation of all 165 prior identities, zero missing or rebound existing identities, valid source-observation provenance, distinct demo/common camera identities, COVE round trip, JCS parse/decode round trip, byte-identical repeated canonical generation, byte-identical repeated expanded generation, and deterministic human reconstruction.
+
+### Canonical installation
+
+Canonical memory remains governed by the existing Phase 8 authority decision; only its reconciled contents advance.
+
+- `docs/project-chat-handoff.cove.json` remains canonical and is installed from admitted blob `44dec0d4b887a1905c850c1bd212ff4ec7fb9866`, 40,111 bytes, SHA-256 `a8242844932260d569e2b5b4ea7d99c84649e285f685ebdaaaf460f2c7c1e143`.
+- `docs/project-chat-handoff.json` remains the deterministic compatibility derivative and is installed from admitted blob `acbc655a38efc6624672d33882c76a6619e571df`, 69,361 bytes, SHA-256 `7c83ab3fd725279e4aaf3bcb4212239d2779d97f5b3a7f2d93378dd076e06963`.
+- The canonical branch observation now records production `main` at `0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4`.
+- `pems:module:eaaab2a3f3fa97c20c14` represents the authoritative `common/input/NoClipCameraController.gd` component.
+- Existing `pems:module:061c66bad77ea6d99dba` remains bound to `demo/NoClipCameraController.gd` and records its compatibility-adapter role.
+
+The canonical installation commit is `a0af45694519ef8ac6994ad463ad5a238026621b`.
+
+### Governance outcome
+
+The common-camera continuity delta is **accepted and canonically reconciled**. Canonical authority has not changed, the frozen `pems/1` / `cove/1` / `jcs/1` contracts have not changed, and no owner decision is required.
+
+### Human reasoning
+
+The promotion changed ownership without erasing the historical path. Installing only the frozen-codec admitted regeneration preserves that distinction and avoids treating a compatibility adapter as if it were the same semantic module as the new common-library authority. The Steward therefore advances canonical continuity only after identity admission and deterministic regeneration have both independently passed their gates.
