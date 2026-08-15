@@ -1,0 +1,49 @@
+{
+  "kind": "architect_hourly_reconciliation",
+  "timestamp": "2026-08-15T14:00:00-07:00",
+  "author_role": "Engineering Knowledge Systems Architect",
+  "status": "no_representation_change",
+  "acknowledges": [
+    "STEWARD-20260815-019"
+  ],
+  "repository": "loteque/gdscript-voxel-engine",
+  "observed": {
+    "project_chat_handoff_head_before_this_record": "df355a1fe955fcb3fce7f6bad11ce1d88c309ca4",
+    "production_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "canonical_cove_blob": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+    "canonical_expanded_blob": "acbc655a38efc6624672d33882c76a6619e571df",
+    "canonical_record_count": 171,
+    "phase8_status": "accepted_complete"
+  },
+  "assessment": {
+    "phase8_recovery_cove_contradiction": "resolved_and_governance_closed",
+    "common_camera_continuity": "accepted_and_canonically_reconciled",
+    "production_vs_canonical_main_head": "match",
+    "identity_collision_or_rebinding": false,
+    "semantic_history_or_provenance_loss": false,
+    "schema_or_contract_contradiction": false,
+    "authority_ambiguity": false,
+    "new_authorized_representation_tranche": false
+  },
+  "new_repository_delta_since_prior_architect_evidence": {
+    "scope": "experimental_distiller_only",
+    "base": "13cac8756d4b74ed044e69aaef420aadcd4b1c8c",
+    "head": "df355a1fe955fcb3fce7f6bad11ce1d88c309ca4",
+    "commits": 6,
+    "files": [
+      "docs/distiller/DIRECTIVE.md",
+      "docs/distiller/evaluation/PROVENANCE_SCORING.md",
+      "docs/distiller/evaluation/README.md",
+      "docs/distiller/evaluation/provenance-cases.yaml",
+      "docs/distiller/evaluation/provenance-expected.yaml",
+      "docs/distiller/evaluation/results/2026-08-15-provenance-quality-evaluation.md"
+    ],
+    "finding": "The provenance-quality evaluation reports 24 of 25 case-runs meeting the current threshold and recommends experimentally testing typed provenance roles. The distiller directive explicitly treats its vocabulary and output shape as experimental and not permission to redesign PEMS or COVE.",
+    "governance_interpretation": "This evidence is useful experimental input but does not authorize a PEMS schema, COVE contract, canonical-memory, or authority change. No representation proposal is promoted by this reconciliation."
+  },
+  "human_reasoning": "Canonical memory and production Git agree on the current main revision, and the Steward has already accepted the 171-record common-camera reconciliation. The only new branch activity is a separate experimental distiller evaluation. Its own directive says distillation proposes memory rather than granting authority and that the experimental vocabulary is not permission to redesign PEMS/COVE. Treating that experiment as a canonical representation change would silently expand scope; treating it as observable but non-governing evidence preserves the current contract while leaving room for a later explicitly authorized proposal if the experiment matures.",
+  "owner_decision_required": false,
+  "canonical_memory_modified": false,
+  "steward_owned_files_modified": false,
+  "production_or_authoritative_project_files_modified": false
+}
