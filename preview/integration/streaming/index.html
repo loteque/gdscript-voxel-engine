@@ -112,7 +112,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":2518204,"index.wasm":38814086},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":2490440,"index.wasm":38814086},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
 const GODOT_THREADS_ENABLED = true;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -217,6 +217,35 @@ const engine = new Engine(GODOT_CONFIG);
 }());
 		</script>
 	
+<style id="voxel-lifecycle-experiment-style">
+  #voxel-lifecycle-experiment {
+    position: fixed;
+    top: 80px;
+    left: 16px;
+    right: 16px;
+    z-index: 2147483646;
+    max-width: 760px;
+    margin: auto;
+    padding: 12px 16px;
+    border: 3px solid #48d66d;
+    border-radius: 14px;
+    background: rgba(4, 25, 15, 0.96);
+    color: #f4fff7;
+    font: 700 20px/1.3 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-align: center;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+  #voxel-lifecycle-experiment strong { color: #70f08e; }
+  @media (max-width: 720px) {
+    #voxel-lifecycle-experiment { top: 72px; font-size: 18px; }
+  }
+</style>
+<div id="voxel-lifecycle-experiment" role="status">
+  <strong>CORRECT TEST: ChunkStreamer Lifecycle Experiment</strong><br>
+  Run “Run Experiment Matrix”. Export filename starts with <code>streaming-experiment-</code>.
+</div>
+
 <style id="voxel-demo-selector-style">
   #voxel-demo-selector {
     position: fixed;
@@ -256,7 +285,7 @@ const engine = new Engine(GODOT_CONFIG);
   }
 </style>
 <select id="voxel-demo-selector" aria-label="Select demo and version">
-  <option selected>Chunk Streamer Runtime Workload Isolation · Integration Preview</option>
+  <option selected>Runtime Streaming Validation Demo · Integration Preview</option>
 </select>
 <script>
   (() => {
