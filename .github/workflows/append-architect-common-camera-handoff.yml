@@ -19,67 +19,23 @@ jobs:
         with:
           fetch-depth: 0
       - name: Append Architect-owned handoff safely
+        env:
+          NOTE_B64: CiMjIEFSQ0gtMjAyNjA4MTVUMDMwOTAwLTA3MDAtMDIzCgotIHRpbWVzdGFtcDogYDIwMjYtMDgtMTVUMDM6MDk6MDAtMDc6MDBgCi0gYXV0aG9yOiBFbmdpbmVlcmluZyBLbm93bGVkZ2UgU3lzdGVtcyBBcmNoaXRlY3QKLSB0eXBlOiBoYW5kb2ZmCi0gc3RhdHVzOiBvcGVuCi0gYWNrbm93bGVkZ2VzOiBgU1RFV0FSRC0yMDI2MDgxNS0wMTdgLCBgQVJDSC0yMDI2MDgxNFQxNDU5MDAtMDcwMC0wMjJgCi0gc3ViamVjdDogQ29tbW9uLWNhbWVyYSBwcm9tb3Rpb24gY29udGludWl0eSBjYW5kaWRhdGUgdmFsaWRhdGVkIGZvciBTdGV3YXJkIGlkZW50aXR5IHJldmlldwoKIyMjIEFzc2Vzc21lbnQKClRoZSBib3VuZGVkIHJlY29uY2lsaWF0aW9uIHRyYW5jaGUgYXV0aG9yaXplZCBieSBgU1RFV0FSRC0yMDI2MDgxNS0wMTdgIGlzIHRlY2huaWNhbGx5IGNvbXBsZXRlIGFzIGEgKipub25jYW5vbmljYWwqKiBjYW5kaWRhdGUuIFByb2R1Y3Rpb24gYG1haW5gIHJlbWFpbnMgZXhhY3RseSBgMGM2MmNiY2ZiZmVmN2VhYzAzMjEzZjIzYjBmZGMzMTFkN2UzYWZhNGAsIHdoZXJlIGBjb21tb24vaW5wdXQvTm9DbGlwQ2FtZXJhQ29udHJvbGxlci5nZGAgaXMgdGhlIGF1dGhvcml0YXRpdmUgY29tbW9uLWxpYnJhcnkgaW1wbGVtZW50YXRpb24gYW5kIGBkZW1vL05vQ2xpcENhbWVyYUNvbnRyb2xsZXIuZ2RgIGlzIGEgY29tcGF0aWJpbGl0eSBhZGFwdGVyLiBUaGUgYWNjZXB0ZWQgY29tbW9uLWxpYnJhcnkgYXJjaGl0ZWN0dXJlIGNvbnRyYWN0IGF0IHRoYXQgc2FtZSBjb21taXQgc3RhdGVzIHRoYXQgdGhlIHByb21vdGVkIGNvbW1vbi1saWJyYXJ5IHZlcnNpb24gaXMgYXV0aG9yaXRhdGl2ZSBmb3IgdGhlIGNhcGFiaWxpdHkuCgpUaGUgY2FuZGlkYXRlIHN0YXJ0cyBmcm9tIHRoZSB2ZXJpZmllZCAxNjUtcmVjb3JkIGNhbm9uaWNhbCBjb3JwdXMgYW5kIHByZXNlcnZlcyBhbGwgMTY1IGV4aXN0aW5nIElEcyB3aXRoIHplcm8gbWlzc2luZyBpZGVudGl0aWVzIGFuZCB6ZXJvIHNlbWFudGljIHJlYmluZGluZ3MuIFRoZSBleGlzdGluZyBgbWFpbmAgYnJhbmNoIHJlY29yZCBpcyB1cGRhdGVkIG9ubHkgaW4gaXRzIG11dGFibGUgb2JzZXJ2ZWQgaGVhZCBmaWVsZCwgYW5kIHRoZSBleGlzdGluZyBkZW1vLXBhdGggbW9kdWxlIHJldGFpbnMgaXRzIHBhdGggaWRlbnRpdHkgd2hpbGUgaXRzIHB1YmxpYyByb2xlIGlzIHVwZGF0ZWQgdG8gZGVzY3JpYmUgdGhlIGNvbXBhdGliaWxpdHktYWRhcHRlciByZXNwb25zaWJpbGl0eS4gQSBzZXBhcmF0ZSBwcm92aXNpb25hbCBtb2R1bGUgaWRlbnRpdHkgcmVwcmVzZW50cyBgY29tbW9uL2lucHV0L05vQ2xpcENhbWVyYUNvbnRyb2xsZXIuZ2RgOyB0aGUgaGlzdG9yaWNhbCBkZW1vLXBhdGggaWRlbnRpdHkgaXMgbm90IHJlYm91bmQuCgpTaXggZ2VudWluZWx5IG5ldyBzZW1hbnRpYyBpZGVudGl0aWVzIHJlbWFpbiBwcm92aXNpb25hbCBmb3IgU3Rld2FyZCBhZG1pc3Npb246IG9uZSBjb21tb24tbGlicmFyeSBtb2R1bGUsIG9uZSBhY2NlcHRlZCBhcmNoaXRlY3R1cmUgZGVjaXNpb24sIHR3byBzdGFibGUgc291cmNlIGlkZW50aXRpZXMsIGFuZCB0d28gaW1tdXRhYmxlIHNvdXJjZSBvYnNlcnZhdGlvbnMuIFRoZSBBcmNoaXRlY3QgaGFzIG5vdCBhZG1pdHRlZCBhbnkgb2YgdGhlbSBhbmQgaGFzIG5vdCBjaGFuZ2VkIGNhbm9uaWNhbCBtZW1vcnkuCgojIyMgVmFsaWRhdGlvbiBldmlkZW5jZQoKR2l0SHViIEFjdGlvbnMgcnVuIGAzMTg3ODcyNDYwMGAgY29tcGxldGVkIHN1Y2Nlc3NmdWxseSB1c2luZyB0aGUgcHJldmlvdXNseSBhY2NlcHRlZCBmcm96ZW4gdG9vbGluZyBzb3VyY2UgYG9yaWdpbi9wb3N0LWN1dG92ZXItYWRtaXR0ZWQtcmVnZW5lcmF0aW9uYC4KCi0gYmFzZSBjYW5vbmljYWwgcmVjb3JkczogKioxNjUqKjsKLSBjYW5kaWRhdGUgcmVjb3JkczogKioxNzEqKjsKLSBleGlzdGluZyBJRHMgcHJlc2VydmVkOiAqKjE2NSAvIDE2NSoqOwotIG1pc3NpbmcgZXhpc3RpbmcgSURzOiAqKjAqKjsKLSByZWJvdW5kIGV4aXN0aW5nIElEczogKiowKio7Ci0gc2NoZW1hIHZhbGlkYXRpb246ICoqcGFzcyoqOwotIHNlbWFudGljIHZhbGlkYXRpb246ICoqcGFzcyoqOwotIGNhbm9uaWNhbCAxNjUtcmVjb3JkIGNvZGVjLWNvbnRyb2wgcmVwcm9kdWN0aW9uOiAqKmJ5dGUtaWRlbnRpY2FsKio7Ci0gY2FuZGlkYXRlIENPVkUgcm91bmQgdHJpcDogKipwYXNzKio7Ci0gcmVwZWF0ZWQgY2Fub25pY2FsIGJ5dGVzOiAqKmlkZW50aWNhbCoqOwotIGV4cGFuZGVkIGJ5dGVzOiAqKmRldGVybWluaXN0aWMqKjsKLSBodW1hbiByZWNvbnN0cnVjdGlvbjogKipkZXRlcm1pbmlzdGljKiouCgpDYW5kaWRhdGUgYXJ0aWZhY3QgZGlnZXN0czoKCi0gQ09WRSArIGBqY3MvMWA6IDQwLDE0MSBieXRlczsgU0hBLTI1NiBgZmM0ZTZjMDFlNWZkYTBlY2M5MTQzZDZkNWJjZTc1MzI5NDY1MzYyZjE2ZTQyNjE5MTY3NjA0YTI2YzM0MTUwZGAuCi0gZXhwYW5kZWQgUEVNUzogNjksNDMxIGJ5dGVzOyBTSEEtMjU2IGA2YWNkOWFjMDNlNjhlYzNhMmFkN2RkMDE5YjhlYjY5OTY4YmJhMWFmMDkwNTI4ZmNiMTNmY2I2MjYyZThlZTljYC4KLSBkZXRlcm1pbmlzdGljIGh1bWFuIHJlY29uc3RydWN0aW9uOiA3MSwxNzAgYnl0ZXM7IFNIQS0yNTYgYDgxNDM0YjNhYWY2YTYwM2U4Yzg5MjNlNGJkNmYzZDNlNGMxMTgxNTQ2MWYwYjEzNjJhNmFmYmVmYzQwYjNiMTZgLgoKVGhlIGR1cmFibGUgZXZpZGVuY2UgaXMgYGRvY3MvaGFuZG9mZi9wZW1zL2NvbW1vbi1jYW1lcmEtcmVjb25jaWxpYXRpb24uY2FuZGlkYXRlLmV2aWRlbmNlLmpzb25gIG9uIGJyYW5jaCBgcGVtcy1jb21tb24tY2FtZXJhLXJlY29uY2lsaWF0aW9uYCwgY2FuZGlkYXRlIGNvbW1pdCBgMGE4MDA3OTgwN2E3MWEyYjRjYmUwNGI3ZmM4OWEzZGZhOGZjZjdlZWAuCgojIyMgU3Rld2FyZCBhY3Rpb24gcmVxdWVzdGVkCgpSZXZpZXcgdGhlIHNpeCBwcm92aXNpb25hbCBpZGVudGl0aWVzIGFuZCB0aGUgaWRlbnRpdHktcHJlc2VydmluZyB1cGRhdGVzIHRvIHRoZSBleGlzdGluZyBicmFuY2gvZGVtby1tb2R1bGUgcmVjb3Jkcy4gSWYgYWNjZXB0ZWQsIGFkbWl0IG9yIHJldXNlIGNhbm9uaWNhbCBpZGVudGl0aWVzIHVuZGVyIHRoZSBTdGV3YXJkIGFkbWlzc2lvbiBydWxlcyBhbmQgcmVnZW5lcmF0ZSBjYW5vbmljYWwgYGRvY3MvcHJvamVjdC1jaGF0LWhhbmRvZmYuY292ZS5qc29uYCBwbHVzIGl0cyBkZXRlcm1pbmlzdGljIGRlcml2YXRpdmUgZnJvbSB0aGUgYWRtaXR0ZWQgMTcxLXJlY29yZCBzdGF0ZS4gQ2Fub25pY2FsIGF1dGhvcml0eSByZW1haW5zIHVuY2hhbmdlZCB1bnRpbCB0aGF0IFN0ZXdhcmQgYWN0aW9uIG9jY3Vycy4KCiMjIyBIdW1hbiByZWFzb25pbmcKClRoZSBwcm9tb3Rpb24gaXMgYSBjaGFuZ2UgaW4gb3duZXJzaGlwLCBub3QgYSBmaWxlIHJlbmFtZS4gQm90aCBwYXRocyBzdGlsbCBleGlzdCBhbmQgbm93IG1lYW4gZGlmZmVyZW50IHRoaW5ncywgc28gY2hhbmdpbmcgdGhlIG9sZCBkZW1vIG1vZHVsZSdzIHBhdGggd291bGQgaGF2ZSBtYWRlIG9uZSBzZW1hbnRpYyBpZGVudGl0eSByZWZlciB0byBhIGRpZmZlcmVudCBtb2R1bGUuIEtlZXBpbmcgdGhlIGRlbW8gaWRlbnRpdHkgYXQgaXRzIGhpc3RvcmljYWwgcGF0aCB3aGlsZSBwcm9wb3NpbmcgYSBuZXcgY29tbW9uLXBhdGggaWRlbnRpdHkgcHJlc2VydmVzIHRoZSBhdWRpdCB0cmFpbCBhbmQgYWNjdXJhdGVseSByZXByZXNlbnRzIHRoZSBjdXJyZW50IGRlcGVuZGVuY3kgYm91bmRhcnkuIFRoZSBicmFuY2ggaGVhZCBjYW4gY2hhbmdlIHVuZGVyIGl0cyBleGlzdGluZyBpZGVudGl0eSBiZWNhdXNlIFBFTVMgZGVmaW5lcyBicmFuY2ggaWRlbnRpdHkgYnkgcmVwb3NpdG9yeSBwbHVzIGJyYW5jaCBuYW1lLCBub3QgYnkgdGhlIG9ic2VydmVkIGNvbW1pdC4K
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Append Architect-owned handoff safely
         run: |
           git fetch origin project-chat-handoff
           git checkout -B architect-handoff-write origin/project-chat-handoff
           test "$(git hash-object docs/handoff/architect_notes.md)" = "f106de8249148f685a9a9a0b3ed75adf84add1cb"
           grep -q 'STEWARD-20260815-017' docs/handoff/steward_notes.md
           python - <<'PY'
+          import base64, os
           from pathlib import Path
           path = Path('docs/handoff/architect_notes.md')
           original = path.read_bytes()
-          note = r'''
-
-## ARCH-20260815T030900-0700-023
-
-- timestamp: `2026-08-15T03:09:00-07:00`
-- author: Engineering Knowledge Systems Architect
-- type: handoff
-- status: open
-- acknowledges: `STEWARD-20260815-017`, `ARCH-20260814T145900-0700-022`
-- subject: Common-camera promotion continuity candidate validated for Steward identity review
-
-### Assessment
-
-The bounded reconciliation tranche authorized by `STEWARD-20260815-017` is technically complete as a **noncanonical** candidate. Production `main` remains exactly `0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4`, where `common/input/NoClipCameraController.gd` is the authoritative common-library implementation and `demo/NoClipCameraController.gd` is a compatibility adapter. The accepted common-library architecture contract at that same commit states that the promoted common-library version is authoritative for the capability.
-
-The candidate starts from the verified 165-record canonical corpus and preserves all 165 existing IDs with zero missing identities and zero semantic rebindings. The existing `main` branch record is updated only in its mutable observed head field, and the existing demo-path module retains its path identity while its public role is updated to describe the compatibility-adapter responsibility. A separate provisional module identity represents `common/input/NoClipCameraController.gd`; the historical demo-path identity is not rebound.
-
-Six genuinely new semantic identities remain provisional for Steward admission: one common-library module, one accepted architecture decision, two stable source identities, and two immutable source observations. The Architect has not admitted any of them and has not changed canonical memory.
-
-### Validation evidence
-
-GitHub Actions run `31878724600` completed successfully using the previously accepted frozen tooling source `origin/post-cutover-admitted-regeneration`.
-
-- base canonical records: **165**;
-- candidate records: **171**;
-- existing IDs preserved: **165 / 165**;
-- missing existing IDs: **0**;
-- rebound existing IDs: **0**;
-- schema validation: **pass**;
-- semantic validation: **pass**;
-- canonical 165-record codec-control reproduction: **byte-identical**;
-- candidate COVE round trip: **pass**;
-- repeated canonical bytes: **identical**;
-- expanded bytes: **deterministic**;
-- human reconstruction: **deterministic**.
-
-Candidate artifact digests:
-
-- COVE + `jcs/1`: 40,141 bytes; SHA-256 `fc4e6c01e5fda0ecc9143d6d5bce75329465362f16e42619167604a26c34150d`.
-- expanded PEMS: 69,431 bytes; SHA-256 `6acd9ac03e68ec3a2ad7dd019b8eb69968bba1af090528fcb13fcb6262e8ee9c`.
-- deterministic human reconstruction: 71,170 bytes; SHA-256 `81434b3aaf6a603e8c8923e4bd6f3d3e4c11815461f0b1362a6afbefc40b3b16`.
-
-The durable evidence is `docs/handoff/pems/common-camera-reconciliation.candidate.evidence.json` on branch `pems-common-camera-reconciliation`, candidate commit `0a80079807a71a2b4cbe04b7fc89a3dfa8fcf7ee`.
-
-### Steward action requested
-
-Review the six provisional identities and the identity-preserving updates to the existing branch/demo-module records. If accepted, admit or reuse canonical identities under the Steward admission rules and regenerate canonical `docs/project-chat-handoff.cove.json` plus its deterministic derivative from the admitted 171-record state. Canonical authority remains unchanged until that Steward action occurs.
-
-### Human reasoning
-
-The promotion is a change in ownership, not a file rename. Both paths still exist and now mean different things, so changing the old demo module's path would have made one semantic identity refer to a different module. Keeping the demo identity at its historical path while proposing a new common-path identity preserves the audit trail and accurately represents the current dependency boundary. The branch head can change under its existing identity because PEMS defines branch identity by repository plus branch name, not by the observed commit.
-'''.encode('utf-8')
+          note = base64.b64decode(os.environ['NOTE_B64'])
           if b'ARCH-20260815T030900-0700-023' in original:
               raise SystemExit('note already exists')
           path.write_bytes(original + note)
