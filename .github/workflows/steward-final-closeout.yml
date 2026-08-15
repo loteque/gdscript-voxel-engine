@@ -19,11 +19,12 @@ jobs:
           fetch-depth: 0
       - name: Verify immutable inputs and append final Steward record
         shell: bash
+        env:
+          CLOSEOUT_B64: CgotLS0KCiMjIFNURVdBUkQtMjAyNjA4MTQtMDE2CgoqKlRpbWVzdGFtcDoqKiAyMDI2LTA4LTE0VDE3OjA4OjU1LTA3OjAwCioqQXV0aG9yIHJvbGU6KiogUHJvamVjdCBFbmdpbmVlcmluZyBTdGV3YXJkCioqVHlwZToqKiBmaW5hbC1hY2NlcHRhbmNlCioqU3RhdHVzOioqIGFjY2VwdGVkCioqQWNrbm93bGVkZ2VzOioqIGBBUkNILTIwMjYwODE0VDE0NTkwMC0wNzAwLTAyMmAgYW5kIEFyY2hpdGVjdCB2ZXJpZmljYXRpb24gYXJ0aWZhY3QgYGRvY3MvaGFuZG9mZi9wZW1zL2FyY2hpdGVjdC1ob3VybHktMjAyNjA4MTRUMTU1OC0wNzAwLmpzb25gCgojIyMgU3VtbWFyeQoKVGhlIFByb2plY3QgRW5naW5lZXJpbmcgU3Rld2FyZCBjb21wbGV0ZXMgdGhlIGR1cmFibGUgZ292ZXJuYW5jZSBjbG9zZW91dCBmb3IgdGhlIFBFTVMvQ09WRSBQaGFzZSA4IGFuZCBwb3N0LWN1dG92ZXIgcmVjb25jaWxpYXRpb24gc2VxdWVuY2UuIFRoZSBlYXJsaWVyIHJlY292ZXJ5IENPVkUgY29udHJhZGljdGlvbiBpcyBzdXBlcnNlZGVkIGJ5IHRoZSBjb3JyZWN0ZWQgZnJvemVuLWNvZGVjIGV2aWRlbmNlLCB0aGUgdHdvIGZpbmFsIG5hbWVzcGFjZS1wcmVzZXJ2aW5nIGlkZW50aXRpZXMgYXJlIFN0ZXdhcmQtYWRtaXR0ZWQsIGFuZCB0aGUgZXhhY3QgY29ycmVjdGVkIDE2NS1yZWNvcmQgc3RhdGUgaXMgYWxyZWFkeSBpbnN0YWxsZWQgYW5kIHZlcmlmaWVkIGFzIGNhbm9uaWNhbCBwcm9qZWN0IG1lbW9yeS4KCiMjIyBGaW5hbCBpZGVudGl0eSBhZG1pc3Npb24KClRoZSBTdGV3YXJkIGNvbmZpcm1zIHRoZSBmaW5hbCBuYW1lc3BhY2UtcHJlc2VydmluZyBhZG1pc3Npb25zOgoKLSBgY2FuZGlkYXRlOmRlY2lzaW9uOjVmYTMyNDFjOGI5YmMyNzg3YjZkYCAtPiBgcGVtczpkZWNpc2lvbjo1ZmEzMjQxYzhiOWJjMjc4N2I2ZGAKLSBgY2FuZGlkYXRlOnNvdXJjZV9vYnNlcnZhdGlvbjoxNWIzMmQ0YWRiOWJjZmE0ZmM5NGAgLT4gYHBlbXM6c291cmNlX29ic2VydmF0aW9uOjE1YjMyZDRhZGI5YmNmYTRmYzk0YAoKVGhlc2UgYWRtaXNzaW9ucyBwcmVzZXJ2ZSBhbGwgMTYzIHByZXZpb3VzbHkgYWRtaXR0ZWQgaWRlbnRpdGllcyBhbmQgYWRkIHR3byByZWNvcmRzIHdpdGhvdXQgY29sbGlzaW9uIG9yIHNlbWFudGljIHJlYmluZGluZy4gVGhlIHByaW9yIHBlbmRpbmctY2xvc2VvdXQgZGVjaXNpb24gYHBlbXM6ZGVjaXNpb246YWJlN2I1ZDVlZmM2ZDcyMzJlNzJgIHJlbWFpbnMgcHJlc2VydmVkIGFzIHN1cGVyc2VkZWQgaGlzdG9yeS4KCiMjIyBDb3JyZWN0ZWQgcmVwcmVzZW50YXRpb24gZXZpZGVuY2UgYWNjZXB0ZWQKClRoZSBTdGV3YXJkIGFjY2VwdHMgYGRvY3MvaGFuZG9mZi9wZW1zL2ZpbmFsLWNsb3Nlb3V0LWNvcnJlY3RlZC1mcm96ZW4tY29kZWMuZXZpZGVuY2UuanNvbmAgYW5kIGBBUkNILTIwMjYwODE0VDE0NTkwMC0wNzAwLTAyMmAgYXMgc3VwZXJzZWRpbmcgdGhlIHN0YWxlIDM4LDYxOC1ieXRlIHJlY292ZXJ5IENPVkUgY2xhaW0uIFRoZSBhY2NlcHRlZCBmaW5hbCBldmlkZW5jZSBwcm92ZXM6CgotIHJlY29yZCBjb3VudDogKioxNjUqKjsKLSBleGlzdGluZyBpZGVudGl0aWVzIHByZXNlcnZlZDogKioxNjMgLyAxNjMqKjsKLSBtaXNzaW5nIGV4aXN0aW5nIGlkZW50aXRpZXM6IG5vbmU7Ci0gaWRlbnRpdHkgY29sbGlzaW9uczogbm9uZTsKLSBzZW1hbnRpYyByZWJpbmRpbmdzOiBub25lOwotIHNjaGVtYSB2YWxpZGF0aW9uOiBwYXNzOwotIHNlbWFudGljIHZhbGlkYXRpb246IHBhc3M7Ci0gcmVjaXByb2NhbCBzdXBlcnNlc3Npb24vaGlzdG9yeSBwcmVzZXJ2YXRpb246IHBhc3M7Ci0gcHJvdmVuYW5jZS9zb3VyY2Utb2JzZXJ2YXRpb24gcHJlc2VydmF0aW9uOiBwYXNzOwotIENPVkUgcm91bmQgdHJpcDogcGFzczsKLSByZXBlYXRlZCBjYW5vbmljYWwgYnl0ZXM6IGJ5dGUtaWRlbnRpY2FsOwotIGRldGVybWluaXN0aWMgaHVtYW4gcmVjb25zdHJ1Y3Rpb246IHBhc3M7Ci0gY2Fub25pY2FsIDE2My1yZWNvcmQgY29kZWMgY29udHJvbDogYnl0ZS1pZGVudGljYWwgdG8gdGhlIHByZXZpb3VzbHkgaW5zdGFsbGVkIGNhbm9uaWNhbCBzb3VyY2Ugc3RhdGUuCgojIyMgQ2Fub25pY2FsIGluc3RhbGxhdGlvbiB2ZXJpZmllZAoKVGhlIGNvcnJlY3RlZCBmaW5hbCBzdGF0ZSB3YXMgaW5zdGFsbGVkIGNhbm9uaWNhbGx5IGluIGNvbW1pdCBgZTQxNDdjZGE5YjRiYWRlYzZiNmZjNmVkY2U3ZDIyNWIyODdjN2EwM2AgYW5kIHJlbWFpbnMgcHJlc2VudCBvbiBgcHJvamVjdC1jaGF0LWhhbmRvZmZgIHRocm91Z2ggdGhlIGN1cnJlbnQgZ292ZXJuYW5jZSBjb21taXRzLgoKLSBDYW5vbmljYWwgYXV0aG9yaXR5OiBgZG9jcy9wcm9qZWN0LWNoYXQtaGFuZG9mZi5jb3ZlLmpzb25gCiAgLSBHaXQgYmxvYjogYDA5MzA0MGUyNGZmZTM3YzQzMmU1YmJhZDg3MjM0NGNiYmM5ZjA0NWJgCiAgLSBieXRlczogKiozOCw2MzAqKgogIC0gU0hBLTI1NjogYGRkY2NiYTdhMTBlZWUzN2EwZmY4NTFiYjc4ZDY3ODQ4NDk0M2ViZGEwNjEwYTEwMDc0OGM4NTUxOThmYjJmZTNgCi0gRGV0ZXJtaW5pc3RpYyBjb21wYXRpYmlsaXR5IGRlcml2YXRpdmU6IGBkb2NzL3Byb2plY3QtY2hhdC1oYW5kb2ZmLmpzb25gCiAgLSBHaXQgYmxvYjogYDE0Y2MxMmRkOGYwYjljNmJkYzdjNTc3Njc4MGM2ZDdmZGNmOWI1ZTFgCiAgLSBieXRlczogKio2Niw4NjAqKgogIC0gU0hBLTI1NjogYDA5MDQ2NmM4YTU2ODNiYjAxYzcwMzg1MzFmNGNmZGY1OWEyNzkzYTY1ZmEzNDRkYTEzNzIxZWQyOTRhN2E2ZjdgCi0gRGV0ZXJtaW5pc3RpYyBodW1hbiByZWNvbnN0cnVjdGlvbjoKICAtIEdpdCBibG9iOiBgNTczOTBmZjlmZmIzYWYwNWNhZTZlNDQxYzkzZDdlOWEyOGVmMWE3NWAKICAtIGJ5dGVzOiAqKjY4LDUyMioqCiAgLSBTSEEtMjU2OiBgZjJhNzFiMDYwNjcxMWRlNmY5NGZjMGM1OThjNDNiNDU0OWUwMzcwODU1NmJhOWY5NGMzZWFjZDk5MTUxMWUwY2AKCkNhbm9uaWNhbCBzZW1hbnRpY3MgZXhwbGljaXRseSByZWNvcmQgYHBoYXNlOF9zdGF0dXMgPSAiYWNjZXB0ZWRfY29tcGxldGUiYCwgZmluYWwgU3Rld2FyZCBnb3Zlcm5hbmNlIGNsb3Nlb3V0IGNvbXBsZXRlLCBhbmQgaW1tdXRhYmxlIG9ic2VydmF0aW9uIGBwZW1zOnNvdXJjZV9vYnNlcnZhdGlvbjoxNWIzMmQ0YWRiOWJjZmE0ZmM5NGAuCgojIyMgR292ZXJuYW5jZSBvdXRjb21lCgoqKlBIQVNFIDggLyBQT1NULUNVVE9WRVIgR09WRVJOQU5DRSBJUyBDT01QTEVURS4qKgoKVGVjaG5pY2FsIHJlZ2VuZXJhdGlvbiwgY29ycmVjdGVkIHJlcHJlc2VudGF0aW9uIGV2aWRlbmNlLCBTdGV3YXJkIGlkZW50aXR5IGFkbWlzc2lvbiwgY2Fub25pY2FsIGluc3RhbGxhdGlvbiwgY29tcGF0aWJpbGl0eSByZWdlbmVyYXRpb24sIHNlbWFudGljL2hpc3RvcnkvcHJvdmVuYW5jZSBwcmVzZXJ2YXRpb24sIGRldGVybWluaXN0aWMgYnl0ZSB2ZXJpZmljYXRpb24sIGFuZCBkdXJhYmxlIFN0ZXdhcmQgYWNjZXB0YW5jZSBhcmUgYWxsIGNvbXBsZXRlLiBObyBmdXJ0aGVyIFBoYXNlIDggZ292ZXJuYW5jZSBhY3Rpb24gaXMgcmVxdWlyZWQgdW5sZXNzIG5ldyBjb250cmFkaWN0b3J5IGV2aWRlbmNlIGFwcGVhcnMuCgojIyMgSHVtYW4gcmVhc29uaW5nCgpUaGUgZmluYWwgY2xvc2VvdXQgd2FzIGludGVudGlvbmFsbHkgbm90IGRlY2xhcmVkIGZyb20gdGhlIGZpcnN0IHN1Y2Nlc3NmdWwtbG9va2luZyByZWNvdmVyeSBhcnRpZmFjdHMgYmVjYXVzZSB0aGVpciBDT1ZFIGRpZ2VzdCBjb250cmFkaWN0ZWQgdGhlIGZyb3plbiBjb2RlYy4gVGhlIEFyY2hpdGVjdCBpc29sYXRlZCBhbmQgY29ycmVjdGVkIHRoYXQgZGlzY3JlcGFuY3ksIHRoZSBTdGV3YXJkIGluc3RhbGxlZCBvbmx5IHRoZSByZXByb2R1Y2libGUgYnl0ZXMsIGFuZCB0aGlzIHJlY29yZCBjbG9zZXMgdGhlIGxhc3QgYm9va2tlZXBpbmcgZ2FwIGFmdGVyIHJlLXZlcmlmeWluZyBjYW5vbmljYWwgYmxvYiBpZGVudGl0eS4gVGhlIHJlc3VsdCBwcmVzZXJ2ZXMgdGhlIGRpc3RpbmN0aW9uIGJldHdlZW4gYSBnZW5lcmF0ZWQgY2xhaW0sIHRlY2huaWNhbCBwcm9vZiwgY2Fub25pY2FsIGF1dGhvcml0eSwgYW5kIGR1cmFibGUgZ292ZXJuYW5jZSBhY2NlcHRhbmNlLgo=
         run: |
           set -euo pipefail
           expected_notes_blob="be41aa3fbb20a9d61443e18ac9de74b7f3905d13"
-          actual_notes_blob="$(git hash-object docs/handoff/steward_notes.md)"
-          test "$actual_notes_blob" = "$expected_notes_blob"
+          test "$(git hash-object docs/handoff/steward_notes.md)" = "$expected_notes_blob"
           test "$(git hash-object docs/project-chat-handoff.cove.json)" = "093040e24ffe37c432e5bbad872344cbbc9f045b"
           test "$(git hash-object docs/project-chat-handoff.json)" = "14cc12dd8f0b9c6bdc7c5776780c6d7fdcf9b5e1"
           grep -q '"record_count_after": 165' docs/handoff/pems/final-closeout-corrected-frozen-codec.evidence.json
@@ -35,78 +36,7 @@ jobs:
             echo 'Closeout record already present; refusing duplicate append.' >&2
             exit 1
           fi
-          cat >> docs/handoff/steward_notes.md <<'EOF'
-
----
-
-## STEWARD-20260814-016
-
-**Timestamp:** 2026-08-14T17:08:55-07:00
-**Author role:** Project Engineering Steward
-**Type:** final-acceptance
-**Status:** accepted
-**Acknowledges:** `ARCH-20260814T145900-0700-022` and Architect verification artifact `docs/handoff/pems/architect-hourly-20260814T1558-0700.json`
-
-### Summary
-
-The Project Engineering Steward completes the durable governance closeout for the PEMS/COVE Phase 8 and post-cutover reconciliation sequence. The earlier recovery COVE contradiction is superseded by the corrected frozen-codec evidence, the two final namespace-preserving identities are Steward-admitted, and the exact corrected 165-record state is already installed and verified as canonical project memory.
-
-### Final identity admission
-
-The Steward confirms the final namespace-preserving admissions:
-
-- `candidate:decision:5fa3241c8b9bc2787b6d` -> `pems:decision:5fa3241c8b9bc2787b6d`
-- `candidate:source_observation:15b32d4adb9bcfa4fc94` -> `pems:source_observation:15b32d4adb9bcfa4fc94`
-
-These admissions preserve all 163 previously admitted identities and add two records without collision or semantic rebinding. The prior pending-closeout decision `pems:decision:abe7b5d5efc6d7232e72` remains preserved as superseded history.
-
-### Corrected representation evidence accepted
-
-The Steward accepts `docs/handoff/pems/final-closeout-corrected-frozen-codec.evidence.json` and `ARCH-20260814T145900-0700-022` as superseding the stale 38,618-byte recovery COVE claim. The accepted final evidence proves:
-
-- record count: **165**;
-- existing identities preserved: **163 / 163**;
-- missing existing identities: none;
-- identity collisions: none;
-- semantic rebindings: none;
-- schema validation: pass;
-- semantic validation: pass;
-- reciprocal supersession/history preservation: pass;
-- provenance/source-observation preservation: pass;
-- COVE round trip: pass;
-- repeated canonical bytes: byte-identical;
-- deterministic human reconstruction: pass;
-- canonical 163-record codec control: byte-identical to the previously installed canonical source state.
-
-### Canonical installation verified
-
-The corrected final state was installed canonically in commit `e4147cda9b4badec6b6fc6edce7d225b287c7a03` and remains present on `project-chat-handoff` through the current governance commits.
-
-- Canonical authority: `docs/project-chat-handoff.cove.json`
-  - Git blob: `093040e24ffe37c432e5bbad872344cbbc9f045b`
-  - bytes: **38,630**
-  - SHA-256: `ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3`
-- Deterministic compatibility derivative: `docs/project-chat-handoff.json`
-  - Git blob: `14cc12dd8f0b9c6bdc7c5776780c6d7fdcf9b5e1`
-  - bytes: **66,860**
-  - SHA-256: `090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7`
-- Deterministic human reconstruction:
-  - Git blob: `57390ff9ffb3af05cae6e441c93d7e9a28ef1a75`
-  - bytes: **68,522**
-  - SHA-256: `f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c`
-
-Canonical semantics explicitly record `phase8_status = "accepted_complete"`, final Steward governance closeout complete, and immutable observation `pems:source_observation:15b32d4adb9bcfa4fc94`.
-
-### Governance outcome
-
-**PHASE 8 / POST-CUTOVER GOVERNANCE IS COMPLETE.**
-
-Technical regeneration, corrected representation evidence, Steward identity admission, canonical installation, compatibility regeneration, semantic/history/provenance preservation, deterministic byte verification, and durable Steward acceptance are all complete. No further Phase 8 governance action is required unless new contradictory evidence appears.
-
-### Human reasoning
-
-The final closeout was intentionally not declared from the first successful-looking recovery artifacts because their COVE digest contradicted the frozen codec. The Architect isolated and corrected that discrepancy, the Steward installed only the reproducible bytes, and this record closes the last bookkeeping gap after re-verifying canonical blob identity. The result preserves the distinction between a generated claim, technical proof, canonical authority, and durable governance acceptance.
-EOF
+          printf '%s' "$CLOSEOUT_B64" | base64 --decode >> docs/handoff/steward_notes.md
           test "$(head -c 46897 docs/handoff/steward_notes.md | git hash-object --stdin)" = "$expected_notes_blob"
           rm .github/workflows/steward-final-closeout.yml
           git config user.name "Project Engineering Steward"
