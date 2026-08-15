@@ -1,0 +1,95 @@
+version: 1
+cases:
+  - id: field-authority
+    title: PointFieldResource remains scalar-field authority
+    source_context:
+      chat_id: pems:chat:36e377bd8232f9b8c667
+      chat_title: API Review and Refinement
+      related_record_ids:
+        - pems:decision:259c40a69e7affd060ca
+        - pems:decision:6d8b1f711dde51b2c333
+        - pems:decision:791428866ec88a185625
+        - pems:decision:cbc0de6479c9b702f6c8
+        - pems:decision:f49aca72e609fe9e32fb
+    reasoning_shape: architectural ownership decision
+    source_summary: >-
+      PointFieldResource owns authoritative scalar-field geometry, indexing,
+      sampling, densities, validation, and freshness semantics. Consumers such
+      as SurfaceNetsMesher should consume that contract rather than duplicate
+      field state or indexing. Runtime streaming responsibilities should not be
+      added to the field resource.
+    evaluation_focus:
+      - preserve ownership boundary
+      - distinguish observation about duplicated cell indexing from the architectural decision
+      - avoid inventing a generalized generator architecture
+
+  - id: offline-runtime-split
+    title: Precomputed chunks separate generation from runtime residency
+    source_context:
+      chat_id: pems:chat:1e4114ca315d0f97fb70
+      chat_title: Chunking System Design
+      related_record_ids:
+        - pems:decision:44e002aa25bee2d2d4e6
+        - pems:decision:620591211ebd9577effc
+        - pems:decision:98bd2b333893e80c7643
+        - pems:decision:f6b3586c994756e317f3
+    reasoning_shape: architecture decision with consequences
+    source_summary: >-
+      Generation produces persisted chunk assets and a manifest offline.
+      Runtime streaming consumes those precomputed assets and owns residency.
+      PointFieldResource and SurfaceNetsMesher remain generation-side concerns.
+    evaluation_focus:
+      - capture the offline/runtime boundary as a decision
+      - capture dependencies only where explicit
+      - do not infer that runtime procedural generation is permanently forbidden for all future project versions
+
+  - id: validation-demo-contract
+    title: Substantial features require independent validation demos
+    source_context:
+      chat_id: pems:chat:d6e9b35856b8eeb09a12
+      chat_title: Chunk Residency Implementation
+    reasoning_shape: owner-governed requirement reinforced by implementation failure
+    source_summary: >-
+      Chunk residency work initially lacked sufficient validation coverage and
+      browser exposure. The project owner required a dedicated validation scene
+      using the public runtime path, headless validation where practical, and
+      Integration Preview exposure under the existing streaming demo category.
+    evaluation_focus:
+      - retain the requirement with owner/governed authority
+      - preserve validation evidence separately from the requirement
+      - do not misclassify the agent's recommendation as the origin of the rule
+
+  - id: resource-loading-investigation
+    title: Resource-loading investigation should preserve measured conclusions
+    source_context:
+      chat_id: pems:chat:c55923a23d38b4ef7955
+      chat_title: Procedural Terrain Architecture
+    reasoning_shape: evidence-driven investigation
+    source_summary: >-
+      The project investigated where time was being spent while loading
+      precomputed meshes. Conclusions from profiling should remain scoped to the
+      measurements actually performed. A measured dominant stage may justify a
+      next investigation without establishing universal causality across all
+      platforms or builds.
+    evaluation_focus:
+      - preserve measurements as observations when supplied
+      - express the supported conclusion without broadening it
+      - retain unmeasured platform behavior as uncertainty
+      - reject causal claims not established by measurements
+
+  - id: deployed-ui-failure
+    title: Green deployment does not explain missing runtime experiment UI
+    source_context:
+      chat_title: Voxel Engineering
+    reasoning_shape: unresolved failure / negative evidence
+    source_summary: >-
+      A deployed revision had green CI and deployment, while a phone showed the
+      gray scene and global Hide UI button without RuntimeWorkloadExperimentUI.
+      The relevant startup path had been identified, but no fix had yet been
+      committed. Deployment health therefore did not establish UI startup
+      correctness, and the cause remained unresolved.
+    evaluation_focus:
+      - represent green deployment and missing UI as observations
+      - preserve the unresolved cause as uncertainty
+      - do not invent a startup-race, platform, export, or scene-tree cause
+      - do not claim the bug was fixed
