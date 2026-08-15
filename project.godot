@@ -4,7 +4,7 @@
 ;
 ; Format:
 ;   [section] ; section goes between []
-;   param=value ; assign values to parameters
+;   param=value ; assigned to the project settings
 
 config_version=5
 
@@ -22,6 +22,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 DemoOverlayController="*res://demo/DemoOverlayController.gd"
+MobileStreamingStartupBoundaryProbe="*res://demo/experiments/MobileStreamingStartupBoundaryProbe.gd"
 
 [input]
 
