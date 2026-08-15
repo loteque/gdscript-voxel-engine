@@ -7,11 +7,14 @@ The corpus uses completed voxel-engine work as fixed examples. Each case describ
 ## Procedure
 
 1. Provide one case's source material to an agent using `../DIRECTIVE.md`.
-2. Capture the structured distillation output without editing it.
+2. Capture the structured durable distillation output without editing it.
 3. Compare the result with the corresponding expected-results file.
 4. Score it using the relevant scoring document.
-5. Record recurring omissions, inventions, duplication, provenance loss, authority errors, or vocabulary pressure.
-6. Do not modify PEMS automatically during Phase 0 or Phase 1.
+5. When needed for evaluation, request diagnostics separately from the durable output and record rejected candidates, rejection reasons, inventions, duplication, provenance loss, authority errors, or vocabulary pressure.
+6. Do not admit evaluation diagnostics to project memory.
+7. Do not modify PEMS automatically during Phase 0 or Phase 1.
+
+A meaningful unresolved condition belongs in the durable graph as an `uncertainty`. Unsupported or low-value material is simply absent from durable output. Reasons for exclusion are diagnostics about distiller behavior, not project memory.
 
 ## Core Corpus
 
