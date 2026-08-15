@@ -1,0 +1,78 @@
+{
+  "accepted_tooling_source": "origin/post-cutover-admitted-regeneration",
+  "acknowledges_architect_candidate": "ARCH-20260815T030900-0700-023",
+  "admitted_ids": [
+    "pems:decision:67382908d8412fbf07f4",
+    "pems:module:eaaab2a3f3fa97c20c14",
+    "pems:source:97de8d13bb3c828825ca",
+    "pems:source:b90ade59f2af09d4d04c",
+    "pems:source_observation:52b293d43756079b5c0f",
+    "pems:source_observation:8b224fe848a009ff335f"
+  ],
+  "artifacts": {
+    "docs/handoff/pems/common-camera-reconciliation.admitted.cove.json": {
+      "bytes": 40111,
+      "sha256": "a8242844932260d569e2b5b4ea7d99c84649e285f685ebdaaaf460f2c7c1e143"
+    },
+    "docs/handoff/pems/common-camera-reconciliation.admitted.expanded.json": {
+      "bytes": 69361,
+      "sha256": "7c83ab3fd725279e4aaf3bcb4212239d2779d97f5b3a7f2d93378dd076e06963"
+    },
+    "docs/handoff/pems/common-camera-reconciliation.admitted.md": {
+      "bytes": 71100,
+      "sha256": "8590ff9be7e105b8ef988fc52c3edd0174e19023e0e82a0d30295902b02d7c04"
+    },
+    "docs/handoff/pems/common-camera-reconciliation.admitted.pems.json": {
+      "bytes": 69361,
+      "sha256": "7c83ab3fd725279e4aaf3bcb4212239d2779d97f5b3a7f2d93378dd076e06963"
+    }
+  },
+  "authorization": "STEWARD-20260815-018",
+  "base": {
+    "cove_git_blob_sha": "093040e24ffe37c432e5bbad872344cbbc9f045b",
+    "cove_sha256": "ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3",
+    "record_count": 165
+  },
+  "canonical_authority_unchanged": "docs/project-chat-handoff.cove.json",
+  "codec": "cove/1",
+  "existing_ids_preserved": 165,
+  "identity_distinction": {
+    "common_authoritative_id": "pems:module:eaaab2a3f3fa97c20c14",
+    "common_authoritative_path": "common/input/NoClipCameraController.gd",
+    "demo_adapter_id": "pems:module:061c66bad77ea6d99dba",
+    "demo_adapter_path": "demo/NoClipCameraController.gd",
+    "semantic_rebinding": false
+  },
+  "missing_existing_ids": [],
+  "owner_decision_required": false,
+  "rebound_existing_ids": [],
+  "record_count_after": 171,
+  "remaining_provisional_ids": [],
+  "semantic": "pems/1",
+  "serializer": "jcs/1",
+  "status": "noncanonical_admitted_regeneration_ready_for_steward_canonical_review",
+  "steward_action_required": "Review admitted regeneration evidence and, if accepted, install exact admitted COVE and derivative canonically.",
+  "steward_admission_map": {
+    "candidate:decision:67382908d8412fbf07f4": "pems:decision:67382908d8412fbf07f4",
+    "candidate:module:eaaab2a3f3fa97c20c14": "pems:module:eaaab2a3f3fa97c20c14",
+    "candidate:source:97de8d13bb3c828825ca": "pems:source:97de8d13bb3c828825ca",
+    "candidate:source:b90ade59f2af09d4d04c": "pems:source:b90ade59f2af09d4d04c",
+    "candidate:source_observation:52b293d43756079b5c0f": "pems:source_observation:52b293d43756079b5c0f",
+    "candidate:source_observation:8b224fe848a009ff335f": "pems:source_observation:8b224fe848a009ff335f"
+  },
+  "validation": {
+    "all_165_existing_identities_preserved": true,
+    "all_six_admitted_ids_present": true,
+    "canonical_165_codec_control_byte_equal": true,
+    "cove_round_trip": true,
+    "demo_common_identity_distinct": true,
+    "expanded_bytes_repeat_identical": true,
+    "human_reconstruction_deterministic": true,
+    "jcs_parse_decode_round_trip": true,
+    "no_candidate_or_import_ids_remain": true,
+    "repeated_canonical_bytes_identical": true,
+    "schema_valid": true,
+    "semantic_valid": true,
+    "source_observation_provenance_valid": true
+  }
+}
