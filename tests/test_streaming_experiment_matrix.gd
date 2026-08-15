@@ -89,6 +89,12 @@ func _test_matrix_runner_contract() -> void:
 	_assert_true(bool(payload["complete"]), "Completed tiny matrix must produce a complete export payload.")
 	_assert_equal((payload["runs"] as Array).size(), 1, "Export payload must contain accumulated run evidence.")
 
+	_assert_true(not bool(scene.call("start_experiment_matrix")), "Completed matrix session must reject a second run so evidence cannot be overwritten.")
+	var preserved_results := scene.call("get_experiment_matrix_results") as Array
+	_assert_equal(preserved_results.size(), 1, "Rejected rerun must preserve completed matrix evidence.")
+	var run_button := scene.get_node("UI/Panel/Margin/Content/ExperimentMatrix/Buttons/RunMatrix") as Button
+	_assert_true(run_button.disabled, "Completed matrix session must disable the run button.")
+
 	scene.queue_free()
 	await process_frame
 
