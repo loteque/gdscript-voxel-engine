@@ -51,17 +51,12 @@ func _process(_delta: float) -> void:
 		_publish("STREAMER CONFIG", "Manifest assigned, but _streamer.target assignment has not completed.")
 		return
 
-	var queued_callback := Callable(scene, "_on_chunk_load_queued")
-	var started_callback := Callable(scene, "_on_chunk_load_started")
-	var loaded_callback := Callable(scene, "_on_residency_changed")
-	var unloaded_callback := Callable(scene, "_on_chunk_unloaded")
-	var failed_callback := Callable(scene, "_on_chunk_load_failed")
 	var streaming_signals_ready := (
-		streamer.chunk_load_queued.is_connected(queued_callback)
-		and streamer.chunk_load_started.is_connected(started_callback)
-		and streamer.chunk_loaded.is_connected(loaded_callback)
-		and streamer.chunk_unloaded.is_connected(unloaded_callback)
-		and streamer.chunk_load_failed.is_connected(failed_callback)
+		_has_connection(streamer, &"chunk_load_queued", Callable(scene, "_on_chunk_load_queued"))
+		and _has_connection(streamer, &"chunk_load_started", Callable(scene, "_on_chunk_load_started"))
+		and _has_connection(streamer, &"chunk_loaded", Callable(scene, "_on_residency_changed"))
+		and _has_connection(streamer, &"chunk_unloaded", Callable(scene, "_on_chunk_unloaded"))
+		and _has_connection(streamer, &"chunk_load_failed", Callable(scene, "_on_chunk_load_failed"))
 	)
 	if not streaming_signals_ready:
 		_publish("SIGNAL WIRING", "Streamer configuration completed, but streaming signal wiring is incomplete.")
@@ -80,11 +75,20 @@ func _process(_delta: float) -> void:
 
 	var pending_count := 0
 	if streamer.has_method("get_pending_coordinates"):
-		pending_count = streamer.get_pending_coordinates().size()
+		var pending = streamer.call("get_pending_coordinates")
+		if pending is Array:
+			pending_count = pending.size()
 	_publish(
 		"READY COMPLETE",
 		"Post-load startup completed. streaming_state=%s; pending=%d" % [streaming_state, pending_count]
 	)
+
+
+func _has_connection(node: Node, signal_name: StringName, callable: Callable) -> bool:
+	for connection in node.get_signal_connection_list(signal_name):
+		if connection.get("callable") == callable:
+			return true
+	return false
 
 
 func _publish(stage: String, detail: String) -> void:
