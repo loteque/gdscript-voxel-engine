@@ -1,0 +1,127 @@
+version: 1
+cases:
+  - id: direct-test-over-chat
+    title: Prefer direct test evidence over broad chat context
+    proposition: "ChunkStreamer reload after unload succeeds for the tested revision."
+    sources:
+      - id: source:chat:chunk-residency
+        kind: chat
+        strength: broad_context
+        immutable: false
+        summary: "The chunk residency chat discusses load, unload, reload, validation, and web exposure."
+      - id: source:commit:reload-test
+        kind: commit
+        strength: direct_immutable
+        immutable: true
+        summary: "A specific commit adds the reload-after-unload test."
+      - id: source:test:reload-pass
+        kind: test_result
+        strength: direct_immutable
+        immutable: true
+        summary: "The headless reload-after-unload test passes for the tested revision."
+    expected_behavior:
+      - select the test result as primary provenance for the observed pass
+      - commit provenance may be retained if needed to identify the tested implementation
+      - do not use the broad chat as the sole provenance when stronger direct evidence exists
+
+  - id: owner-rule-over-agent-summary
+    title: Prefer owner authority over an agent summary for a governed requirement
+    proposition: "Substantial engine features require dedicated validation scenes."
+    sources:
+      - id: source:owner:validation-requirement
+        kind: owner_instruction
+        strength: direct_authority
+        immutable: true
+        summary: "The project owner explicitly requires dedicated validation scenes for substantial engine features."
+      - id: source:chat:residency-summary
+        kind: chat_summary
+        strength: broad_context
+        immutable: false
+        summary: "An agent summary states that validation coverage is required."
+      - id: source:implementation:validation-scene
+        kind: repository_file
+        strength: corroborating
+        immutable: true
+        summary: "A validation scene exists in the repository."
+    expected_behavior:
+      - assign owner or governed authority using the owner instruction
+      - treat the repository file as corroboration, not as the origin of the rule
+      - do not attribute the requirement to the agent summary
+
+  - id: conclusion-upstream-provenance
+    title: Derived conclusions preserve supporting evidence provenance
+    proposition: "The tested revision exercised the required validation surfaces successfully."
+    sources:
+      - id: source:test:headless-pass
+        kind: test_result
+        strength: direct_immutable
+        immutable: true
+        summary: "Relevant headless validation passes."
+      - id: source:workflow:web-deploy-success
+        kind: workflow_run
+        strength: direct_immutable
+        immutable: true
+        summary: "The published web validation workflow succeeds."
+      - id: source:manual:web-demo-success
+        kind: validation_result
+        strength: direct_immutable
+        immutable: true
+        summary: "Manual QA confirms the published Integration Preview exercises the feature successfully."
+      - id: source:chat:feature-complete
+        kind: chat_summary
+        strength: broad_context
+        immutable: false
+        summary: "A chat summary says the feature is ready."
+    expected_behavior:
+      - emit a conclusion with derived authority
+      - provenance must include the direct validation evidence supporting the conclusion
+      - the broad chat summary is not required and should not replace direct evidence
+      - do not broaden the conclusion to universal correctness
+
+  - id: conflicting-specific-sources
+    title: Preserve conflict when specific sources disagree
+    proposition: "The runtime UI started correctly on the deployed phone build."
+    sources:
+      - id: source:workflow:deploy-green
+        kind: workflow_run
+        strength: direct_immutable
+        immutable: true
+        summary: "Deployment workflow completed successfully."
+      - id: source:manual:phone-ui-missing
+        kind: validation_result
+        strength: direct_immutable
+        immutable: true
+        summary: "Manual phone validation shows RuntimeWorkloadExperimentUI is missing."
+      - id: source:chat:deployment-healthy
+        kind: chat_summary
+        strength: broad_context
+        immutable: false
+        summary: "A chat states deployment is healthy."
+    expected_behavior:
+      - preserve both direct observations with their own provenance
+      - do not treat deployment success as proof of UI startup correctness
+      - retain the UI startup state as unresolved or failed for the tested phone view
+      - do not erase the conflict by selecting only one source
+
+  - id: specific-file-over-repository-summary
+    title: Prefer specific implementation evidence over repository-level summary
+    proposition: "SurfaceNetsMesher uses PointFieldResource indexing rather than duplicating cell indexing."
+    sources:
+      - id: source:file:surface-nets
+        kind: repository_file
+        strength: direct_immutable
+        immutable: true
+        summary: "The mesher implementation calls the resource indexing API and contains no private duplicate cell-index helper."
+      - id: source:commit:indexing-cleanup
+        kind: commit
+        strength: direct_immutable
+        immutable: true
+        summary: "A specific commit removes duplicated cell indexing from the mesher."
+      - id: source:handoff:api-review
+        kind: project_memory_summary
+        strength: broad_context
+        immutable: false
+        summary: "The handoff summarizes that indexing ownership belongs to PointFieldResource."
+    expected_behavior:
+      - prefer the specific implementation file and/or commit for the implementation observation
+      - broad project-memory context may explain architectural intent but should not replace direct implementation evidence
