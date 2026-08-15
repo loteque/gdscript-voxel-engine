@@ -1,0 +1,285 @@
+name: PEMS common camera reconciliation candidate
+
+on:
+  push:
+    branches:
+      - pems-common-camera-reconciliation
+    paths:
+      - .github/workflows/pems-common-camera-reconciliation.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch authoritative inputs and accepted frozen tooling
+        run: |
+          git fetch origin main post-cutover-admitted-regeneration
+          test "$(git rev-parse origin/main)" = "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4"
+          test "$(git rev-parse origin/main:common/input/NoClipCameraController.gd)" = "71f372ffc72d13953a4ced4040c2fcad2000830f"
+          test "$(git rev-parse origin/main:demo/NoClipCameraController.gd)" = "657d0958d867c7f0a242bd74315baf96840c7e55"
+          test "$(git rev-parse origin/main:docs/architecture/common-library-contract.md)" = "8fc0e86bf48f00142b1b033611d11540553ec7b0"
+          mkdir -p /tmp/frozen
+          git archive origin/post-cutover-admitted-regeneration tools | tar -x -C /tmp/frozen
+      - name: Install frozen representation dependencies
+        run: |
+          python -m pip install -r /tmp/frozen/tools/pems/requirements.txt -r /tmp/frozen/tools/cove/requirements.txt pytest
+      - name: Generate and validate noncanonical reconciliation candidate
+        env:
+          PYTHONPATH: /tmp/frozen
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+          import copy
+          import hashlib
+          import json
+          import subprocess
+          from pathlib import Path
+
+          from tools.pems.pems_v1 import normalize_document, validate_schema, validate_semantics, semantic_identity
+          from tools.pems.human_export import render_human_markdown
+          from tools.cove.cove_v1 import encode, decode
+          from tools.cove.jcs_v1 import canonicalize, serialize_cove, parse_canonical
+
+          ROOT = Path('.')
+          REPO = 'loteque/gdscript-voxel-engine'
+          MAIN = '0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4'
+          OBSERVED_AT = '2026-08-15T03:02:54-07:00'
+          BASE_COUNT = 165
+          BRANCH_ID = 'pems:branch:f3c00d62e3780ff354c3'
+          DEMO_MODULE_ID = 'pems:module:061c66bad77ea6d99dba'
+
+          def git_show(path: str) -> bytes:
+              return subprocess.check_output(['git', 'show', f'origin/main:{path}'])
+
+          def candidate_id(kind: str, semantic_key: str) -> str:
+              suffix = hashlib.sha256(f'{kind}\0{semantic_key}'.encode('utf-8')).hexdigest()[:20]
+              return f'candidate:{kind}:{suffix}'
+
+          canonical_cove_path = ROOT / 'docs/project-chat-handoff.cove.json'
+          schema_path = ROOT / 'docs/handoff/pems/pems-v1.schema.json'
+          canonical_cove_bytes = canonical_cove_path.read_bytes()
+          canonical_cove = json.loads(canonical_cove_bytes)
+          base = normalize_document(decode(canonical_cove, supported_profiles={'pems/1'}))
+          assert len(base['records']) == BASE_COUNT, len(base['records'])
+          assert serialize_cove(encode(base, profile='pems/1', serializer='jcs/1')) == canonical_cove_bytes
+
+          base_records = {record['id']: copy.deepcopy(record) for record in base['records']}
+          assert BRANCH_ID in base_records
+          assert DEMO_MODULE_ID in base_records
+          assert base_records[BRANCH_ID]['data']['head_commit'] == '1f72f8d61e0799cf94a5dedb3953d533068bf502'
+          assert base_records[DEMO_MODULE_ID]['data']['path'] == 'demo/NoClipCameraController.gd'
+
+          repo_source_id = candidate_id('source', f'repository_branch|{REPO}|main')
+          repo_obs_id = candidate_id('source_observation', f'{repo_source_id}|immutable_snapshot|{MAIN}|{OBSERVED_AT}')
+          arch_path = 'docs/architecture/common-library-contract.md'
+          arch_source_id = candidate_id('source', f'architecture_document|{REPO}|{arch_path}')
+          arch_obs_id = candidate_id('source_observation', f'{arch_source_id}|immutable_snapshot|{MAIN}|{arch_path}|{OBSERVED_AT}')
+          common_module_id = candidate_id('module', 'common/input/NoClipCameraController.gd')
+          authority_summary = 'Once promoted, the common-library version is authoritative for that capability.'
+          authority_decision_id = candidate_id('decision', authority_summary)
+
+          new_records = [
+              {
+                  'id': repo_source_id,
+                  'kind': 'source',
+                  'lifecycle': 'current',
+                  'observation_refs': [],
+                  'data': {
+                      'source_kind': 'repository_branch',
+                      'authority': 'repository_state',
+                      'identity_locator': {'repository': REPO, 'branch': 'main'},
+                  },
+              },
+              {
+                  'id': repo_obs_id,
+                  'kind': 'source_observation',
+                  'lifecycle': 'current',
+                  'observation_refs': [],
+                  'data': {
+                      'source_id': repo_source_id,
+                      'evidence_state': 'immutable_snapshot',
+                      'observed_at': OBSERVED_AT,
+                      'evidence_locator': {'repository': REPO, 'commit': MAIN},
+                      'captured_fingerprint': f'commit:{MAIN}',
+                  },
+              },
+              {
+                  'id': arch_source_id,
+                  'kind': 'source',
+                  'lifecycle': 'current',
+                  'observation_refs': [],
+                  'data': {
+                      'source_kind': 'architecture_document',
+                      'authority': 'accepted_architecture',
+                      'identity_locator': {'repository': REPO, 'path': arch_path},
+                  },
+              },
+              {
+                  'id': arch_obs_id,
+                  'kind': 'source_observation',
+                  'lifecycle': 'current',
+                  'observation_refs': [],
+                  'data': {
+                      'source_id': arch_source_id,
+                      'evidence_state': 'immutable_snapshot',
+                      'observed_at': OBSERVED_AT,
+                      'evidence_locator': {'repository': REPO, 'commit': MAIN, 'path': arch_path},
+                      'captured_fingerprint': 'sha256:' + hashlib.sha256(git_show(arch_path)).hexdigest(),
+                  },
+              },
+              {
+                  'id': common_module_id,
+                  'kind': 'module',
+                  'lifecycle': 'current',
+                  'observation_refs': [repo_obs_id, arch_obs_id],
+                  'data': {
+                      'name': 'NoClipCameraController',
+                      'path': 'common/input/NoClipCameraController.gd',
+                      'domain': 'common/input',
+                      'public_role': 'Authoritative project-independent no-clip camera controller promoted to the common library.',
+                  },
+              },
+              {
+                  'id': authority_decision_id,
+                  'kind': 'decision',
+                  'lifecycle': 'current',
+                  'observation_refs': [arch_obs_id],
+                  'data': {
+                      'summary': authority_summary,
+                      'decision_state': 'accepted',
+                      'rationale': None,
+                  },
+              },
+          ]
+
+          candidate = copy.deepcopy(base)
+          records_by_id = {record['id']: record for record in candidate['records']}
+          records_by_id[BRANCH_ID]['data']['head_commit'] = MAIN
+          records_by_id[BRANCH_ID]['observation_refs'] = sorted(set(records_by_id[BRANCH_ID]['observation_refs'] + [repo_obs_id]))
+          records_by_id[DEMO_MODULE_ID]['data']['public_role'] = 'Compatibility adapter preserving the historical demo script path while delegating to the authoritative common-library controller.'
+          records_by_id[DEMO_MODULE_ID]['observation_refs'] = sorted(set(records_by_id[DEMO_MODULE_ID]['observation_refs'] + [repo_obs_id, arch_obs_id]))
+          candidate['records'].extend(new_records)
+          candidate = normalize_document(candidate)
+
+          schema = json.loads(schema_path.read_text(encoding='utf-8'))
+          schema_result = validate_schema(candidate, schema=schema)
+          assert schema_result.valid, schema_result.diagnostics
+          semantic_result = validate_semantics(candidate)
+          assert semantic_result.valid, semantic_result.diagnostics
+
+          candidate_records = {record['id']: record for record in candidate['records']}
+          base_ids = set(base_records)
+          candidate_ids = set(candidate_records)
+          missing = sorted(base_ids - candidate_ids)
+          rebound = sorted(
+              record_id for record_id in base_ids
+              if semantic_identity(base_records[record_id]) != semantic_identity(candidate_records[record_id])
+          )
+          assert not missing, missing
+          assert not rebound, rebound
+          assert len(base_ids) == BASE_COUNT
+          assert len(candidate['records']) == BASE_COUNT + len(new_records)
+
+          provisional_ids = sorted(record['id'] for record in new_records)
+          assert all(record_id.startswith('candidate:') for record_id in provisional_ids)
+          assert set(candidate_ids - base_ids) == set(provisional_ids)
+          assert candidate_records[DEMO_MODULE_ID]['data']['path'] == 'demo/NoClipCameraController.gd'
+          assert candidate_records[common_module_id]['data']['path'] == 'common/input/NoClipCameraController.gd'
+          assert semantic_identity(candidate_records[DEMO_MODULE_ID]) != semantic_identity(candidate_records[common_module_id])
+
+          compact = encode(candidate, profile='pems/1', serializer='jcs/1')
+          compact_bytes = serialize_cove(compact)
+          expanded_bytes = canonicalize(candidate)
+          human_bytes = render_human_markdown(candidate).encode('utf-8')
+
+          compact_repeat_bytes = serialize_cove(encode(candidate, profile='pems/1', serializer='jcs/1'))
+          assert compact_repeat_bytes == compact_bytes
+          assert canonicalize(candidate) == expanded_bytes
+          assert render_human_markdown(candidate).encode('utf-8') == human_bytes
+          assert normalize_document(decode(compact, supported_profiles={'pems/1'})) == candidate
+          assert normalize_document(decode(parse_canonical(compact_bytes), supported_profiles={'pems/1'})) == candidate
+
+          out = ROOT / 'docs/handoff/pems'
+          pems_out = out / 'common-camera-reconciliation.candidate.pems.json'
+          expanded_out = out / 'common-camera-reconciliation.candidate.expanded.json'
+          cove_out = out / 'common-camera-reconciliation.candidate.cove.json'
+          human_out = out / 'common-camera-reconciliation.candidate.md'
+          evidence_out = out / 'common-camera-reconciliation.candidate.evidence.json'
+          pems_out.write_bytes(expanded_bytes)
+          expanded_out.write_bytes(expanded_bytes)
+          cove_out.write_bytes(compact_bytes)
+          human_out.write_bytes(human_bytes)
+
+          sha256 = lambda data: hashlib.sha256(data).hexdigest()
+          evidence = {
+              'status': 'noncanonical_candidate_ready_for_steward_identity_review',
+              'authorization': 'STEWARD-20260815-017',
+              'semantic': 'pems/1',
+              'codec': 'cove/1',
+              'serializer': 'jcs/1',
+              'accepted_tooling_source': 'origin/post-cutover-admitted-regeneration',
+              'canonical_authority_unchanged': 'docs/project-chat-handoff.cove.json',
+              'base': {
+                  'record_count': BASE_COUNT,
+                  'cove_git_blob_sha': '093040e24ffe37c432e5bbad872344cbbc9f045b',
+                  'cove_sha256': sha256(canonical_cove_bytes),
+              },
+              'repository_truth': {
+                  'main_head': MAIN,
+                  'common_camera_blob': '71f372ffc72d13953a4ced4040c2fcad2000830f',
+                  'demo_adapter_blob': '657d0958d867c7f0a242bd74315baf96840c7e55',
+                  'common_library_contract_blob': '8fc0e86bf48f00142b1b033611d11540553ec7b0',
+              },
+              'record_count_after': len(candidate['records']),
+              'existing_ids_preserved': len(base_ids),
+              'missing_existing_ids': missing,
+              'rebound_existing_ids': rebound,
+              'existing_records_updated_without_identity_change': [BRANCH_ID, DEMO_MODULE_ID],
+              'provisional_ids': provisional_ids,
+              'provisional_common_module_id': common_module_id,
+              'provisional_architecture_decision_id': authority_decision_id,
+              'identity_distinction': {
+                  'demo_adapter_id': DEMO_MODULE_ID,
+                  'demo_adapter_path': 'demo/NoClipCameraController.gd',
+                  'common_authoritative_id': common_module_id,
+                  'common_authoritative_path': 'common/input/NoClipCameraController.gd',
+                  'semantic_rebinding': False,
+              },
+              'validation': {
+                  'schema_valid': schema_result.valid,
+                  'semantic_valid': semantic_result.valid,
+                  'canonical_165_codec_control_byte_equal': True,
+                  'cove_round_trip': True,
+                  'repeated_canonical_bytes_identical': True,
+                  'expanded_bytes_repeat_identical': True,
+                  'human_reconstruction_deterministic': True,
+              },
+              'artifacts': {
+                  str(pems_out): {'bytes': len(expanded_bytes), 'sha256': sha256(expanded_bytes)},
+                  str(expanded_out): {'bytes': len(expanded_bytes), 'sha256': sha256(expanded_bytes)},
+                  str(cove_out): {'bytes': len(compact_bytes), 'sha256': sha256(compact_bytes)},
+                  str(human_out): {'bytes': len(human_bytes), 'sha256': sha256(human_bytes)},
+              },
+              'steward_action_required': 'Review provisional identities and semantic transition; admission/canonical regeneration remain Steward-owned.',
+              'owner_decision_required': False,
+          }
+          evidence_out.write_text(json.dumps(evidence, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8')
+          print(json.dumps(evidence, indent=2, sort_keys=True))
+          PY
+      - name: Commit noncanonical candidate evidence
+        run: |
+          git config user.name 'Engineering Knowledge Systems Architect'
+          git config user.email 'actions@users.noreply.github.com'
+          git add docs/handoff/pems/common-camera-reconciliation.candidate.*
+          git commit -m 'Generate common camera continuity reconciliation candidate'
+          git push origin HEAD:pems-common-camera-reconciliation
