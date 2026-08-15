@@ -38,6 +38,8 @@ Use only these types unless the evaluation task explicitly permits another exper
 
 A conclusion must remain scoped to its supporting evidence. Do not use `conclusion` as a synonym for recommendation, opinion, assumption, or decision.
 
+If an absence, unknown, or unresolved condition matters to future engineering work, represent it explicitly as an `uncertainty`. Unsupported or low-value material should simply not appear in the durable output.
+
 ## Initial Relations
 
 Use only these relations:
@@ -90,7 +92,7 @@ Do not discard useful upstream provenance for a derived conclusion. A conclusion
 
 Do not attach every available source merely because it is valid. Prefer minimal sufficient provenance.
 
-If provenance is inadequate, either downgrade the candidate to an uncertainty or omit it. Do not fabricate source references.
+If provenance is inadequate, either represent the important unresolved condition as an `uncertainty` or omit the unsupported candidate. Do not fabricate source references.
 
 ## Retention Threshold
 
@@ -128,16 +130,17 @@ Return structured data only. Use this logical shape until a formal schema replac
       "to": "r2",
       "provenance_refs": ["source-id"]
     }
-  ],
-  "omissions": [
-    {
-      "reason": "Brief explanation of materially ambiguous or unsupported information intentionally not represented."
-    }
   ]
 }
 ```
 
 Statements must be concise, atomic, and independently understandable.
+
+The durable output contains only records and relations. Do not emit an omission log, rejected-candidate narrative, or explanation of why unsupported material was excluded.
+
+## Evaluation Diagnostics
+
+Evaluation harnesses may separately request non-durable diagnostics such as rejected candidates or rejection reasons when testing distiller behavior. Such diagnostics are evaluation artifacts only and must not be admitted to project memory or treated as part of the production distillation schema.
 
 ## Failure Conditions
 
@@ -152,6 +155,7 @@ A distillation is defective if it:
 - records low-value activity as durable memory;
 - silently converts interpretation into project truth;
 - erases uncertainty by presenting an unresolved matter as settled;
+- emits omission/rejection narration as durable memory;
 - expands the ontology merely to accommodate one awkward example.
 
 ## Evaluation Behavior
