@@ -1,4 +1,4 @@
-version: 1
+version: 2
 expectations:
   direct-test-over-chat:
     required_primary_provenance:
@@ -18,8 +18,10 @@ expectations:
       - source:chat:residency-summary
 
   conclusion-upstream-provenance:
-    required_kind: conclusion
-    required_authority: derived
+    required_epistemic_role: derived
+    required_authority_any_of:
+      - observed
+      - agent
     required_support_any_of:
       - source:test:headless-pass
       - source:workflow:web-deploy-success
@@ -28,6 +30,8 @@ expectations:
       - source:test:headless-pass
       - source:workflow:web-deploy-success
       - source:manual:web-demo-success
+    must_not_use_kind:
+      - conclusion
     must_not_broaden_to:
       - universal correctness
       - all platforms
@@ -39,8 +43,10 @@ expectations:
         statement_contains: deployment workflow completed successfully
       - provenance: source:manual:phone-ui-missing
         statement_contains: RuntimeWorkloadExperimentUI is missing
-    required_uncertainty_or_scoped_conclusion:
+    required_derived_or_unresolved_proposition:
       statement_contains: deployment success does not establish runtime UI startup correctness
+    must_not_use_kind:
+      - conclusion
     must_not_collapse_conflict: true
 
   specific-file-over-repository-summary:
@@ -55,5 +61,6 @@ global_hard_failures:
   - broad chat or summary selected as sole provenance when direct immutable evidence is supplied
   - owner requirement attributed to agent summary
   - conflicting direct evidence silently discarded
-  - conclusion loses all upstream direct evidence
+  - derived proposition loses all upstream direct evidence
   - universal claim inferred from scoped validation evidence
+  - conclusion emitted as a proposition kind
