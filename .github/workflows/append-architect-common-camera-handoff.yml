@@ -1,4 +1,4 @@
-name: Append Architect common camera handoff
+name: Append Architect admitted common camera handoff
 
 on:
   push:
@@ -22,13 +22,14 @@ jobs:
         run: |
           git fetch origin project-chat-handoff pems-common-camera-reconciliation
           git checkout -B architect-handoff-write origin/project-chat-handoff
-          test "$(git hash-object docs/handoff/architect_notes.md)" = "f106de8249148f685a9a9a0b3ed75adf84add1cb"
-          grep -q 'STEWARD-20260815-017' docs/handoff/steward_notes.md
-          test -z "$(grep -F 'ARCH-20260815T030900-0700-023' docs/handoff/architect_notes.md || true)"
-          git show origin/pems-common-camera-reconciliation:docs/handoff/pems/architect-note-20260815T030900-0700-023.md >> docs/handoff/architect_notes.md
+          test "$(git hash-object docs/handoff/architect_notes.md)" = "121e525a8b7b03c983ef7e9300ccb0765d5a982a"
+          grep -q 'STEWARD-20260815-018' docs/handoff/steward_notes.md
+          grep -q 'ARCH-20260815T030900-0700-023' docs/handoff/architect_notes.md
+          test -z "$(grep -F 'ARCH-20260815T051000-0700-024' docs/handoff/architect_notes.md || true)"
+          git show origin/pems-common-camera-reconciliation:docs/handoff/pems/architect-note-20260815T051000-0700-024.md >> docs/handoff/architect_notes.md
           git diff --check
           git config user.name 'Engineering Knowledge Systems Architect'
           git config user.email 'actions@users.noreply.github.com'
           git add docs/handoff/architect_notes.md
-          git commit -m 'Record common camera reconciliation candidate handoff'
+          git commit -m 'Record admitted common camera reconciliation handoff'
           git push origin HEAD:project-chat-handoff
