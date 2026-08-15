@@ -72,6 +72,7 @@ var _matrix_status_label: Label
 var _matrix_run_button: Button
 var _matrix_export_button: Button
 var _matrix_running: bool = false
+var _matrix_complete: bool = false
 var _matrix_results: Array[Dictionary] = []
 var _matrix_concurrency_index: int = 0
 var _matrix_repetition_index: int = 0
@@ -209,6 +210,9 @@ func start_experiment_matrix() -> bool:
 	if not validation_error.is_empty():
 		_set_streaming_state("matrix invalid: %s" % validation_error)
 		return false
+	if _matrix_complete:
+		_set_streaming_state("matrix already complete; reload the demo to run a new session")
+		return false
 	if _matrix_running or not _streamer.get_pending_coordinates().is_empty():
 		return false
 
@@ -264,12 +268,14 @@ setTimeout(() => URL.revokeObjectURL(url), 0);
 
 
 func _can_advance_target() -> bool:
-	return not _matrix_running and _motion_enabled and _streamer.get_pending_coordinates().is_empty()
+	return not _matrix_running and not _matrix_complete and _motion_enabled and _streamer.get_pending_coordinates().is_empty()
 
 
 func _get_target_motion_state() -> String:
 	if _matrix_running:
 		return "matrix experiment"
+	if _matrix_complete:
+		return "matrix complete"
 	if not _motion_enabled:
 		return "paused"
 	if not _streamer.get_pending_coordinates().is_empty():
@@ -320,7 +326,7 @@ func _apply_responsive_layout(viewport_width: float) -> void:
 
 
 func _toggle_motion() -> void:
-	if _matrix_running:
+	if _matrix_running or _matrix_complete:
 		return
 	_motion_enabled = not _motion_enabled
 	_pause_button.text = "Pause Target" if _motion_enabled else "Resume Target"
@@ -393,27 +399,27 @@ func _configure_matrix_controls() -> void:
 
 
 func _on_concurrency_selected(index: int) -> void:
-	if _matrix_running or not _streamer.get_pending_coordinates().is_empty():
+	if _matrix_running or _matrix_complete or not _streamer.get_pending_coordinates().is_empty():
 		return
 	_streamer.max_concurrent_loads = _concurrency_selector.get_item_id(index)
 	_restart_experiment("concurrency changed to %d" % _streamer.max_concurrent_loads)
 
 
 func _on_cache_selected(index: int) -> void:
-	if _matrix_running:
+	if _matrix_running or _matrix_complete:
 		return
 	_cache_provenance = CACHE_PROVENANCE_OPTIONS[index]
 	_set_streaming_state("cache provenance labeled %s" % _cache_provenance)
 
 
 func _reset_experiment() -> void:
-	if _matrix_running:
+	if _matrix_running or _matrix_complete:
 		return
 	_restart_experiment("experiment reset")
 
 
 func _restart_experiment(state: String) -> void:
-	if not _streamer.get_pending_coordinates().is_empty():
+	if _matrix_complete or not _streamer.get_pending_coordinates().is_empty():
 		return
 	_streamer.clear_chunks()
 	_target.position = Vector3(target_min_x, _target.position.y, target_min_z)
@@ -530,8 +536,14 @@ func _advance_matrix_indices() -> void:
 
 func _finish_matrix() -> void:
 	_matrix_running = false
+	_matrix_complete = true
 	_motion_enabled = false
-	_set_streaming_state("matrix complete: %d runs" % _matrix_results.size())
+	_matrix_run_button.disabled = true
+	_concurrency_selector.disabled = true
+	_cache_selector.disabled = true
+	_pause_button.disabled = true
+	_reset_button.disabled = true
+	_set_streaming_state("matrix complete: %d runs; execution stopped, export is preserved" % _matrix_results.size())
 	_update_matrix_status()
 
 
@@ -575,6 +587,12 @@ func _update_matrix_status() -> void:
 				experiment_matrix.waypoint_coordinates.size(),
 			]
 		)
+	elif _matrix_complete:
+		_matrix_status_label.text = "Matrix: %s · complete %d/%d · export preserved" % [
+			experiment_matrix.matrix_name,
+			_matrix_results.size(),
+			experiment_matrix.get_run_count(),
+		]
 	else:
 		_matrix_status_label.text = "Matrix: %s · recorded %d/%d runs" % [
 			experiment_matrix.matrix_name,
@@ -683,113 +701,66 @@ func _update_status() -> void:
 		]
 		return
 
-	var target_coordinate := _streamer.position_to_chunk_coordinate(_target.position)
-	var queued_coordinates := _streamer.get_queued_coordinates()
-	var loading_coordinates := _streamer.get_loading_coordinates()
-	var loaded_coordinates := _streamer.get_loaded_coordinates()
 	var metrics := _streamer.get_streaming_metrics()
-	var observations := _streamer.get_completed_load_observations()
-	var last_observation: Dictionary = {} if observations.is_empty() else observations.back()
-	var surface_count := 0
-	for coordinate in loaded_coordinates:
-		var instance := _streamer.get_chunk_instance(coordinate)
-		if instance != null and instance.mesh != null:
-			surface_count += instance.mesh.get_surface_count()
-	var current_frame_msec: float = 0.0 if _recent_frame_times_msec.is_empty() else float(_recent_frame_times_msec.back())
-	var approximate_mesh_mib := float(metrics["approximate_mesh_memory_bytes"]) / (1024.0 * 1024.0)
-	var last_asset_summary := "none"
-	if not last_observation.is_empty():
-		last_asset_summary = "%s | %d B | %d verts | %d indices | %d/%d/%d ms" % [
-			last_observation["coordinate"],
-			last_observation["serialized_size_bytes"],
-			last_observation["mesh_vertex_count"],
-			last_observation["mesh_index_count"],
-			last_observation["aggregate_latency_msec"],
-			last_observation["background_wait_msec"],
-			last_observation["residency_completion_msec"],
-		]
-	var has_pending := not _streamer.get_pending_coordinates().is_empty()
-	var controls_locked := has_pending or _matrix_running
-	_reset_button.disabled = controls_locked
-	_pause_button.disabled = _matrix_running
-	_concurrency_selector.disabled = controls_locked
-	_cache_selector.disabled = _matrix_running
-	if _matrix_run_button != null:
-		_matrix_run_button.disabled = controls_locked or experiment_matrix == null
-	if _matrix_export_button != null:
-		_matrix_export_button.disabled = _matrix_results.is_empty()
-	_update_matrix_status()
-
-	_background_value.text = "%.2f ms" % float(metrics["average_background_wait_msec"])
-	_residency_value.text = "%.2f ms" % float(metrics["average_residency_completion_msec"])
-	_total_value.text = "%.2f ms" % float(metrics["average_load_latency_msec"])
+	_background_value.text = "%.2f ms" % metrics["average_background_load_msec"]
+	_residency_value.text = "%.2f ms" % metrics["average_residency_msec"]
+	_total_value.text = "%.2f ms" % metrics["average_total_load_msec"]
 	_completed_value.text = str(metrics["completed_load_count"])
 	_failed_value.text = str(metrics["failed_load_count"])
-	_frame_value.text = "%.2f ms" % current_frame_msec
+	_frame_value.text = "%.2f ms" % metrics["max_frame_time_msec"]
 	_recent_value.text = "%.2f ms" % get_recent_max_frame_time_msec()
-	_target_label.text = "Target: %s (%s)" % [target_coordinate, _get_target_motion_state()]
-
+	_target_label.text = "Target: (%.1f, %.1f, %.1f) · %s" % [
+		_target.position.x,
+		_target.position.y,
+		_target.position.z,
+		_get_target_motion_state(),
+	]
 	_details_label.text = (
-		"Dataset: %d single-LOD chunks, %s cells/chunk, %.1f spacing\nWeb thread prerequisites: %s\nRun cache label: %s\nLoad radius: %d | Unload radius: %d\nLoad budget: %d starts/frame, %d concurrent\nQueued chunks: %d | Loading chunks: %d | Resident chunks: %d\nPeak resident chunks: %d | Resident surfaces: %d\nCompleted loads: %d | Failed loads: %d | Unloads: %d\nCancelled pending: %d | Residency churn: %d\nMaximum aggregate latency: %d ms\nMaximum background wait: %d ms\nMaximum residency completion: %d ms\nCompleted observations: %d\nLast load: %s\nTiming boundary: polling-cadence observed\nApprox. resident mesh memory: %.2f MiB\nQueued coordinates: %s\nLoading coordinates: %s\nResident coordinates: %s\nStreaming state: %s"
-		% [
-			manifest.entries.size(),
-			manifest.chunk_cell_dimensions,
-			manifest.sample_spacing,
-			_thread_smoke_web_prerequisites,
-			_cache_provenance,
-			_streamer.load_radius,
-			_streamer.unload_radius,
-			_streamer.max_load_starts_per_frame,
-			_streamer.max_concurrent_loads,
-			queued_coordinates.size(),
-			loading_coordinates.size(),
-			loaded_coordinates.size(),
-			metrics["peak_resident_count"],
-			surface_count,
-			metrics["completed_load_count"],
-			metrics["failed_load_count"],
-			metrics["unload_count"],
-			metrics["cancelled_pending_load_count"],
-			metrics["residency_churn_count"],
-			metrics["maximum_load_latency_msec"],
-			metrics["maximum_background_wait_msec"],
-			metrics["maximum_residency_completion_msec"],
-			metrics["completed_observation_count"],
-			last_asset_summary,
-			approximate_mesh_mib,
-			queued_coordinates,
-			loading_coordinates,
-			loaded_coordinates,
-			_streaming_state,
-		]
-	)
+		"Web thread prerequisites: %s\n"
+		+ "Streaming state: %s\n"
+		+ "Resident: %d · Queued: %d · Loading: %d\n"
+		+ "Started: %d · Completed: %d · Failed: %d · Unloaded: %d\n"
+		+ "Cancelled pending: %d\n"
+		+ "Average queue wait: %.2f ms\n"
+		+ "Average loader/background wait: %.2f ms\n"
+		+ "Average resource_get(): %.3f ms\n"
+		+ "Average validation: %.3f ms\n"
+		+ "Average instance setup: %.3f ms\n"
+		+ "Average scene attachment: %.3f ms\n"
+		+ "Average residency total: %.3f ms\n"
+		+ "Average active load total: %.2f ms\n"
+		+ "Average desired-to-resident total: %.2f ms\n"
+		+ "Peak queued: %d · Peak loading: %d"
+	) % [
+		_thread_smoke_web_prerequisites,
+		_streaming_state,
+		metrics["resident_count"],
+		metrics["queued_count"],
+		metrics["loading_count"],
+		metrics["started_load_count"],
+		metrics["completed_load_count"],
+		metrics["failed_load_count"],
+		metrics["unload_count"],
+		metrics["cancelled_pending_load_count"],
+		metrics["average_queue_wait_msec"],
+		metrics["average_loader_wait_msec"],
+		metrics["average_resource_get_msec"],
+		metrics["average_validation_msec"],
+		metrics["average_instance_setup_msec"],
+		metrics["average_scene_attachment_msec"],
+		metrics["average_residency_msec"],
+		metrics["average_total_load_msec"],
+		metrics["average_desired_to_resident_msec"],
+		metrics["peak_queued_count"],
+		metrics["peak_loading_count"],
+	]
 
 
 func _update_thread_status() -> void:
-	_thread_value.text = _thread_smoke_state.to_upper()
-	if _thread_smoke_state.begins_with("PASS") or _thread_smoke_state == "disabled":
+	_thread_value.text = _thread_smoke_state
+	if _thread_smoke_state.begins_with("PASS"):
 		_thread_value.add_theme_color_override("font_color", COLOR_SUCCESS)
 	elif _thread_smoke_state.begins_with("FAIL"):
 		_thread_value.add_theme_color_override("font_color", COLOR_FAILURE)
 	else:
 		_thread_value.add_theme_color_override("font_color", COLOR_PENDING)
-
-
-func _on_chunk_load_queued(_coordinate: Vector3i) -> void:
-	_set_streaming_state("chunk queued")
-
-
-func _on_chunk_load_started(coordinate: Vector3i) -> void:
-	_set_streaming_state("chunk loading %s" % coordinate)
-
-
-func _on_residency_changed(coordinate: Vector3i, _instance: MeshInstance3D) -> void:
-	_set_streaming_state("chunk resident %s" % coordinate)
-
-
-func _on_chunk_unloaded(coordinate: Vector3i) -> void:
-	_set_streaming_state("chunk unloaded %s" % coordinate)
-
-
-func _on_chunk_load_failed(coordinate: Vector3i, error: Error) -> void:
-	_set_streaming_state("load failed %s: %s" % [coordinate, error_string(error)])
