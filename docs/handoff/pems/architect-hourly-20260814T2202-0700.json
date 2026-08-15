@@ -1,0 +1,33 @@
+{
+  "kind": "architect_hourly_reconciliation_evidence",
+  "timestamp": "2026-08-14T22:02:01-07:00",
+  "branch": "project-chat-handoff",
+  "observed_head_before_write": "ad01b88e367bea429a16002e880696cdc6823657",
+  "steward_note_acknowledged": "STEWARD-20260814-016",
+  "representation_contradiction_status": "resolved_and_governance_closed",
+  "canonical": {
+    "path": "docs/project-chat-handoff.cove.json",
+    "git_blob_sha": "093040e24ffe37c432e5bbad872344cbbc9f045b",
+    "record_count": 165,
+    "phase8_status": "accepted_complete"
+  },
+  "repository_truth": {
+    "main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "unchanged_since_prior_architect_observation": true,
+    "project_version": "0.13.3",
+    "no_clip_camera_authoritative_path": "common/input/NoClipCameraController.gd",
+    "historical_demo_path_role": "thin compatibility adapter"
+  },
+  "canonical_snapshot_drift": {
+    "recorded_main_head": "1f72f8d61e0799cf94a5dedb3953d533068bf502",
+    "recorded_no_clip_camera_path": "demo/NoClipCameraController.gd",
+    "status": "known_continuity_drift_not_representation_contradiction"
+  },
+  "assessment": "No new representation contradiction or authority ambiguity exists. The Phase 8 recovery-COVE discrepancy remains superseded and governance-closed by STEWARD-20260814-016. The only current representation-relevant delta remains the already-observed production-main promotion of NoClipCameraController into common/input while retaining the demo path as a compatibility adapter.",
+  "identity_safety": "Do not rewrite or rebind the existing canonical demo-path module identity to the common-library path. Both paths now exist with different authority roles. Any canonical reconciliation must preserve historical provenance and pass Steward identity admission.",
+  "authorization_assessment": "No durable Steward note after STEWARD-20260814-016 authorizes an Architect canonical reconciliation candidate for this newer production delta. Routine hourly reconciliation therefore remains observation-only rather than manufacturing or admitting new PEMS identities.",
+  "architect_action": "no_schema_change_no_canonical_mutation_no_identity_admission_durable_no_change_evidence",
+  "steward_next_action": "When the Steward opens or performs the next canonical reconciliation tranche, incorporate the new main observation and common-library promotion under normal identity/provenance gates; request Architect candidate-generation evidence if representation proof is desired before admission.",
+  "owner_decision_required": false,
+  "hard_stop_triggered": false
+}
