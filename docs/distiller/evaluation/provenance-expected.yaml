@@ -1,0 +1,59 @@
+version: 1
+expectations:
+  direct-test-over-chat:
+    required_primary_provenance:
+      - source:test:reload-pass
+    acceptable_secondary_provenance:
+      - source:commit:reload-test
+    must_not_use_as_sole_support:
+      - source:chat:chunk-residency
+
+  owner-rule-over-agent-summary:
+    required_authority: owner
+    required_primary_provenance:
+      - source:owner:validation-requirement
+    corroborating_only:
+      - source:implementation:validation-scene
+    must_not_attribute_origin_to:
+      - source:chat:residency-summary
+
+  conclusion-upstream-provenance:
+    required_kind: conclusion
+    required_authority: derived
+    required_support_any_of:
+      - source:test:headless-pass
+      - source:workflow:web-deploy-success
+      - source:manual:web-demo-success
+    preferred_support:
+      - source:test:headless-pass
+      - source:workflow:web-deploy-success
+      - source:manual:web-demo-success
+    must_not_broaden_to:
+      - universal correctness
+      - all platforms
+      - future revisions
+
+  conflicting-specific-sources:
+    required_observations:
+      - provenance: source:workflow:deploy-green
+        statement_contains: deployment workflow completed successfully
+      - provenance: source:manual:phone-ui-missing
+        statement_contains: RuntimeWorkloadExperimentUI is missing
+    required_uncertainty_or_scoped_conclusion:
+      statement_contains: deployment success does not establish runtime UI startup correctness
+    must_not_collapse_conflict: true
+
+  specific-file-over-repository-summary:
+    required_primary_provenance_any_of:
+      - source:file:surface-nets
+      - source:commit:indexing-cleanup
+    contextual_only:
+      - source:handoff:api-review
+
+global_hard_failures:
+  - fabricated source identifier
+  - broad chat or summary selected as sole provenance when direct immutable evidence is supplied
+  - owner requirement attributed to agent summary
+  - conflicting direct evidence silently discarded
+  - conclusion loses all upstream direct evidence
+  - universal claim inferred from scoped validation evidence
