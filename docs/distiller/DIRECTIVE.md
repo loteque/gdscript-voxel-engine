@@ -12,7 +12,7 @@ Use only material provided to you or available through approved project sources,
 - repository observations;
 - commits, pull requests, issues, and changed files;
 - test, benchmark, validation, and workflow results;
-- explicit decisions and conclusions;
+- explicit decisions and derived propositions;
 - explicit alternatives that were actually considered;
 - documented assumptions and constraints;
 - unresolved questions and uncertainty;
@@ -30,13 +30,14 @@ Extract only information that is likely to matter to future engineering work. Pr
 
 Use only these types unless the evaluation task explicitly permits another experimental type:
 
-- `observation`: something directly established by evidence;
+- `observation`: something directly established by evidence or a durable empirical proposition;
 - `decision`: an explicit choice or accepted project direction;
 - `assumption`: a proposition relied upon but not established as fact;
-- `uncertainty`: an important unresolved question, unknown, or unverified condition;
-- `conclusion`: a durable proposition derived from supplied evidence, where the proposition is not itself a direct observation or governed decision.
+- `uncertainty`: an important unresolved question, unknown, or unverified condition.
 
-A conclusion must remain scoped to its supporting evidence. Do not use `conclusion` as a synonym for recommendation, opinion, assumption, or decision.
+`conclusion` is not a proposition kind. A proposition that is inferred or synthesized from evidence is represented through `epistemic_role: derived` while retaining the semantic kind that best describes the proposition.
+
+If no existing kind can represent a durable derived proposition without semantic distortion, do not invent a new kind during ordinary distillation. Treat that as evaluation pressure on the protocol.
 
 If an absence, unknown, or unresolved condition matters to future engineering work, represent it explicitly as an `uncertainty`. Unsupported or low-value material should simply not appear in the durable output.
 
@@ -69,7 +70,7 @@ Examples:
 
 - an owner policy may be `epistemic_role: axiom` and `authority: owner`;
 - an architecture contract may be `epistemic_role: axiom` and `authority: governed`;
-- a benchmark finding may be `epistemic_role: derived` and `authority: observed`;
+- a benchmark finding may be `kind: observation`, `epistemic_role: derived`, and `authority: observed`;
 - an agent synthesis may be `epistemic_role: derived` and `authority: agent`.
 
 Never promote agent authority into owner or governed authority without supporting evidence.
@@ -107,7 +108,7 @@ Use this preference order when applicable:
 3. specific pull-request, issue, document, or file evidence;
 4. broad chat, continuation, or summary context.
 
-Do not discard useful upstream provenance for a derived conclusion. A conclusion should preserve references to the direct observations or evidence from which it is derived, while those observations retain their own strongest source references.
+Do not discard useful upstream provenance for a derived proposition. A derived proposition should preserve references to the direct observations or evidence from which it is derived, while those observations retain their own strongest source references.
 
 Do not attach every available source merely because it is valid. Prefer minimal sufficient provenance.
 
@@ -121,7 +122,7 @@ Retain a candidate only when it does at least one of the following:
 - establishes reusable engineering evidence;
 - records an assumption that could invalidate future work;
 - preserves important unresolved uncertainty;
-- preserves a scoped derived conclusion that future work may rely upon;
+- preserves a scoped derived proposition that future work may rely upon;
 - prevents likely repeated investigation;
 - changes or constrains future architecture, implementation, validation, or process.
 
@@ -136,7 +137,7 @@ Return structured data only. Use this logical shape until a formal schema replac
   "records": [
     {
       "temp_id": "r1",
-      "kind": "observation | decision | assumption | uncertainty | conclusion",
+      "kind": "observation | decision | assumption | uncertainty",
       "statement": "One atomic proposition.",
       "epistemic_role": "axiom | derived | unresolved",
       "authority": "observed | owner | governed | agent",
@@ -171,9 +172,10 @@ The durable output contains only records and relations. Do not emit an omission 
 
 The following are initial validation rules, not a complete formal type system:
 
-- `conclusion` should normally use `epistemic_role: derived`;
 - `uncertainty` should normally use `epistemic_role: unresolved`;
-- `observation` should normally use `authority: observed`;
+- `observation` should normally use `authority: observed`, but a derived empirical proposition may still be an `observation` with `epistemic_role: derived`;
+- `decision` may be axiomatic or derived depending on whether it is an accepted starting direction or a decision derived from governed reasoning;
+- `assumption` may be axiomatic or unresolved depending on whether it is deliberately adopted or merely suspected;
 - `axiom` may use `owner`, `governed`, `observed`, or `agent` authority, though `agent` axioms should be treated as provisional and should not silently become governed truth;
 - `derived` propositions should have sufficient provenance or supporting relations to reconstruct their basis;
 - provenance absence does not imply axiomhood;
@@ -198,6 +200,7 @@ A distillation is defective if it:
 - erases uncertainty by presenting an unresolved matter as settled;
 - infers axiomhood merely from absent provenance;
 - treats provenance as the definition of epistemic role;
+- uses `conclusion` as a proposition kind;
 - emits omission/rejection narration as durable memory;
 - expands the ontology merely to accommodate one awkward example.
 
