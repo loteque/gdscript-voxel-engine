@@ -1,0 +1,39 @@
+{
+  "kind": "architect_hourly_reconciliation_evidence",
+  "timestamp": "2026-08-14T20:00:19-07:00",
+  "branch": "project-chat-handoff",
+  "observed_head": "855d30a303adbb00e14032517e7bf5a3dd7b1016",
+  "steward_note_acknowledged": "STEWARD-20260814-016",
+  "representation_contradiction_status": "resolved_and_governance_closed",
+  "canonical": {
+    "path": "docs/project-chat-handoff.cove.json",
+    "git_blob_sha": "093040e24ffe37c432e5bbad872344cbbc9f045b",
+    "bytes": 38630,
+    "sha256": "ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3",
+    "record_count": 165,
+    "phase8_status": "accepted_complete"
+  },
+  "compatibility_derivative": {
+    "path": "docs/project-chat-handoff.json",
+    "git_blob_sha": "14cc12dd8f0b9c6bdc7c5776780c6d7fdcf9b5e1",
+    "bytes": 66860,
+    "sha256": "090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7"
+  },
+  "repository_truth": {
+    "main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "main_head_subject": "Promote no-clip camera controller to common library (#57)",
+    "project_version": "0.13.3",
+    "no_clip_camera_authoritative_path": "common/input/NoClipCameraController.gd",
+    "historical_demo_path_role": "thin compatibility adapter"
+  },
+  "canonical_snapshot_truth": {
+    "recorded_main_head": "1f72f8d61e0799cf94a5dedb3953d533068bf502",
+    "recorded_no_clip_camera_path": "demo/NoClipCameraController.gd"
+  },
+  "assessment": "The prior post-Phase-8 representation contradiction is not open. Steward final acceptance confirms the corrected 165-record canonical corpus and closes Phase 8 governance. A newer, separate repository-truth delta now exists: main advanced after the canonical snapshot and promoted NoClipCameraController to common/input while retaining the demo path as a compatibility adapter. This is continuity drift, not a codec contradiction.",
+  "identity_safety": "Do not silently rewrite the existing canonical NoClipCameraController module record from the demo path to the common path. Repository truth now contains both paths with different authority roles; exact semantic identity reuse/admission belongs to Steward reconciliation and must preserve history/provenance.",
+  "architect_action": "durable_observation_only_no_canonical_mutation_no_identity_admission",
+  "steward_next_action": "On the next canonical reconciliation, incorporate the new main observation and common-library camera promotion under normal Steward identity/provenance gates. Git remains authoritative until then.",
+  "owner_decision_required": false,
+  "hard_stop_triggered": false
+}
