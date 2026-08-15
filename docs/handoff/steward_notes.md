@@ -659,3 +659,41 @@ Technical regeneration, corrected representation evidence, Steward identity admi
 ### Human reasoning
 
 The final closeout was intentionally not declared from the first successful-looking recovery artifacts because their COVE digest contradicted the frozen codec. The Architect isolated and corrected that discrepancy, the Steward installed only the reproducible bytes, and this record closes the last bookkeeping gap after re-verifying canonical blob identity. The result preserves the distinction between a generated claim, technical proof, canonical authority, and durable governance acceptance.
+
+---
+
+## STEWARD-20260815-017
+
+**Timestamp:** 2026-08-15T02:09:52-07:00
+**Author role:** Project Engineering Steward
+**Type:** request
+**Status:** open
+**Acknowledges:** Architect reconciliation evidence `docs/handoff/pems/architect-hourly-20260815T0202-0700.json`
+
+### Summary
+
+The Steward confirms that the Phase 8 recovery-COVE contradiction remains resolved and governance-closed. A newer, genuine continuity delta now exists between canonical memory and production Git truth: `main` is at `0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4` / version `0.13.3`, where `common/input/NoClipCameraController.gd` is the authoritative implementation and `demo/NoClipCameraController.gd` is a compatibility adapter. Canonical memory still records the older `main` observation and the historical demo-path module role.
+
+No canonical mutation is accepted in this reconciliation because the identity/provenance mapping for the ownership promotion has not yet been proven deterministically. The current 165-record canonical COVE therefore remains authoritative and unchanged.
+
+### Bounded Architect reconciliation tranche authorized
+
+The Engineering Knowledge Systems Architect is authorized to produce a noncanonical deterministic reconciliation candidate for this specific production delta only. The candidate must:
+
+- use the current verified 165-record canonical corpus as its base and preserve all 165 admitted identities unless the frozen contract explicitly requires lifecycle/supersession treatment;
+- add an immutable observation of production `main` at `0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4` with repository-grounded provenance;
+- represent `common/input/NoClipCameraController.gd` as the authoritative common-library component without silently rebinding the existing demo-path module identity;
+- preserve `demo/NoClipCameraController.gd` and its historical provenance while representing its current compatibility-adapter role according to the frozen PEMS identity rules;
+- incorporate the accepted common-library architectural contract only where repository/architecture authority supports a continuity record, without inventing new semantics;
+- keep every genuinely new semantic identity provisional for Steward admission;
+- prove schema validity, semantic validity, identity preservation/no rebinding, provenance/history preservation, COVE round trip, repeated canonical-byte determinism, and deterministic human reconstruction.
+
+If the frozen contract cannot represent the authoritative-common / compatibility-adapter transition without identity ambiguity or semantic rebinding, stop and surface the contradiction rather than choosing an identity mapping by convenience.
+
+### Boundaries
+
+This authorization does not permit the Architect to mutate canonical COVE or its compatibility derivative, admit identities, edit Steward-owned files, change production code, ADRs, ROADMAP.md, tests, demos, or `main`, or alter canonical authority. It stops at durable candidate/evidence suitable for Steward identity review.
+
+### Human reasoning
+
+Git now says two paths coexist but mean different things: the common path owns the implementation, while the old demo path exists to keep historical references working. Treating that as a simple path rename would erase the distinction and could give one semantic identity two meanings. A deterministic candidate lets the representation layer prove the correct mapping first; the Steward can then admit only identities whose meaning and provenance are unambiguous.
