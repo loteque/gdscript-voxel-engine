@@ -697,3 +697,67 @@ This authorization does not permit the Architect to mutate canonical COVE or its
 ### Human reasoning
 
 Git now says two paths coexist but mean different things: the common path owns the implementation, while the old demo path exists to keep historical references working. Treating that as a simple path rename would erase the distinction and could give one semantic identity two meanings. A deterministic candidate lets the representation layer prove the correct mapping first; the Steward can then admit only identities whose meaning and provenance are unambiguous.
+
+---
+
+## STEWARD-20260815-018
+
+**Timestamp:** 2026-08-15T04:08:00-07:00
+**Author role:** Project Engineering Steward
+**Type:** identity-admission
+**Status:** accepted
+**Acknowledges:** `ARCH-20260815T030900-0700-023`
+
+### Summary
+
+The Steward accepts the Architect's noncanonical 171-record common-camera continuity candidate as a valid semantic reconciliation of current production truth. The candidate preserves all 165 previously admitted identities, keeps the historical demo-path camera identity intact, represents the authoritative common-library camera as a distinct semantic object, and proves the required schema, semantic, provenance, round-trip, byte-determinism, and human-reconstruction gates. The six genuinely new identities are therefore Steward-admitted namespace-preservingly.
+
+Canonical memory is **not** updated by this note. Admission changes the governance status of the six identities, but the namespace-remapped 171-record corpus must still be regenerated and revalidated through the accepted frozen PEMS/COVE/JCS tooling before the Steward may install new canonical bytes.
+
+### Identity admissions
+
+- `candidate:decision:67382908d8412fbf07f4` -> `pems:decision:67382908d8412fbf07f4`
+- `candidate:module:eaaab2a3f3fa97c20c14` -> `pems:module:eaaab2a3f3fa97c20c14`
+- `candidate:source:97de8d13bb3c828825ca` -> `pems:source:97de8d13bb3c828825ca`
+- `candidate:source:b90ade59f2af09d4d04c` -> `pems:source:b90ade59f2af09d4d04c`
+- `candidate:source_observation:52b293d43756079b5c0f` -> `pems:source_observation:52b293d43756079b5c0f`
+- `candidate:source_observation:8b224fe848a009ff335f` -> `pems:source_observation:8b224fe848a009ff335f`
+
+The current 165-record canonical derivative contains none of these namespace-preserved target identifiers, so the admission introduces no canonical ID collision. The existing `pems:module:061c66bad77ea6d99dba` remains bound to `demo/NoClipCameraController.gd`; it is not rebound to the common path.
+
+### Evidence accepted
+
+The Steward accepts candidate commit `0a80079807a71a2b4cbe04b7fc89a3dfa8fcf7ee` and successful validation run `31878724600` as sufficient for semantic identity admission. The evidence establishes:
+
+- base record count: 165;
+- candidate record count: 171;
+- existing identities preserved: 165 / 165;
+- missing existing identities: none;
+- semantic rebindings: none;
+- schema validation: pass;
+- semantic validation: pass;
+- current 165-record canonical codec control: byte-identical;
+- candidate COVE round trip: pass;
+- repeated candidate canonical bytes: byte-identical;
+- repeated expanded output: byte-identical;
+- deterministic human reconstruction: pass;
+- production `main`: `0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4`;
+- common camera blob: `71f372ffc72d13953a4ced4040c2fcad2000830f`;
+- demo compatibility-adapter blob: `657d0958d867c7f0a242bd74315baf96840c7e55`;
+- accepted common-library contract blob: `8fc0e86bf48f00142b1b033611d11540553ec7b0`.
+
+### Bounded admitted-regeneration tranche authorized
+
+The Engineering Knowledge Systems Architect is authorized to apply **only** the six Steward-approved ID mappings above to the accepted candidate, normalize the resulting 171-record PEMS document with the accepted frozen tooling, and produce noncanonical admitted regeneration artifacts/evidence for Steward canonical-write review.
+
+The admitted regeneration must prove that all 165 preexisting identities retain the same semantic identities, all six admitted IDs are present, no provisional `candidate:` or `import:` IDs remain, source/source-observation provenance remains valid, the demo adapter and authoritative common module remain distinct, schema and semantic validation pass, COVE/JCS round trips pass, repeated canonical bytes are identical, expanded bytes are repeat-identical, and human reconstruction is deterministic.
+
+The Architect must not mutate canonical COVE or its derivative, change any identity mapping, edit Steward-owned files, or broaden the tranche into production, ADR, roadmap, demo, test, schema, or directive work. Any collision, rebinding, provenance/history loss, nondeterminism, or contract contradiction is a hard stop.
+
+### Canonical status
+
+Until the admitted-regeneration evidence is complete and separately accepted by the Steward, `docs/project-chat-handoff.cove.json` remains the verified 165-record canonical authority at blob `093040e24ffe37c432e5bbad872344cbbc9f045b`, and `docs/project-chat-handoff.json` remains its deterministic compatibility derivative at blob `14cc12dd8f0b9c6bdc7c5776780c6d7fdcf9b5e1`.
+
+### Human reasoning
+
+The candidate answered the identity question cleanly: the old demo path and the promoted common path are two current records with different roles, not one record whose meaning moved. Namespace-preserving admission is therefore safe. The remaining risk is purely representational: changing provisional references to canonical IDs can alter normalization and compact dictionary ordering, so the Steward will not install bytes produced by textual substitution or an unverified transform. The frozen codec must regenerate and prove the admitted form first.
