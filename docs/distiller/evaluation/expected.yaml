@@ -1,0 +1,85 @@
+version: 1
+expectations:
+  field-authority:
+    must_preserve:
+      - kind: decision
+        statement_contains: PointFieldResource is the authoritative scalar-field abstraction
+      - kind: decision
+        statement_contains: consumers should not duplicate field indexing or state
+    acceptable_relations:
+      - supports
+      - depends_on
+    must_not_invent:
+      - mandatory generator-strategy architecture
+      - runtime streaming ownership on PointFieldResource
+      - hidden performance rationale
+
+  offline-runtime-split:
+    must_preserve:
+      - kind: decision
+        statement_contains: generation produces persisted chunk assets offline
+      - kind: decision
+        statement_contains: runtime streaming consumes precomputed assets and owns residency
+    acceptable_relations:
+      - supports
+      - depends_on
+      - validated_by
+    must_not_invent:
+      - permanent prohibition on any future runtime procedural generation
+      - LOD design not present in the evidence
+
+  validation-demo-contract:
+    must_preserve:
+      - kind: decision
+        authority: owner
+        statement_contains: substantial features require dedicated validation through the public runtime path
+      - kind: observation
+        statement_contains: chunk residency validation coverage and web exposure were initially incomplete
+    acceptable_relations:
+      - supports
+      - validated_by
+    must_not_invent:
+      - agent ownership of the project requirement
+      - feature-specific Pages categories when an existing Integration Preview category applies
+
+  resource-loading-investigation:
+    must_preserve:
+      - kind: observation
+        statement_contains: measured loading stages must remain scoped to supplied measurements
+      - kind: uncertainty
+        statement_contains: unmeasured platforms or builds remain unverified
+    acceptable_relations:
+      - supports
+      - contradicts
+      - validated_by
+    must_not_invent:
+      - numerical measurements not supplied with the evaluation input
+      - universal bottleneck claims
+      - causality beyond the measurement evidence
+
+  deployed-ui-failure:
+    must_preserve:
+      - kind: observation
+        statement_contains: CI and deployment were green
+      - kind: observation
+        statement_contains: RuntimeWorkloadExperimentUI was missing in the deployed phone view
+      - kind: uncertainty
+        statement_contains: cause of the missing UI was unresolved
+    acceptable_relations:
+      - contradicts
+      - supports
+    must_not_invent:
+      - startup race as established cause
+      - Web platform bug as established cause
+      - export failure as established cause
+      - statement that the bug had been fixed
+
+global_failure_conditions:
+  - fabricated provenance
+  - hidden chain-of-thought reconstruction
+  - invented alternatives
+  - unsupported causality
+  - duplicate propositions with cosmetic wording changes
+  - agent interpretation promoted to owner or governed authority
+  - unresolved uncertainty silently converted into fact
+  - routine activity retained without durable engineering value
