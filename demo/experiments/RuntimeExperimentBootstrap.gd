@@ -1,6 +1,9 @@
 extends "res://demo/experiments/RuntimeExperimentShell.gd"
 
-## Isolates whether RuntimeWorkloadExperimentUI.configure() prevents Web startup.
+## Isolates whether loading the streaming manifest blocks mobile Web startup.
+##
+## UI construction/configuration has already been proven healthy. This probe
+## loads only the manifest and deliberately does not load the experiment matrix.
 
 const UI_SCRIPT := preload("res://demo/experiments/RuntimeWorkloadExperimentUI.gd")
 
@@ -10,24 +13,28 @@ const UI_SCRIPT := preload("res://demo/experiments/RuntimeWorkloadExperimentUI.g
 func _ready() -> void:
 	var startup_ui := UI_SCRIPT.new() as RuntimeWorkloadExperimentUI
 	add_child(startup_ui)
-
-	_probe_label.text = "Runtime UI added. Calling configure()…"
-	await get_tree().process_frame
-
 	startup_ui.configure(
 		"Runtime Workload Isolation",
-		"UI configure probe only. No manifest or matrix resources are loaded.",
+		"Manifest resource-load probe. The experiment matrix is not loaded.",
 		["Mode A", "Mode B", "Mode C", "Mode D"],
 		[
-			"Configure probe description A.",
-			"Configure probe description B.",
-			"Configure probe description C.",
-			"Configure probe description D.",
+			"Manifest probe description A.",
+			"Manifest probe description B.",
+			"Manifest probe description C.",
+			"Manifest probe description D.",
 		]
 	)
 
+	_probe_label.text = "UI configured. Loading StreamingDemoManifest.tres…"
+	await get_tree().process_frame
+
+	var manifest := ResourceLoader.load(MANIFEST_PATH) as TerrainChunkManifest
+	if manifest == null:
+		_probe_label.text = "Manifest load returned null."
+		return
+
 	_probe_label.text = (
-		"Runtime UI configure confirmed\n\n"
-		+ "RuntimeWorkloadExperimentUI.configure() and _build() returned successfully.\n\n"
-		+ "No experiment resources were loaded by this probe."
+		"Streaming manifest load confirmed\n\n"
+		+ "ResourceLoader.load(StreamingDemoManifest.tres) returned successfully.\n\n"
+		+ "The experiment matrix has not been loaded by this probe."
 	)
