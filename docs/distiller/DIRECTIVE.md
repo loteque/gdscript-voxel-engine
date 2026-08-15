@@ -40,6 +40,40 @@ A conclusion must remain scoped to its supporting evidence. Do not use `conclusi
 
 If an absence, unknown, or unresolved condition matters to future engineering work, represent it explicitly as an `uncertainty`. Unsupported or low-value material should simply not appear in the durable output.
 
+## Epistemic Role
+
+Epistemic role describes how a proposition participates in the reasoning system. It is independent of proposition kind, project authority, and provenance.
+
+Experimental roles:
+
+- `axiom`: accepted as a starting proposition for reasoning and not derived from other propositions inside the current reasoning graph;
+- `derived`: supported or inferred from other supplied evidence or propositions;
+- `unresolved`: intentionally retained as not established.
+
+Axiomhood does not mean lack of provenance. An axiom may still have provenance describing its origin, governance, or historical source. Provenance does not make an axiom derived unless the proposition is logically derived from that evidence within the graph.
+
+Do not infer `axiom` merely because provenance is absent.
+
+## Authority
+
+Authority describes who or what establishes the proposition's project status. It is independent of epistemic role.
+
+Experimental authority values:
+
+- `observed`: established by direct project evidence;
+- `owner`: explicitly established by the project owner;
+- `governed`: established by accepted project policy, contract, or governance artifact;
+- `agent`: introduced as an agent interpretation or synthesis without higher project authority.
+
+Examples:
+
+- an owner policy may be `epistemic_role: axiom` and `authority: owner`;
+- an architecture contract may be `epistemic_role: axiom` and `authority: governed`;
+- a benchmark finding may be `epistemic_role: derived` and `authority: observed`;
+- an agent synthesis may be `epistemic_role: derived` and `authority: agent`.
+
+Never promote agent authority into owner or governed authority without supporting evidence.
+
 ## Initial Relations
 
 Use only these relations:
@@ -60,24 +94,9 @@ A record should express one independently changeable proposition.
 
 If two clauses could be superseded, contradicted, or validated independently, represent them as separate records.
 
-## Authority
-
-Distillation proposes memory. It does not grant authority.
-
-Distinguish between:
-
-- direct observation;
-- explicit owner or governed project direction;
-- agent-derived interpretation;
-- unresolved uncertainty.
-
-Never promote an agent interpretation into an owner requirement, project policy, or accepted architectural decision without supporting authority.
-
-`conclusion` records should normally use `derived` authority unless the supplied evidence explicitly establishes another authority class.
-
 ## Provenance
 
-Every durable observation and every relation that depends on external evidence should reference the source material that supports it. Preserve supplied source identifiers exactly when practical.
+Provenance describes where a proposition or relation came from, what directly establishes it, what grants authority, what corroborates it, or what supplies useful context. Provenance is independent of epistemic role.
 
 When multiple valid provenance sources are available, prefer the strongest direct source for the proposition rather than the broadest contextual source.
 
@@ -119,8 +138,14 @@ Return structured data only. Use this logical shape until a formal schema replac
       "temp_id": "r1",
       "kind": "observation | decision | assumption | uncertainty | conclusion",
       "statement": "One atomic proposition.",
-      "authority": "observed | owner | governed | derived | unresolved",
-      "provenance_refs": ["source-id"]
+      "epistemic_role": "axiom | derived | unresolved",
+      "authority": "observed | owner | governed | agent",
+      "provenance": {
+        "primary": ["source-id"],
+        "authority": ["source-id"],
+        "corroborating": ["source-id"],
+        "context": ["source-id"]
+      }
     }
   ],
   "relations": [
@@ -128,15 +153,31 @@ Return structured data only. Use this logical shape until a formal schema replac
       "from": "r1",
       "type": "supports | contradicts | depends_on | supersedes | validated_by",
       "to": "r2",
-      "provenance_refs": ["source-id"]
+      "provenance": {
+        "primary": ["source-id"],
+        "corroborating": ["source-id"],
+        "context": ["source-id"]
+      }
     }
   ]
 }
 ```
 
-Statements must be concise, atomic, and independently understandable.
+Optional fields and collections must be omitted when absent. Do not emit `null`, empty arrays, or empty objects unless a future protocol version assigns distinct semantic meaning to emptiness.
 
 The durable output contains only records and relations. Do not emit an omission log, rejected-candidate narrative, or explanation of why unsupported material was excluded.
+
+## Combination Rules
+
+The following are initial validation rules, not a complete formal type system:
+
+- `conclusion` should normally use `epistemic_role: derived`;
+- `uncertainty` should normally use `epistemic_role: unresolved`;
+- `observation` should normally use `authority: observed`;
+- `axiom` may use `owner`, `governed`, `observed`, or `agent` authority, though `agent` axioms should be treated as provisional and should not silently become governed truth;
+- `derived` propositions should have sufficient provenance or supporting relations to reconstruct their basis;
+- provenance absence does not imply axiomhood;
+- axiomhood does not imply provenance absence.
 
 ## Evaluation Diagnostics
 
@@ -153,8 +194,10 @@ A distillation is defective if it:
 - loses important provenance;
 - chooses broad contextual provenance when stronger direct immutable evidence is supplied without justification;
 - records low-value activity as durable memory;
-- silently converts interpretation into project truth;
+- silently converts agent interpretation into owner or governed truth;
 - erases uncertainty by presenting an unresolved matter as settled;
+- infers axiomhood merely from absent provenance;
+- treats provenance as the definition of epistemic role;
 - emits omission/rejection narration as durable memory;
 - expands the ontology merely to accommodate one awkward example.
 
