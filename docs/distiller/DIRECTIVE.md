@@ -30,13 +30,30 @@ Extract only information that is likely to matter to future engineering work. Pr
 
 Use only these types unless the evaluation task explicitly permits another experimental type:
 
-- `observation`: something directly established by evidence or a durable empirical proposition;
+- `observation`: a proposition about project/world state or behavior whose content is empirically established, testable, measured, inspected, or otherwise directly about observable state;
 - `decision`: an explicit choice or accepted project direction;
 - `assumption`: a proposition relied upon without being established;
 - `uncertainty`: an important unresolved question, unknown, or unverified condition;
-- `claim`: a durable proposition that does not naturally fit one of the more specific semantic kinds.
+- `claim`: a durable proposition established primarily by reasoning, interpretation, scope, compliance, or evidentiary relationships rather than by empirical observation alone.
 
 `conclusion` is not a proposition kind. Being a conclusion is represented by derivation structure, not by `kind`.
+
+### Observation vs. Claim
+
+Use `observation` when the proposition describes empirically established state or behavior, even when that proposition is itself derived from multiple empirical premises.
+
+Use `claim` when the proposition describes what evidence warrants, an interpretation, a logical or scope boundary, a compliance judgment, or another proposition that is not naturally characterized as observed state or behavior.
+
+Examples:
+
+- `Deserialization dominates the measured chunk-loading stages.` → `observation`;
+- `The tested revision exercised all required validation surfaces successfully.` → `observation` when it summarizes directly observed validation outcomes;
+- `Successful deployment does not establish runtime UI startup correctness.` → `claim`;
+- `This implementation satisfies the governed ownership contract.` → `claim` unless the statement merely reports a direct machine-checked contract result.
+
+When both appear plausible, ask whether the proposition could naturally be falsified by another observation of project/world state. If yes, prefer `observation`. If falsification primarily requires argument about evidence, scope, interpretation, or compliance, prefer `claim`.
+
+Do not use `claim` merely because a proposition is derived. Derived empirical propositions may still be observations.
 
 If an absence, unknown, or unresolved condition matters to future engineering work, represent it explicitly as an `uncertainty`. Unsupported or low-value material should simply not appear in the durable output.
 
@@ -238,6 +255,7 @@ The following are initial validation rules, not a complete formal type system:
 
 - `uncertainty` should normally use `epistemic_role: unresolved`;
 - `claim` may use any epistemic role when its semantic content does not fit a more specific kind;
+- `observation` may be `axiom` or `derived`; derivedness alone never forces `claim`;
 - `derived` requires a non-empty `premise`;
 - non-derived propositions must not contain `premise`;
 - authority is optional and limited to `owner` or `governed`;
@@ -271,6 +289,8 @@ A distillation is defective if it:
 - places external source IDs in `premise`;
 - duplicates premise relationships in general relations;
 - uses `depends_on` where the relationship is actually derivational;
+- uses `claim` merely because a proposition is derived;
+- uses `observation` for a proposition whose content is primarily evidentiary, interpretive, scope-based, or compliance-based rather than empirical;
 - emits omission/rejection narration as durable memory;
 - expands the ontology merely to accommodate one awkward example.
 
