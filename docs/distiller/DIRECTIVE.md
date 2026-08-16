@@ -32,52 +32,81 @@ Use only these types unless the evaluation task explicitly permits another exper
 
 - `observation`: something directly established by evidence or a durable empirical proposition;
 - `decision`: an explicit choice or accepted project direction;
-- `assumption`: a proposition relied upon but not established as fact;
-- `uncertainty`: an important unresolved question, unknown, or unverified condition.
+- `assumption`: a proposition relied upon without being established;
+- `uncertainty`: an important unresolved question, unknown, or unverified condition;
+- `claim`: a durable proposition that does not naturally fit one of the more specific semantic kinds.
 
-`conclusion` is not a proposition kind. A proposition that is inferred or synthesized from evidence is represented through `epistemic_role: derived` while retaining the semantic kind that best describes the proposition.
-
-If no existing kind can represent a durable derived proposition without semantic distortion, do not invent a new kind during ordinary distillation. Treat that as evaluation pressure on the protocol.
+`conclusion` is not a proposition kind. Being a conclusion is represented by derivation structure, not by `kind`.
 
 If an absence, unknown, or unresolved condition matters to future engineering work, represent it explicitly as an `uncertainty`. Unsupported or low-value material should simply not appear in the durable output.
 
 ## Epistemic Role
 
-Epistemic role describes how a proposition participates in the reasoning system. It is independent of proposition kind, project authority, and provenance.
+Epistemic role describes how a proposition participates in the reasoning system. It is independent of proposition kind, authority, and provenance.
 
 Experimental roles:
 
 - `axiom`: accepted as a starting proposition for reasoning and not derived from other propositions inside the current reasoning graph;
-- `derived`: supported or inferred from other supplied evidence or propositions;
+- `derived`: obtained from one or more other propositions;
 - `unresolved`: intentionally retained as not established.
 
-Axiomhood does not mean lack of provenance. An axiom may still have provenance describing its origin, governance, or historical source. Provenance does not make an axiom derived unless the proposition is logically derived from that evidence within the graph.
+Axiomhood does not mean lack of provenance. An axiom may still have provenance describing its origin, governance, or historical source.
 
 Do not infer `axiom` merely because provenance is absent.
 
+## Premise
+
+`premise` is a first-class relational definition stored on a derived proposition.
+
+A value such as:
+
+```json
+"premise": ["r1", "r2"]
+```
+
+means that `r1` and `r2` are propositions from which the current proposition is derived.
+
+`premise` is not provenance and must contain record references, not external source identifiers.
+
+The derivation invariant is:
+
+```text
+epistemic_role: derived
+    ⇔
+premise exists and is non-empty
+```
+
+Therefore:
+
+- `derived` requires `premise`;
+- `premise` is forbidden unless the proposition is `derived`;
+- `axiom` forbids `premise`;
+- `unresolved` forbids `premise`;
+- every premise reference must resolve to another record in the same distillation graph or an explicitly available referenced graph record;
+- a derivation chain must eventually terminate in axioms and/or externally grounded propositions.
+
+Do not duplicate premise relationships in the general `relations` collection.
+
 ## Authority
 
-Authority describes who or what establishes the proposition's project status. It is independent of epistemic role.
+Authority describes normative or project-level standing. It does not describe who happened to formulate a proposition and it does not substitute for epistemic role.
+
+Authority is optional.
 
 Experimental authority values:
 
-- `observed`: established by direct project evidence;
 - `owner`: explicitly established by the project owner;
-- `governed`: established by accepted project policy, contract, or governance artifact;
-- `agent`: introduced as an agent interpretation or synthesis without higher project authority.
+- `governed`: established by accepted project policy, contract, or governance artifact.
 
-Examples:
+Use authority only when normative/project standing matters.
 
-- an owner policy may be `epistemic_role: axiom` and `authority: owner`;
-- an architecture contract may be `epistemic_role: axiom` and `authority: governed`;
-- a benchmark finding may be `kind: observation`, `epistemic_role: derived`, and `authority: observed`;
-- an agent synthesis may be `epistemic_role: derived` and `authority: agent`.
+Do not encode `observed` or `agent` as authority. Empirical grounding belongs in provenance and epistemic structure. Agent synthesis belongs in derivation structure.
 
-Never promote agent authority into owner or governed authority without supporting evidence.
+Never promote a proposition into owner or governed authority without supporting authority provenance.
 
 ## Initial Relations
 
-Use only these relations:
+Use only these non-derivational relations:
 
 - `supports`
 - `contradicts`
@@ -85,7 +114,11 @@ Use only these relations:
 - `supersedes`
 - `validated_by`
 
-Create a relation only when the supplied evidence establishes it. Do not manufacture causal, comparative, or decision relationships because they seem reasonable.
+`premise` is not part of this collection because it is constitutive of derivation and is encoded locally on the derived proposition.
+
+`depends_on` means a proposition remains conditionally dependent on another proposition for validity, applicability, or revision. It does not mean the target was logically derived from that proposition.
+
+Create a relation only when the supplied evidence establishes it. Do not manufacture causal, comparative, or dependency relationships because they seem reasonable.
 
 A relation should connect independently meaningful propositions. If a relationship is merely implied by two clauses that should have been one record, prefer fixing record atomicity over inventing an edge.
 
@@ -93,22 +126,29 @@ A relation should connect independently meaningful propositions. If a relationsh
 
 A record should express one independently changeable proposition.
 
-If two clauses could be superseded, contradicted, or validated independently, represent them as separate records.
+If two clauses could be superseded, contradicted, validated, or resolved independently, represent them as separate records.
 
 ## Provenance
 
-Provenance describes where a proposition or relation came from, what directly establishes it, what grants authority, what corroborates it, or what supplies useful context. Provenance is independent of epistemic role.
+Provenance describes external grounding: where a proposition or relation came from, what directly establishes it, what grants authority, what corroborates it, or what supplies useful context.
+
+Graph proposition references are not provenance. Use `premise` or `relations` for graph-to-graph semantics.
 
 When multiple valid provenance sources are available, prefer the strongest direct source for the proposition rather than the broadest contextual source.
 
 Use this preference order when applicable:
 
 1. immutable direct evidence tied to the proposition, such as a specific commit, test result, validation run, workflow run, benchmark result, or source observation;
-2. authoritative governed records or explicit owner instructions that directly establish the proposition;
+2. authoritative governed records or explicit owner instructions that directly establish normative standing;
 3. specific pull-request, issue, document, or file evidence;
 4. broad chat, continuation, or summary context.
 
-Do not discard useful upstream provenance for a derived proposition. A derived proposition should preserve references to the direct observations or evidence from which it is derived, while those observations retain their own strongest source references.
+Typed provenance roles:
+
+- `primary`: directly establishes or externally grounds the proposition;
+- `authority`: establishes owner or governed standing;
+- `corroborating`: independently strengthens the proposition;
+- `context`: helps explain or locate the proposition without establishing it.
 
 Do not attach every available source merely because it is valid. Prefer minimal sufficient provenance.
 
@@ -137,10 +177,11 @@ Return structured data only. Use this logical shape until a formal schema replac
   "records": [
     {
       "temp_id": "r1",
-      "kind": "observation | decision | assumption | uncertainty",
+      "kind": "observation | decision | assumption | uncertainty | claim",
       "statement": "One atomic proposition.",
       "epistemic_role": "axiom | derived | unresolved",
-      "authority": "observed | owner | governed | agent",
+      "authority": "owner | governed",
+      "premise": ["record-id"],
       "provenance": {
         "primary": ["source-id"],
         "authority": ["source-id"],
@@ -164,6 +205,29 @@ Return structured data only. Use this logical shape until a formal schema replac
 }
 ```
 
+Required record fields:
+
+- `temp_id`
+- `kind`
+- `statement`
+- `epistemic_role`
+
+Optional record fields:
+
+- `authority`
+- `premise`
+- `provenance`
+
+Required relation fields:
+
+- `from`
+- `type`
+- `to`
+
+Optional relation fields:
+
+- `provenance`
+
 Optional fields and collections must be omitted when absent. Do not emit `null`, empty arrays, or empty objects unless a future protocol version assigns distinct semantic meaning to emptiness.
 
 The durable output contains only records and relations. Do not emit an omission log, rejected-candidate narrative, or explanation of why unsupported material was excluded.
@@ -173,13 +237,15 @@ The durable output contains only records and relations. Do not emit an omission 
 The following are initial validation rules, not a complete formal type system:
 
 - `uncertainty` should normally use `epistemic_role: unresolved`;
-- `observation` should normally use `authority: observed`, but a derived empirical proposition may still be an `observation` with `epistemic_role: derived`;
-- `decision` may be axiomatic or derived depending on whether it is an accepted starting direction or a decision derived from governed reasoning;
-- `assumption` may be axiomatic or unresolved depending on whether it is deliberately adopted or merely suspected;
-- `axiom` may use `owner`, `governed`, `observed`, or `agent` authority, though `agent` axioms should be treated as provisional and should not silently become governed truth;
-- `derived` propositions should have sufficient provenance or supporting relations to reconstruct their basis;
+- `claim` may use any epistemic role when its semantic content does not fit a more specific kind;
+- `derived` requires a non-empty `premise`;
+- non-derived propositions must not contain `premise`;
+- authority is optional and limited to `owner` or `governed`;
+- `owner` or `governed` authority requires matching authority provenance;
 - provenance absence does not imply axiomhood;
-- axiomhood does not imply provenance absence.
+- axiomhood does not imply provenance absence;
+- premise references are graph relations and must never be encoded as provenance;
+- `depends_on` must not be used as a substitute for `premise`.
 
 ## Evaluation Diagnostics
 
@@ -196,11 +262,15 @@ A distillation is defective if it:
 - loses important provenance;
 - chooses broad contextual provenance when stronger direct immutable evidence is supplied without justification;
 - records low-value activity as durable memory;
-- silently converts agent interpretation into owner or governed truth;
+- silently converts a proposition into owner or governed truth;
 - erases uncertainty by presenting an unresolved matter as settled;
 - infers axiomhood merely from absent provenance;
 - treats provenance as the definition of epistemic role;
 - uses `conclusion` as a proposition kind;
+- creates a `derived` proposition without premises;
+- places external source IDs in `premise`;
+- duplicates premise relationships in general relations;
+- uses `depends_on` where the relationship is actually derivational;
 - emits omission/rejection narration as durable memory;
 - expands the ontology merely to accommodate one awkward example.
 
