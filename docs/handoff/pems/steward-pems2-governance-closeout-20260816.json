@@ -1,0 +1,68 @@
+{
+  "id": "STEWARD-20260816-027",
+  "timestamp": "2026-08-16T15:04:00-07:00",
+  "author_role": "Project Engineering Steward",
+  "type": "canonical_cutover_governance_closeout",
+  "status": "accepted_complete",
+  "acknowledges": [
+    "ARCH-20260816T145400-0700-041",
+    "ARCH-20260816T150235-0700-042"
+  ],
+  "owner_authorization": {
+    "decision": "Authorized",
+    "durable_steward_authorization": "STEWARD-20260816-026",
+    "authorization_commit": "c8046e570414d46525b45241fb3a445cb8b38f2e"
+  },
+  "installation": {
+    "commit": "05d9ef3d9df07160159cc95f005d088415f88eae",
+    "fast_forward": true,
+    "force_ref_update": false,
+    "changed_paths": [
+      "docs/project-chat-handoff.cove.json",
+      "docs/project-chat-handoff.json"
+    ],
+    "only_authorized_paths_changed": true
+  },
+  "canonical_state_verified": {
+    "authority_path": "docs/project-chat-handoff.cove.json",
+    "tuple": "cove/1|pems/2|jcs/1",
+    "record_count": 174,
+    "cove_blob": "a6bd37d0a253241c5c217d684b6604e47c0ed72a",
+    "cove_bytes": 42908,
+    "cove_sha256": "209f9d0d10ccbffa7f13bb9bd5f152d121aea62314d8fc35ac523321d5b1006c",
+    "derivative_blob": "876b24888dbf9c8f66126be8eacf2cd299a41cd9",
+    "derivative_bytes": 71928,
+    "derivative_sha256": "9f448f75ab56f580bef9c05da96e109f329645574943e6934507f276ad500460",
+    "equals_previously_accepted_candidate": true
+  },
+  "invariants_accepted": {
+    "all_174_identities_preserved_zero_rebinding": true,
+    "history_lifecycle_provenance_preserved": true,
+    "typed_or_primary_provenance_invented": false,
+    "cove_structural_round_trip": true,
+    "pems2_semantic_validation": true,
+    "repeated_canonical_bytes_identical": true,
+    "dual_read_and_fail_closed_behavior_preserved": true
+  },
+  "rollback": {
+    "pems1_cove_blob": "32c6cf2b594e2f3de3eea4ccda863ba84f24ce3f",
+    "pems1_derivative_blob": "98450a42f33a834203968e564700392149c3e834",
+    "retained_as_immutable_git_blobs": true
+  },
+  "repository_verification": {
+    "verified_branch_head_before_closeout_write": "c427c6425d05b7031161be56b6ee8117ae4a60ec",
+    "verified_tree_before_closeout_write": "53e2479f235c3d18dd966945955660e2c5c037f1",
+    "production_main_observation_in_canonical_memory": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "new_contradictory_evidence_found": false
+  },
+  "governance_outcome": {
+    "technical_installation_complete": true,
+    "canonical_authority_transferred_to_pems2": true,
+    "steward_governance_closeout_complete": true,
+    "pems1_rollback_anchors_retained": true,
+    "owner_decision_satisfied": true,
+    "further_architect_work_required_for_this_cutover": false
+  },
+  "human_reasoning": "The owner explicitly authorized authority transfer only after the exact 174-record PEMS/2 candidate passed independent Steward verification. The Architect then promoted those exact already-verified blobs without regeneration, by ordinary fast-forward Git history, and post-write evidence proves the installed canonical paths equal the accepted candidate byte-for-byte. The current repository tree independently confirms the same canonical blobs and sizes. Because identity, history, lifecycle, provenance, deterministic bytes, dual-read/fail-closed behavior, and exact PEMS/1 rollback anchors all remain intact, the Steward accepts the installation and closes governance. This closeout changes governance status only; it does not regenerate canonical memory or alter production code.",
+  "next_gate": "No further PEMS/2 cutover gate remains. Future canonical semantic changes proceed through ordinary Steward reconciliation and any separately required representation governance."
+}
