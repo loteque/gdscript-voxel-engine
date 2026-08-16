@@ -29,6 +29,18 @@ The RGP Engineer must not modify Architect-owned or Steward-owned mutable/append
 
 Submissions to the PEMS/COVE Architect must be persisted on `project-chat-handoff` through the established handoff coordination surface. A feature branch, chat message, or GitHub issue alone is not a durable Architect submission.
 
+Submissions of candidate RGP graphs to the Project Engineering Steward must follow `docs/handoff/rgp/SUBMISSION_PROTOCOL.md`.
+
+Candidate RGP submissions belong under:
+
+- `docs/handoff/rgp/submissions/`
+
+Steward disposition records belong under:
+
+- `docs/handoff/rgp/dispositions/`
+
+RGP producers must never write directly to Steward-owned canonical PEMS/COVE memory artifacts.
+
 When contributing to `project-chat-handoff`, preserve its history-sensitive and append-only contracts. Do not rewrite historical evidence.
 
 ## Startup Protocol
@@ -37,9 +49,10 @@ At the beginning of RGP project work:
 
 1. Fetch `docs/project-chat-handoff.json` from `project-chat-handoff` and use `project_level` as shared project context.
 2. Read this directive from `docs/handoff/rgp/rgp_engineer_directive.md` on `project-chat-handoff` and treat it as the authoritative RGP Engineer role directive.
-3. Inspect relevant RGP, distiller, PEMS, COVE, Architect, Steward, and repository artifacts needed for the current task.
-4. Treat handoff repository information as historical context only when current repository state matters; inspect current GitHub state before making claims.
-5. Preserve newer explicit owner instructions over older recorded guidance.
+3. Read `docs/handoff/rgp/SUBMISSION_PROTOCOL.md` before producing any durable candidate submission for Steward admission.
+4. Inspect relevant RGP, distiller, PEMS, COVE, Architect, Steward, and repository artifacts needed for the current task.
+5. Treat handoff repository information as historical context only when current repository state matters; inspect current GitHub state before making claims.
+6. Preserve newer explicit owner instructions over older recorded guidance.
 
 ## Core Architectural Model
 
@@ -91,6 +104,9 @@ RGP
 
 RGP Validator
     enforces deterministic structural invariants
+
+RGP Submission Protocol
+    transports immutable candidate packages and immutable Steward outcomes
 
 Admission/Reconciliation
     determines whether candidate reasoning becomes durable application knowledge
@@ -199,13 +215,13 @@ PEMS v1 is frozen.
 
 The RGP-to-PEMS-v1 mapping demonstrated genuine semantic loss, including generic propositions, assumptions, supports, contradictions, and typed provenance.
 
-The PEMS/COVE Architect has accepted the direction of investigating native RGP support in a successor PEMS design.
-
-The current PEMS2/RGP compatibility profile resolves the initial Architect questions, but does not authorize implementation or canonical migration.
+The PEMS/COVE Architect accepted the direction of native RGP support in a successor PEMS design, and PEMS/2 is now the active successor contract where repository evidence confirms adoption.
 
 Treat PEMS integration as an application profile of RGP. Do not change generic RGP semantics merely to make PEMS integration easier.
 
 All submissions to the PEMS/COVE Architect must be persisted on the `project-chat-handoff` branch through the established Architect/Steward coordination surface.
+
+All candidate RGP submissions for Steward admission must use the immutable submission/disposition protocol defined in `docs/handoff/rgp/SUBMISSION_PROTOCOL.md`.
 
 ## Repository Practice
 
@@ -221,7 +237,7 @@ When modifying ordinary implementation/design work outside the handoff branch, u
 
 Never use generic branch names.
 
-The `project-chat-handoff` branch is a special coordination branch and is the required durable surface for RGP role directives, handoff participation, and PEMS/COVE Architect submissions.
+The `project-chat-handoff` branch is a special coordination branch and is the required durable surface for RGP role directives, handoff participation, Steward candidate submissions, and PEMS/COVE Architect submissions.
 
 When repository changes trigger GitHub Actions, identify the relevant workflow runs, report their current state, and provide direct links.
 
