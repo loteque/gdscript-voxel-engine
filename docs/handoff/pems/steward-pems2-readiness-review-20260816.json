@@ -1,0 +1,98 @@
+{
+  "record_id": "STEWARD-20260816-024",
+  "timestamp": "2026-08-16T13:11:10-07:00",
+  "author_role": "Project Engineering Steward",
+  "type": "adoption-readiness-gate",
+  "status": "accepted_next_tranche_authorized",
+  "acknowledges": [
+    "ARCH-20260816T124900-0700-038",
+    "ARCH-20260816T125824-0700-039",
+    "STEWARD-20260816-023"
+  ],
+  "canonical_authority_unchanged": {
+    "semantic_profile": "pems/1",
+    "codec": "cove/1",
+    "serializer": "jcs/1",
+    "record_count": 174,
+    "canonical_cove_blob": "32c6cf2b594e2f3de3eea4ccda863ba84f24ce3f",
+    "canonical_derivative_blob": "98450a42f33a834203968e564700392149c3e834"
+  },
+  "readiness_artifacts_reviewed": {
+    "canonical_adoption_readiness": {
+      "path": "docs/handoff/pems/v2/CANONICAL_ADOPTION_READINESS.md",
+      "blob": "748ab352fd6b053e686eb9b52d088fff97f5c80a"
+    },
+    "grounding_profiles": {
+      "path": "docs/handoff/pems/v2/GROUNDING_PROFILES.json",
+      "blob": "ab49f7574a68d0bd9bb922931420b9bab9fc03c9"
+    },
+    "adoption_readiness_evidence": {
+      "path": "docs/handoff/pems/v2/ADOPTION_READINESS_EVIDENCE.json",
+      "blob": "93722fc2be927f51dfb96ae937ee604dbacee47e"
+    }
+  },
+  "independent_steward_findings": {
+    "cove1_pems2_structural_compatibility": "accepted",
+    "reason": "Frozen COVE/1 defines p as an opaque semantic/profile identifier, does not interpret semantic profile vocabulary, encodes only normalized JSON structural value classes, and requires semantic-profile validation after structural decode. PEMS/2 introduces semantic/schema vocabulary without a new structural value class.",
+    "recommended_profile_tuple": ["cove/1", "pems/2", "jcs/1"],
+    "cove2_required": false,
+    "dual_read_contract": "accepted_with_fail_closed_profile_dispatch",
+    "unknown_or_unsupported_profile_behavior": "reject; no cross-profile coercion",
+    "scoped_grounding_profiles": "accepted_for_candidate-proof stage",
+    "universal_primary_core_invariant": false,
+    "grounding_reason": "Universal primary grounding would either reject preserved admitted legacy meaning or incentivize invented provenance. Grounding strength remains an admission/conformance profile concern.",
+    "rollback_model": "accepted",
+    "rollback_constraint": "Retain exact prior accepted PEMS/1 authority artifact and derivative. Do not assume lossless reverse migration after PEMS/2-only admissions exist.",
+    "authority_transfer_gates": "accepted",
+    "owner_facing_recommendation": "accepted_as_readiness_recommendation_only"
+  },
+  "steward_disposition": {
+    "readiness_package": "accepted",
+    "bounded_corrections_required": [],
+    "next_tranche": "exact_noncanonical_pems2_cutover_candidate_proof",
+    "actual_canonical_adoption_authorized": false,
+    "actual_authority_cutover_authorized": false
+  },
+  "architect_authorization": {
+    "source": "Fix exactly one immutable current canonical PEMS/1 revision as source. The source must correspond to the Steward-admitted 174-record canonical state; record exact source commit/tree/blob identities.",
+    "required_outputs": [
+      "normalized deterministic PEMS/2 candidate preserving all 174 source semantic identities, lifecycle/history, provenance, and relation meaning with zero rebinding",
+      "exact proposed COVE/1 artifact whose envelope declares c=cove/1, p=pems/2, s=jcs/1",
+      "exact deterministic JCS/1 canonical bytes for that COVE/1 artifact",
+      "deterministic expanded compatibility/human-readable derivative or reconstruction as required for audit",
+      "dual-read fixtures covering the current (cove/1,pems/1,jcs/1) canonical artifact and proposed (cove/1,pems/2,jcs/1) candidate",
+      "negative fixtures proving unsupported/unknown semantic profiles fail closed and cross-profile coercion is forbidden",
+      "rollback manifest naming the immutable prior PEMS/1 canonical COVE and derivative identities",
+      "machine-readable conformance evidence with exact byte counts, blob identities where committed, and SHA-256 hashes"
+    ],
+    "required_proofs": [
+      "PEMS/2 schema and semantic validity",
+      "174/174 semantic identity preservation and zero rebinding",
+      "lifecycle/history/provenance preservation",
+      "no invented primary, corroborating, context, or other typed provenance",
+      "exact PEMS/2 -> COVE/1 -> PEMS/2 structural and semantic round trip",
+      "repeated migration plus COVE/JCS generation produces byte-identical candidate output",
+      "deterministic human reconstruction/derivative",
+      "dual-read dispatch accepts both supported tuples and rejects unsupported semantic major/profile",
+      "prior accepted PEMS/1 canonical artifact remains recoverable by exact immutable identity"
+    ],
+    "grounding_rule": "Apply scoped grounding profiles only. Legacy-preservation material may retain untyped provenance; do not manufacture primary evidence. Any newly introduced candidate-only material must satisfy its applicable grounding/admission profile or be excluded/block admission.",
+    "hard_stops": [
+      "semantic identity collision or rebinding",
+      "history, lifecycle, relation, or provenance loss",
+      "invented provenance or authority",
+      "nondeterministic migration, encoding, serialization, or reconstruction",
+      "COVE/1 reinterpretation or structural-contract change",
+      "profile coercion or unsupported-profile acceptance",
+      "source canonical identity changes during candidate generation",
+      "scope expansion into canonical installation or authority transfer"
+    ]
+  },
+  "separate_owner_gate": {
+    "required_before": "any canonical authority transfer from PEMS/1 to PEMS/2",
+    "required_now": false,
+    "reason": "This tranche produces exact noncanonical candidate evidence only. The owner should decide adoption after the Steward reviews exact candidate bytes, rollback identities, and conformance evidence."
+  },
+  "human_reasoning": "The readiness package clears the design question but not the authority question. COVE/1 is a structural envelope and codec, not a semantic ontology: its frozen contract explicitly makes p opaque and dispatches semantic validation after decoding. That allows PEMS/2 to evolve meaning without minting a gratuitous COVE/2. The safe next step is therefore to manufacture no new authority at all, but to produce one exact, reproducible PEMS/2 cutover candidate from one frozen 174-record source. That candidate will let the Steward compare exact bytes and rollback identities before the owner is asked a simple consequential question: whether to move canonical authority to PEMS/2.",
+  "governance_outcome": "PEMS/2 canonical-adoption readiness is accepted. The Engineering Knowledge Systems Architect is authorized to generate the exact noncanonical cutover-candidate proof package. Canonical PEMS/2 adoption and authority cutover remain prohibited until a later explicit owner decision and Steward admission of exact candidate artifacts."
+}
