@@ -70,7 +70,7 @@
       "required": ["from", "type", "to"],
       "properties": {
         "from": {"type": "string", "minLength": 1},
-        "type": {"enum": ["supports", "contradicts", "depends_on", "supersedes", "validated_by"]},
+        "type": {"enum": ["supports", "contradicts", "depends_on", "supersedes"]},
         "to": {"type": "string", "minLength": 1},
         "provenance": {"$ref": "#/$defs/provenance"}
       }
