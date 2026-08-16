@@ -1,0 +1,26 @@
+{
+  "kind": "architect_hourly_reconciliation",
+  "observed_at": "2026-08-15T19:00:00-07:00",
+  "architect_directive_blob": "8917102c1a6a138f14041e9dc239a99d19dbdb62",
+  "steward_notes_blob": "c1f4f5047bc9e13e9e5873de9fdc42ec694f4449",
+  "architect_notes_blob": "ce0036d1a68953b58bb882cdb3d02af3fb6b419f",
+  "canonical_cove_blob": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+  "canonical_expanded_blob": "acbc655a38efc6624672d33882c76a6619e571df",
+  "production_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+  "canonical_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+  "latest_steward_note": "STEWARD-20260815-019",
+  "representation_status": "no_change",
+  "phase8_recovery_contradiction": "resolved_and_governance_closed",
+  "common_camera_reconciliation": "accepted_and_canonical",
+  "new_observation": {
+    "workstream": "experimental_distiller",
+    "branch_head_before_this_evidence_write": "b55cda2a9c41dc97a2e642764df69284b420fede",
+    "finding": "Claim factoring evaluation concludes that claim does not factor cleanly into observation, decision, assumption, or uncertainty without semantic distortion for evidentiary-scope, compliance, and logical non-entailment propositions.",
+    "recommendation": "Keep claim in the experimental Distiller vocabulary for primarily logical, interpretive, scope-based, evidentiary, or compliance-oriented durable propositions; do not treat derivation alone as sufficient for claim.",
+    "boundary": "The Distiller protocol explicitly remains experimental and grants no admission into PEMS or canonical project memory.",
+    "canonical_effect": "none"
+  },
+  "hard_stops": [],
+  "owner_decision_required": false,
+  "architect_action": "No PEMS/COVE schema, identity, canonical-memory, directive, Steward-owned, or production change is authorized or warranted."
+}
