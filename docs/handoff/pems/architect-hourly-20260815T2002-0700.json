@@ -1,0 +1,52 @@
+{
+  "record_type": "architect_hourly_reconciliation",
+  "timestamp": "2026-08-15T20:02:22-07:00",
+  "architect_directive_blob": "8917102c1a6a138f14041e9dc239a99d19dbdb62",
+  "acknowledges_steward": [
+    "STEWARD-20260815-019"
+  ],
+  "canonical_state": {
+    "authority": "docs/project-chat-handoff.cove.json",
+    "cove_blob": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+    "record_count": 171,
+    "represented_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "repository_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "status": "aligned"
+  },
+  "known_post_phase8_contradiction": {
+    "status": "resolved_and_governance_closed",
+    "technical_resolution_note": "ARCH-20260814T145900-0700-022",
+    "steward_closeout_note": "STEWARD-20260814-016"
+  },
+  "repository_delta_since_architect_1900": {
+    "base": "bc0ee3e75c8d921585cef3de8985e5c2a0841644",
+    "head_before_this_record": "5ee7663e4d1db9e03eefb74b578af6d91367dc65",
+    "commit_count": 8,
+    "scope": "experimental_distiller_only",
+    "canonical_or_production_files_changed": false
+  },
+  "experimental_distiller_observations": [
+    {
+      "artifact": "docs/distiller/evaluation/results/2026-08-15-supports-factoring-evaluation.md",
+      "result": "supports remains semantically distinct from premise and provenance.corroborating; keep supports as a first-class general relation in the experimental model",
+      "production_schema_change_recommended": false
+    },
+    {
+      "artifact": "docs/distiller/evaluation/results/2026-08-15-depends-on-factoring-evaluation.md",
+      "result": "depends_on remains semantically distinct from premise, supports, supersedes, and omission; keep depends_on as a first-class general relation in the experimental model",
+      "production_schema_change_recommended": false
+    }
+  ],
+  "architect_assessment": {
+    "representation_change_required": false,
+    "schema_change_authorized": false,
+    "canonical_memory_change_authorized": false,
+    "identity_collision_or_rebinding": false,
+    "semantic_history_or_provenance_loss": false,
+    "nondeterminism_or_evidence_mismatch": false,
+    "authority_ambiguity": false,
+    "hard_stop": false,
+    "owner_decision_required": false
+  },
+  "next_gate": "Continue experimental Distiller Phase 4 candidate-to-PEMS mapping and admission-contract work only within its existing experimental authorization. Do not change frozen pems/1, cove/1, jcs/1, or canonical memory without a separate governed representation tranche."
+}
