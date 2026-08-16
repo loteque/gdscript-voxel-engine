@@ -1,0 +1,61 @@
+{
+  "kind": "architect_hourly_reconciliation",
+  "timestamp": "2026-08-15T17:01:44-07:00",
+  "author_role": "Engineering Knowledge Systems Architect",
+  "status": "no_representation_change_with_experimental_distiller_schema_delta",
+  "acknowledges": [
+    "STEWARD-20260815-019"
+  ],
+  "repository": "loteque/gdscript-voxel-engine",
+  "observed": {
+    "project_chat_handoff_head_before_this_record": "8764d9766a449380dbeca45c1bf9983b0a4bfdfd",
+    "production_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "canonical_cove_blob": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+    "canonical_expanded_blob": "acbc655a38efc6624672d33882c76a6619e571df",
+    "canonical_record_count": 171,
+    "phase8_status": "accepted_complete"
+  },
+  "assessment": {
+    "phase8_recovery_cove_contradiction": "resolved_and_governance_closed",
+    "common_camera_continuity": "accepted_and_canonically_reconciled",
+    "production_vs_canonical_main_head": "match",
+    "identity_collision_or_rebinding": false,
+    "semantic_history_or_provenance_loss": false,
+    "nondeterminism_or_evidence_mismatch": false,
+    "schema_or_contract_contradiction": false,
+    "authority_ambiguity": false,
+    "new_authorized_representation_tranche": false
+  },
+  "repository_delta_since_prior_architect_evidence": {
+    "scope": "experimental_distiller_only",
+    "base": "8d90af0016c03b4d5886ab194556cfdd24535ffd",
+    "head": "8764d9766a449380dbeca45c1bf9983b0a4bfdfd",
+    "commits": 4,
+    "changes": [
+      {
+        "commit": "2769310165cfbe8247eaa9d44dd4ff68decd9e31",
+        "summary": "Separates epistemic role from project authority and provenance in the experimental Distiller protocol."
+      },
+      {
+        "commit": "3b9b478e21ceaba0c79dc3a8964479918174d413",
+        "summary": "Removes conclusion as an experimental proposition kind; derivedness is represented by epistemic_role instead."
+      },
+      {
+        "commit": "f3ab1ad9dc6fed7c180b103823fb69e25bd4d01e",
+        "summary": "Updates provenance evaluation expectations so derived propositions preserve direct upstream evidence and conclusion is a hard-failure kind."
+      },
+      {
+        "commit": "8764d9766a449380dbeca45c1bf9983b0a4bfdfd",
+        "summary": "Evaluates the conclusion-free protocol across 15 runs: 14/15 preserve the intended synthesis, with remaining pressure isolated to generic meta-evidentiary claims."
+      }
+    ],
+    "experimental_finding": "The Distiller experiment now cleanly separates semantic proposition kind, epistemic role, authority, and provenance. Evidence supports keeping conclusion removed because empirical synthesis is represented stably as derived observation. One narrower unresolved design question remains: generic durable claims about what evidence warrants do not always fit observation, decision, assumption, or uncertainty. The evaluation recommends comparing omitted kind versus a minimal claim kind before any ontology expansion.",
+    "representation_effect": "none_authorized",
+    "governance_boundary": "The Distiller directive explicitly remains experimental and is not permission to redesign frozen pems/1 or cove/1. No Steward or owner authorization opens a representation-change tranche from these findings."
+  },
+  "human_reasoning": "This is meaningful experimental progress but not a canonical-memory event. Separating derivedness from authority fixes a category error that had made conclusion look necessary: a proposition can be empirically derived while still being an observation and while its project authority remains observed or agent. The latest evaluation supports that simplification, but the remaining generic-claim pressure is exactly the kind of ontology question that should stay in experiment space until comparative evidence exists. Promoting either an omitted-kind rule or a new claim kind into PEMS now would silently expand the frozen representation contract without Steward authorization. Canonical memory still matches production main and no identity, provenance, determinism, schema, or authority invariant is under pressure, so the correct reconciliation is to record the experiment and make no representation change.",
+  "owner_decision_required": false,
+  "canonical_memory_modified": false,
+  "steward_owned_files_modified": false,
+  "production_or_authoritative_project_files_modified": false
+}
