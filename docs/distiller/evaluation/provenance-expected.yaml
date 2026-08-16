@@ -1,4 +1,4 @@
-version: 4
+version: 5
 expectations:
   direct-test-over-chat:
     required_primary_provenance:
@@ -9,9 +9,9 @@ expectations:
       - source:chat:chunk-residency
 
   owner-rule-over-agent-summary:
-    required_authority: owner
-    required_authority_provenance:
+    required_primary_provenance:
       - source:owner:validation-requirement
+    authority_must_resolve_from_source_type: owner_instruction
     corroborating_only:
       - source:implementation:validation-scene
     must_not_attribute_origin_to:
@@ -55,9 +55,10 @@ expectations:
 
 global_hard_failures:
   - fabricated source identifier
+  - semantics inferred from source identifier spelling
   - broad chat or summary selected as sole provenance when direct immutable evidence is supplied
-  - owner requirement attributed to agent summary
-  - owner or governed authority without authority provenance
+  - owner requirement attributed to agent summary rather than resolved owner source
+  - authority or provenance.authority emitted in the current protocol
   - conflicting direct evidence silently discarded
   - empty premise array
   - external source identifier used as a premise
@@ -67,3 +68,4 @@ global_hard_failures:
   - universal claim inferred from scoped validation evidence
   - conclusion emitted as a proposition kind
   - epistemic_role emitted in the current protocol
+  - embedded sources array emitted in the current protocol
