@@ -1,0 +1,75 @@
+{
+  "contract": "pems/2-grounding-profiles/1",
+  "status": "noncanonical_design_evidence",
+  "profiles": [
+    {
+      "id": "legacy_preservation",
+      "purpose": "Preserve admitted legacy semantics during pems/1 -> pems/2 migration without inventing provenance roles.",
+      "admission_rule": {
+        "primary_required": false,
+        "untyped_allowed": true,
+        "invent_typed_roles": false,
+        "failure_effect": "block_profile_conformance_only"
+      }
+    },
+    {
+      "id": "grounded_current_claim",
+      "purpose": "Admission profile for newly admitted current claims whose truth depends on repository or external evidence.",
+      "applies_when": [
+        "new_admission",
+        "current_lifecycle",
+        "claim_truth_depends_on_observed_external_or_repository_state"
+      ],
+      "admission_rule": {
+        "primary_required": true,
+        "minimum_primary_observations": 1,
+        "primary_must_resolve_to": "source_observation",
+        "untyped_may_supplement_primary": true,
+        "invent_typed_roles": false,
+        "failure_effect": "block_admission_without_mutating_proposition_semantics"
+      }
+    },
+    {
+      "id": "derived_interpretation",
+      "purpose": "Admission profile for durable derived or interpretive propositions.",
+      "admission_rule": {
+        "primary_required_directly": false,
+        "explicit_derivation_or_support_required": true,
+        "typed_evidence_may_be_inherited_only_by_explicit_validated_graph_rule": true,
+        "invent_typed_roles": false,
+        "failure_effect": "block_admission_without_retyping_or_rebinding_identity"
+      }
+    }
+  ],
+  "negative_fixtures": [
+    {
+      "id": "new_current_claim_untyped_only",
+      "profile": "grounded_current_claim",
+      "input": {"lifecycle": "current", "provenance": {"untyped": ["pems:source_observation:x"]}},
+      "expected": "reject_profile_admission",
+      "reason": "A new externally grounded current claim lacks required primary evidence."
+    },
+    {
+      "id": "legacy_migration_untyped_only",
+      "profile": "legacy_preservation",
+      "input": {"lifecycle": "current", "provenance": {"untyped": ["pems:source_observation:x"]}},
+      "expected": "accept_profile_conformance",
+      "reason": "Preserved legacy semantics must not gain invented typed provenance."
+    },
+    {
+      "id": "derived_without_support_graph",
+      "profile": "derived_interpretation",
+      "input": {"epistemic_role": "derived", "provenance": {"untyped": ["pems:source_observation:x"]}},
+      "expected": "reject_profile_admission",
+      "reason": "Derived durability requires explicit derivation/support structure rather than inferred grounding."
+    },
+    {
+      "id": "missing_primary_does_not_change_kind",
+      "profile": "grounded_current_claim",
+      "input": {"kind": "claim", "lifecycle": "current", "provenance": {"untyped": []}},
+      "expected": "reject_profile_admission_preserve_kind_and_identity",
+      "reason": "Admission state is separate from proposition semantics."
+    }
+  ],
+  "core_invariant": "No profile may manufacture provenance, change semantic identity, or mutate proposition meaning merely to obtain admission."
+}
