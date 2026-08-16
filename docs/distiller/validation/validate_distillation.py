@@ -11,7 +11,7 @@ from typing import Any
 
 KINDS = {"observation", "decision", "assumption", "uncertainty", "claim"}
 PROVENANCE_ROLES = {"primary", "corroborating", "context"}
-RELATIONS = {"supports", "contradicts", "depends_on", "supersedes", "validated_by"}
+RELATIONS = {"supports", "contradicts", "depends_on", "supersedes"}
 
 RECORD_KEYS = {"temp_id", "kind", "statement", "premise", "provenance"}
 RELATION_KEYS = {"from", "type", "to", "provenance"}
