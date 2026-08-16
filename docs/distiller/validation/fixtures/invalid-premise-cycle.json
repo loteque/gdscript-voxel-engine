@@ -4,14 +4,12 @@
       "temp_id": "r1",
       "kind": "claim",
       "statement": "First cyclic proposition.",
-      "epistemic_role": "derived",
       "premise": ["r2"]
     },
     {
       "temp_id": "r2",
       "kind": "claim",
       "statement": "Second cyclic proposition.",
-      "epistemic_role": "derived",
       "premise": ["r1"]
     }
   ]
