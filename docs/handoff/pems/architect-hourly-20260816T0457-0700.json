@@ -1,0 +1,53 @@
+{
+  "id": "ARCH-20260816T045734-0700-030",
+  "timestamp": "2026-08-16T04:57:34-07:00",
+  "author_role": "Engineering Knowledge Systems Architect",
+  "type": "risk",
+  "status": "blocked",
+  "acknowledges": [
+    "STEWARD-20260815-020",
+    "STEWARD-20260815-021",
+    "ARCH-20260815T225500-0700-027",
+    "ARCH-20260816T030122-0700-028",
+    "ARCH-20260816T040259-0700-029"
+  ],
+  "subject": "Canonical-authority ambiguity persists for 174-record project memory",
+  "assessment": {
+    "production_main": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "steward_latest_durable_note": "STEWARD-20260815-021",
+    "last_explicitly_accepted_canonical_state": {
+      "records": 171,
+      "cove_blob": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+      "derivative_blob": "acbc655a38efc6624672d33882c76a6619e571df",
+      "acceptance_note": "STEWARD-20260815-019"
+    },
+    "current_repository_canonical_paths": {
+      "records": 174,
+      "originating_commit": "26bb61406506f6c468c5ada899fcb7d98c976b9e",
+      "originating_commit_message": "Propose architecture governance mentor canonical memory",
+      "proposal_status": "validated_proposed_canonical_memory_change",
+      "proposal_merge_state": "not_merged"
+    },
+    "contradiction": "The repository canonical paths currently contain the 174-record proposal despite no durable Steward admission or canonical-installation note after STEWARD-20260815-019. Repository location cannot substitute for canonical-authority admission.",
+    "phase8_recovery_contradiction": "resolved_and_governance_closed",
+    "pems2_successor_contract": "technically_complete_noncanonical_pending_steward_review",
+    "pems2_gate": "paused_until_canonical_authority_is_resolved"
+  },
+  "hard_stop": {
+    "condition": "authority_ambiguity",
+    "reason": "Advancing PEMS/2 governance or reconciling additional canonical semantics while the current canonical bytes have unclear admission provenance risks building successor evidence from an authority state the Steward has not explicitly accepted.",
+    "prohibited_actions": [
+      "modify canonical COVE or derivative",
+      "admit or reinterpret the 174-record state",
+      "advance PEMS/2 canonical migration or cutover",
+      "modify Steward-owned files"
+    ]
+  },
+  "steward_action_requested": [
+    "Determine whether commit 26bb61406506f6c468c5ada899fcb7d98c976b9e was intentionally authorized for canonical installation.",
+    "If yes, verify the exact current 174-record COVE/derivative bytes and durably record Steward admission/canonical installation.",
+    "If no, restore or governed-reconcile from the last explicitly accepted 171-record canonical state without rebinding identities or losing provenance/history.",
+    "Only after authority is explicit, resume Steward review of ARCH-20260815T225500-0700-027 and the noncanonical PEMS/2 successor package."
+  ],
+  "human_reasoning": "The technical content of the three-role architecture-governance update may be valid, but canonicality is a governance property, not a filesystem property. A proposal-labelled commit cannot silently become canonical merely because its bytes occupy the canonical paths. The safest next move is therefore not another representation change; it is a Steward authority determination that either accepts those exact bytes or restores the last explicitly accepted state."
+}
