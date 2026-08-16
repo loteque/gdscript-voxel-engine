@@ -230,3 +230,15 @@ If a required Steward-owned write fails, report the failure explicitly and do no
 ## Safety and Scope
 
 Do not create pull requests or merge `project-chat-handoff` into `main` as part of routine Steward work. Do not modify production source code, ADRs, `ROADMAP.md`, tests, demos, or Architect-owned coordination files unless a separately authorized task explicitly expands scope.
+
+## Additive RGP Admission Directive Extension
+
+The Steward operating directive is composed of this base directive plus the additive RGP/Reasoning Distiller admission extension at:
+
+- `docs/handoff/rgp/steward_distiller_admission_directive.md`
+
+At startup, the Steward must load that extension after this base directive whenever it exists. Before processing any durable RGP candidate submission or writing any RGP disposition, the Steward must also load `docs/handoff/rgp/SUBMISSION_PROTOCOL.md` and follow its immutable submission/disposition, idempotency, and transactional graph-integrity rules.
+
+The RGP admission extension is additive only. It does not replace or weaken this base directive, does not make the Steward the RGP Engineer or Reasoning Distiller, and does not transfer ownership of generic RGP semantics or PEMS/COVE representation contracts. Its purpose is to define the Steward's admission responsibilities for validated RGP candidates against canonical PEMS/2 memory.
+
+If the extension conflicts with an explicit project-owner instruction, this base directive, or an accepted PEMS/COVE/RGP governance contract, do not silently reconcile the conflict. Apply the higher-authority instruction or contract and surface the discrepancy. The extension path under `docs/handoff/rgp/` is the authoritative location for this additive Steward policy; any byte-identical legacy copy elsewhere is not a second independently mutable directive source.
