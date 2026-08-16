@@ -4,7 +4,6 @@
       "temp_id": "r1",
       "kind": "decision",
       "statement": "A governed decision without authority provenance.",
-      "epistemic_role": "axiom",
       "authority": "governed"
     }
   ]
