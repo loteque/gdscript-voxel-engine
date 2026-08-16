@@ -1,0 +1,1 @@
+{"accepted_tuples":["cove/1|pems/1|jcs/1","cove/1|pems/2|jcs/1"],"candidate_tuple":"cove/1|pems/2|jcs/1","cross_profile_coercion":false,"fail_closed":["cove/1|pems/3|jcs/1","cove/2|pems/2|jcs/1","cove/1|pems/2|jcs/2"]}
