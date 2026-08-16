@@ -1,0 +1,75 @@
+{
+  "record_id": "ARCH-PEMS2-ADOPTION-READINESS-20260816",
+  "status": "validated_design_ready_for_steward_review",
+  "authority": {
+    "authorized_by": "STEWARD-20260816-023",
+    "canonical_semantic_unchanged": "pems/1",
+    "canonical_codec_unchanged": "cove/1",
+    "canonical_serializer_unchanged": "jcs/1",
+    "canonical_cutover_performed": false
+  },
+  "source_evidence": {
+    "accepted_full_corpus_records": 174,
+    "pems2_full_corpus_sha256": "896e3b61077e063850cbb3693f27d8732719057ca3df3effb6382b4b16b6df01",
+    "migration_evidence_sha256": "d012f9beb0d6cbcb61ca954da1856d339a31d2db9690413dfecb2af8290063be",
+    "human_reconstruction_sha256": "580e642eb2dd07ad3f5743a28c294de6103ee34181ea95e6d306c65a926e383a",
+    "rgp_compatibility": "28/28",
+    "admission_cases": "6/6"
+  },
+  "grounding_profile_result": {
+    "universal_primary_core_invariant": false,
+    "profiles_defined": ["legacy_preservation", "grounded_current_claim", "derived_interpretation"],
+    "negative_fixture_count": 4,
+    "invariant": "Admission failure never manufactures provenance or mutates semantic identity/kind/lifecycle merely to pass a profile."
+  },
+  "codec_evaluation": {
+    "question": "Can frozen cove/1 structurally encode normalized pems/2 without contract reinterpretation?",
+    "result": "yes",
+    "proof_basis": [
+      "COVE/1 envelope p is an opaque semantic/profile identifier.",
+      "COVE/1 core is domain-agnostic and uses only global string interning plus deterministic object-shape factoring.",
+      "COVE/1 encoded tags cover every JSON value class used by PEMS/2: null/boolean/number, string, array, object.",
+      "PEMS/2 changes semantic/schema vocabulary but introduces no new non-JSON structural value type.",
+      "Decoder semantic-profile support is independently dispatched after structural decode; unknown profile must fail closed.",
+      "Therefore pems/2 support changes the semantic validator set, not the frozen cove/1 structural contract."
+    ],
+    "requires_cove2": false,
+    "recommended_profile_tuple": ["cove/1", "pems/2", "jcs/1"],
+    "jcs1_change_required": false
+  },
+  "dual_read_contract": {
+    "supported_during_cutover_design": [
+      ["cove/1", "pems/1", "jcs/1"],
+      ["cove/1", "pems/2", "jcs/1"]
+    ],
+    "unknown_semantic_major_behavior": "fail_closed",
+    "cross_profile_coercion": "forbidden"
+  },
+  "cutover_readiness": {
+    "design_complete": true,
+    "actual_cutover_authorized": false,
+    "rollback_requires_prior_canonical_artifact_retained": true,
+    "reverse_migration_of_pems2_only_admissions_assumed": false,
+    "owner_approval_required_before_authority_change": true,
+    "steward_exact_artifact_admission_required": true
+  },
+  "acceptance_checks_defined": [
+    "fixed immutable pems/1 source identity",
+    "deterministic pems/1 -> pems/2 migration",
+    "identity/history/provenance preservation",
+    "scoped grounding conformance for newly admitted material",
+    "pems/2 schema and semantic validation",
+    "lossless cove/1 structural round trip with p=pems/2",
+    "repeated candidate canonical bytes identical under jcs/1",
+    "deterministic human reconstruction",
+    "dual-read profile dispatch and unknown-profile rejection",
+    "immutable rollback artifact retained",
+    "explicit owner approval",
+    "Steward admission of exact candidate bytes and governance closeout"
+  ],
+  "unresolved_questions": [
+    "Exact future cutover candidate bytes do not exist until a separately authorized candidate-generation tranche fixes one source canonical revision and generates the proposed pems/2 canonical artifact.",
+    "Grounding requirements for additional future proposition/admission classes may require new scoped profiles as evidence accumulates."
+  ],
+  "recommendation": "Return to the Steward. Recommend eventual PEMS/2 canonical adoption using cove/1 + pems/2 + jcs/1 after a separately authorized exact-candidate generation and owner adoption gate. Do not create cove/2 absent a structural codec requirement."
+}
