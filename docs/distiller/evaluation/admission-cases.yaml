@@ -1,0 +1,51 @@
+version: 1
+cases:
+  - id: grounded-observation
+    candidate: directly grounded observation with resolvable primary provenance
+    expected: admissible_under_explicit_policy
+    invariant: structural validity alone is not the admission reason
+
+  - id: duplicate-equivalent
+    candidate: semantically equivalent proposition with equivalent grounding already canonical
+    expected: reconcile_existing
+    invariant: do not create duplicate canonical identity
+
+  - id: unresolved-provenance
+    candidate: proposition whose required provenance identifier cannot be resolved
+    expected: provisional_or_rejected
+    invariant: do not admit as though provenance were known
+
+  - id: conflicting-observation
+    candidate: grounded observation contradicting a canonical observation
+    expected: review_or_explicit_conflict
+    invariant: do not silently overwrite either proposition
+
+  - id: derived-with-provisional-premise
+    candidate: derived claim whose required premise is not canonical
+    expected: transactional_admission_or_provisional
+    invariant: admitted graph must not contain dangling premise references
+
+  - id: durable-uncertainty
+    candidate: consequential unresolved condition
+    expected: admissible
+    invariant: uncertainty need not be resolved to become durable memory
+
+  - id: durable-assumption
+    candidate: consequential assumption constraining current work
+    expected: admissible_without_kind_promotion
+    invariant: admission does not turn an assumption into fact
+
+  - id: normative-agent-summary
+    candidate: agent-derived statement describing a project requirement without authoritative source chain
+    expected: review_or_reject_normative_promotion
+    invariant: admission cannot create normative authority
+
+  - id: established-supersession
+    candidate: newer proposition with explicit evidence that it supersedes an older canonical proposition
+    expected: admit_with_supersedes_and_preserve_history
+    invariant: supersession does not erase historical record
+
+  - id: recency-only-replacement
+    candidate: newer proposition merely newer than conflicting canonical proposition
+    expected: review
+    invariant: recency alone does not establish supersession
