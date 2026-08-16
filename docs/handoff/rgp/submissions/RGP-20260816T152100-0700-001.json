@@ -1,0 +1,76 @@
+{
+  "submission_id": "RGP-20260816T152100-0700-001",
+  "producer": {
+    "role": "reasoning-distiller",
+    "instance": "rgp-engineer-first-admission-trial"
+  },
+  "created_at": "2026-08-16T15:21:00-07:00",
+  "rgp_version": "rgp/1",
+  "status": "candidate",
+  "source_context": {
+    "summary": "First end-to-end RGP-to-Steward admission trial. The graph exercises new generic propositions, premise derivation, supports relations, immutable GitHub provenance resolution, and reconciliation to an existing canonical PEMS decision.",
+    "refs": [
+      "docs/handoff/rgp/SUBMISSION_PROTOCOL.md",
+      "docs/project-chat-handoff.json"
+    ]
+  },
+  "candidate_graph": {
+    "records": [
+      {
+        "temp_id": "r1",
+        "kind": "observation",
+        "statement": "The RGP Submission Protocol requires committed candidate submissions to remain immutable.",
+        "provenance": {
+          "primary": [
+            "github:commit:da59ddaa352f09d6e64908c458d7e61e1fae61fd:docs/handoff/rgp/SUBMISSION_PROTOCOL.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r2",
+        "kind": "observation",
+        "statement": "The RGP Submission Protocol prohibits RGP producers from writing directly to the canonical PEMS/COVE handoff artifacts.",
+        "provenance": {
+          "primary": [
+            "github:commit:da59ddaa352f09d6e64908c458d7e61e1fae61fd:docs/handoff/rgp/SUBMISSION_PROTOCOL.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r3",
+        "kind": "claim",
+        "statement": "Candidate RGP production and canonical PEMS persistence are separate operations.",
+        "premise": [
+          "r2"
+        ]
+      },
+      {
+        "temp_id": "r4",
+        "kind": "decision",
+        "statement": "The Project Engineering Steward owns reconciliation of canonical PEMS meaning; accepted reconciliation regenerates docs/project-chat-handoff.cove.json canonically and docs/project-chat-handoff.json as its deterministic compatibility derivative.",
+        "provenance": {
+          "primary": [
+            "pems:source_observation:be6819991bf46e7cc226"
+          ]
+        }
+      }
+    ],
+    "relations": [
+      {
+        "from": "r1",
+        "type": "supports",
+        "to": "r3"
+      },
+      {
+        "from": "r4",
+        "type": "supports",
+        "to": "r3"
+      }
+    ]
+  },
+  "validation": {
+    "status": "passed",
+    "validator": "rgp-validator/1",
+    "validated_at": "2026-08-16T15:21:01-07:00"
+  }
+}
