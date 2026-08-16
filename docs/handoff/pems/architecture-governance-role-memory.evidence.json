@@ -1,0 +1,52 @@
+{
+  "accepted_tooling_ref": "origin/pems-phase8-remediation",
+  "base_commit": "98d3a11015daccc5cc1755d5066da267af65091f",
+  "branch": "architecture-governance-role-memory",
+  "complete_source": {
+    "canonical_blob_sha": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+    "canonical_path": "docs/project-chat-handoff.cove.json",
+    "derivative_blob_sha": "acbc655a38efc6624672d33882c76a6619e571df",
+    "prechange_decode_matches_derivative": true
+  },
+  "contracts": {
+    "cove": "cove/1",
+    "pems": "pems/1",
+    "serializer": "jcs/1"
+  },
+  "counts": {
+    "after_records": 174,
+    "before_records": 171
+  },
+  "hashes": {
+    "canonical_bytes": 41793,
+    "canonical_sha256": "54bc0549b07ad3b7d2dd678eca64f00585f955d9a65829a33d86c6e552d3a47c",
+    "derivative_bytes": 71220,
+    "derivative_sha256": "ba3403715bcc0e1c62939e351cb816d9e50b5c3f0624866ebdf48ce4c76b4344"
+  },
+  "merge_state": "not_merged",
+  "semantic_changes": {
+    "added_ids": [
+      "pems:role:d68bfd23c188c4931ddf",
+      "pems:source:2f650995e32b9b674365",
+      "pems:source_observation:8c7b03e7eb17cc709223"
+    ],
+    "new_role_id": "pems:role:d68bfd23c188c4931ddf",
+    "owner_observation_id": "pems:source_observation:8c7b03e7eb17cc709223",
+    "owner_source_id": "pems:source:2f650995e32b9b674365",
+    "preserved_historical_role_exact": true,
+    "preserved_historical_role_id": "pems:role:96953bd2d91f10def711",
+    "updated_chat_id": "pems:chat:c55923a23d38b4ef7955",
+    "updated_continuation_id": "pems:continuation:c55923a23d38b4ef7955"
+  },
+  "status": "validated_proposed_canonical_memory_change",
+  "validation": {
+    "all_original_ids_preserved": true,
+    "base_schema": true,
+    "base_semantic": true,
+    "cove_repeated_bytes_identical": true,
+    "cove_round_trip": true,
+    "derivative_repeated_bytes_identical": true,
+    "updated_schema": true,
+    "updated_semantic": true
+  }
+}
