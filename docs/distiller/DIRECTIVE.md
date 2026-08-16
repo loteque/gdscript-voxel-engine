@@ -71,6 +71,8 @@ Axiomhood does not mean lack of provenance. An axiom may still have provenance d
 
 Do not infer `axiom` merely because provenance is absent.
 
+An empirical axiom is different from a conceptual or normative axiom: an `observation` with `epistemic_role: axiom` must have `provenance.primary` identifying the external evidence that grounds the observation. If no usable source identifier is supplied, do not fabricate one; omit the unsupported observation or retain an appropriate uncertainty instead.
+
 ## Premise
 
 `premise` is a first-class relational definition stored on a derived proposition.
@@ -256,6 +258,7 @@ The following are initial validation rules, not a complete formal type system:
 - `uncertainty` should normally use `epistemic_role: unresolved`;
 - `claim` may use any epistemic role when its semantic content does not fit a more specific kind;
 - `observation` may be `axiom` or `derived`; derivedness alone never forces `claim`;
+- `observation` + `axiom` requires `provenance.primary`;
 - `derived` requires a non-empty `premise`;
 - non-derived propositions must not contain `premise`;
 - authority is optional and limited to `owner` or `governed`;
@@ -283,6 +286,7 @@ A distillation is defective if it:
 - silently converts a proposition into owner or governed truth;
 - erases uncertainty by presenting an unresolved matter as settled;
 - infers axiomhood merely from absent provenance;
+- emits an axiomatic observation without primary provenance;
 - treats provenance as the definition of epistemic role;
 - uses `conclusion` as a proposition kind;
 - creates a `derived` proposition without premises;
