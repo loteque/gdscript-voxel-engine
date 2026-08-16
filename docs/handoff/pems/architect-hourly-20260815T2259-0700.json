@@ -1,0 +1,54 @@
+{
+  "evidence_contract": "architect-hourly-reconciliation/1",
+  "timestamp": "2026-08-15T22:59:49-07:00",
+  "role": "Engineering Knowledge Systems Architect",
+  "branch": "project-chat-handoff",
+  "observed_branch_head": "53fe36a05482e268e70b1d98380ef8d67cd75140",
+  "observed_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+  "steward_notes_blob": "23cb71630261befe2207508cc836f2e310f196ef",
+  "architect_notes_current_blob": "550c3029e0d2665f5d532fd241a15d6bea953752",
+  "architect_notes_pre_handoff_blob": "b1501cf5c039714ba4f6023c3b3cf4fb52430d73",
+  "acknowledges": [
+    "STEWARD-20260815-020",
+    "STEWARD-20260815-021",
+    "ARCH-20260815T225500-0700-027"
+  ],
+  "canonical_state": {
+    "authority": "docs/project-chat-handoff.cove.json",
+    "semantic_contract": "pems/1",
+    "codec_contract": "cove/1",
+    "main_head_matches_canonical_observation": true,
+    "canonical_migration_to_pems2_authorized": false
+  },
+  "successor_contract_state": {
+    "authorized_tranche": "STEWARD-20260815-020",
+    "technical_draft_status": "complete_noncanonical_pending_steward_review",
+    "handoff": "ARCH-20260815T225500-0700-027",
+    "compatibility_cases_passed": 28,
+    "admission_cases_passed": 6,
+    "canonical_cutover_status": "not_authorized"
+  },
+  "hard_stop": {
+    "triggered": true,
+    "class": "unsafe_history_sensitive_write",
+    "commit": "53fe36a05482e268e70b1d98380ef8d67cd75140",
+    "file": "docs/handoff/architect_notes.md",
+    "finding": "The commit that appended ARCH-20260815T225500-0700-027 also modified an immutable historical line inside ARCH-20260814T123800-0700-021 instead of preserving the complete prior byte sequence. Specifically, it replaced the previously recorded long human-reconstruction SHA-256 text with a corrected shorter digest. Regardless of factual correctness, changing an existing append-only entry violates the Architect directive and file contract.",
+    "evidence": {
+      "pre_handoff_commit": "8c53f14d70d53beca3e26284a6491caf25862914",
+      "pre_handoff_blob": "b1501cf5c039714ba4f6023c3b3cf4fb52430d73",
+      "current_blob": "550c3029e0d2665f5d532fd241a15d6bea953752",
+      "historical_entry": "ARCH-20260814T123800-0700-021"
+    },
+    "required_repair": "Restore the exact pre-handoff bytes of every historical Architect-note entry while preserving the ARCH-20260815T225500-0700-027 append unchanged in substance, retain the damaging commit in ordinary Git history, append a new correction entry documenting the repair, and post-write verify that the pre-handoff file is an exact byte prefix of the repaired file.",
+    "scope_effect": "No further PEMS2 successor-contract design, migration evidence, or Steward-gate advancement should be performed by the Architect until the append-only history repair is durably complete. The already-created noncanonical PEMS2 draft artifacts remain evidence and are not invalidated by this notes-file write defect."
+  },
+  "representation_assessment": {
+    "post_phase8_recovery_contradiction_open": false,
+    "identity_collision_or_rebinding_found": false,
+    "semantic_or_provenance_loss_in_canonical_memory_found": false,
+    "schema_or_authority_contradiction_found": false,
+    "new_canonical_delta_found": false
+  },
+  "next_gate": "Architect notes append-only repair, then Steward review of ARCH-20260815T225500-0700-027 and the noncanonical PEMS2 successor-contract draft."
+}
