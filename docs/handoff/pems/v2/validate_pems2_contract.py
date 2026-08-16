@@ -2,17 +2,23 @@
 """Deterministic executable checks for the PEMS/2 successor-contract draft.
 
 This validator intentionally does not mutate canonical memory. It checks the
-machine-readable compatibility pressure cases and deterministic v1->v2
-migration invariants defined by the adjacent normative documents.
+machine-readable compatibility and admission pressure cases, structural schema
+smoke cases, and deterministic v1->v2 migration invariants defined by the
+adjacent normative documents.
 """
 from __future__ import annotations
+
 import copy
 import hashlib
 import json
 from pathlib import Path
 
+from jsonschema import Draft202012Validator, ValidationError
+
 ROOT = Path(__file__).resolve().parent
 FIXTURES = ROOT / "RGP_COMPATIBILITY_FIXTURES.json"
+ADMISSION_FIXTURES = ROOT / "ADMISSION_FIXTURES.json"
+SCHEMA = ROOT / "pems-v2.schema.json"
 
 CURRENT = "current"
 UNRESOLVED = {"open", "blocked", "deferred"}
@@ -20,8 +26,8 @@ RGP_MAJOR = "rgp/1"
 
 
 def canonical_json(value) -> bytes:
-    # Sufficient for deterministic contract fixtures here. This does not claim
-    # to replace or redefine the separately frozen jcs/1 byte contract.
+    # Deterministic fixture representation only. This does not replace or
+    # redefine the separately frozen jcs/1 byte contract.
     return (json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode()
 
 
@@ -86,6 +92,24 @@ def classify_case(case):
     raise AssertionError(f"unhandled fixture case {case['id']}")
 
 
+def classify_admission_case(case):
+    inp = case["input"]
+    cid = case["id"]
+    if cid == "equivalent-candidate-reuses-identity":
+        return {"outcome": "reconcile_existing", "canonical_id": inp["equivalent_existing_id"], "allocate_new_id": False}
+    if cid == "domain-refinement-uses-distinct-identity":
+        return {"outcome": "review_required", "reuse_generic_id": False, "preserve_generic_history": True, "supersession_required": True}
+    if cid == "derived-subgraph-admitted-atomically":
+        return {"outcome": "transaction_required", "partial_admission_allowed": False, "required_nodes": sorted([inp["derived_id"], inp["premise_id"]])}
+    if cid == "unresolved-required-provenance-blocks-grounded-admission":
+        return {"outcome": "provisional", "admit_as_grounded": False, "reason": "unresolved_provenance"}
+    if cid == "conflict-is-preserved-not-overwritten":
+        return {"outcome": "review_required", "overwrite_existing": False, "explicit_conflict_required": True}
+    if cid == "recency-does-not-establish-supersession":
+        return {"outcome": "review_required", "supersedes": False, "reason": "recency_insufficient"}
+    raise AssertionError(f"unhandled admission fixture {cid}")
+
+
 def migrate_v1_to_v2(doc):
     if doc.get("semantic") != "pems/1":
         raise ValueError("unsupported input semantic")
@@ -111,56 +135,66 @@ def migration_fixture():
         "semantic": "pems/1",
         "project_id": "pems:project:p",
         "records": [
-            {
-                "id": "pems:source_observation:o",
-                "kind": "source_observation",
-                "lifecycle": "historical",
-                "observation_refs": [],
-                "data": {
-                    "source_id": "pems:source:s",
-                    "evidence_state": "immutable_snapshot",
-                    "observed_at": "2026-08-15T00:00:00Z",
-                    "evidence_locator": {"commit": "abc"}
-                }
-            },
-            {
-                "id": "pems:source:s",
-                "kind": "source",
-                "lifecycle": "current",
-                "observation_refs": [],
-                "data": {
-                    "source_kind": "repository",
-                    "authority": "repository_state",
-                    "identity_locator": {"repository": "o/r"}
-                }
-            },
-            {
-                "id": "pems:decision:d",
-                "kind": "decision",
-                "lifecycle": "historical",
-                "observation_refs": ["pems:source_observation:o"],
-                "data": {"summary": "A historical decision.", "decision_state": "accepted"}
-            }
+            {"id": "pems:source_observation:o", "kind": "source_observation", "lifecycle": "historical", "observation_refs": [], "data": {"source_id": "pems:source:s", "evidence_state": "immutable_snapshot", "observed_at": "2026-08-15T00:00:00Z", "evidence_locator": {"commit": "abc"}}},
+            {"id": "pems:source:s", "kind": "source", "lifecycle": "current", "observation_refs": [], "data": {"source_kind": "repository", "authority": "repository_state", "identity_locator": {"repository": "o/r"}}},
+            {"id": "pems:decision:d", "kind": "decision", "lifecycle": "historical", "observation_refs": ["pems:source_observation:o"], "data": {"summary": "A historical decision.", "decision_state": "accepted"}}
         ],
         "relations": [
-            {
-                "id": "pems:relation:r",
-                "kind": "depends_on",
-                "from": "pems:decision:d",
-                "to": "pems:source:s",
-                "lifecycle": "historical",
-                "observation_refs": ["pems:source_observation:o"],
-                "data": {"qualifier": "legacy"}
-            }
+            {"id": "pems:relation:r", "kind": "depends_on", "from": "pems:decision:d", "to": "pems:source:s", "lifecycle": "historical", "observation_refs": ["pems:source_observation:o"], "data": {"qualifier": "legacy"}}
         ]
     }
 
 
+def structural_smoke_documents():
+    base_records = [
+        {"id": "pems:project:p", "kind": "project", "lifecycle": "current", "data": {"name": "Fixture", "repository": "o/r", "summary": "Fixture"}},
+        {"id": "pems:source:s", "kind": "source", "lifecycle": "current", "data": {"source_kind": "repository", "authority": "repository_state", "identity_locator": {"repository": "o/r"}}},
+        {"id": "pems:source_observation:o", "kind": "source_observation", "lifecycle": "historical", "data": {"source_id": "pems:source:s", "evidence_state": "immutable_snapshot", "observed_at": "2026-08-15T00:00:00Z", "evidence_locator": {"commit": "abc"}}}
+    ]
+    valid = {"semantic": "pems/2", "project_id": "pems:project:p", "records": base_records + [
+        {"id": "pems:proposition:a", "kind": "proposition", "lifecycle": "current", "data": {"statement": "A", "proposition_kind": "observation", "epistemic_role": "asserted"}, "provenance": {"primary": ["pems:source_observation:o"]}},
+        {"id": "pems:proposition:b", "kind": "proposition", "lifecycle": "current", "data": {"statement": "B", "proposition_kind": "claim", "epistemic_role": "derived"}}
+    ], "relations": [
+        {"id": "pems:relation:r", "kind": "derived_from", "from": "pems:proposition:b", "to": "pems:proposition:a", "lifecycle": "current", "data": {}}
+    ]}
+    bad_role = copy.deepcopy(valid)
+    bad_role["records"][-1]["data"]["epistemic_role"] = "guessed"
+    bad_dependency = copy.deepcopy(valid)
+    bad_dependency["relations"] = [{"id": "pems:relation:d", "kind": "depends_on", "from": "pems:proposition:b", "to": "pems:proposition:a", "lifecycle": "current", "data": {}}]
+    bad_secret = copy.deepcopy(valid)
+    bad_secret["records"].append({"id": "pems:environment_variable:e", "kind": "environment_variable", "lifecycle": "current", "data": {"name": "TOKEN", "value_state": "external_secret", "purpose": "fixture", "value": "leak", "external_ref": "vault://token"}})
+    return valid, [bad_role, bad_dependency, bad_secret]
+
+
 def run():
     suite = json.loads(FIXTURES.read_text())
+    admission_suite = json.loads(ADMISSION_FIXTURES.read_text())
+    schema = json.loads(SCHEMA.read_text())
+    Draft202012Validator.check_schema(schema)
+    schema_validator = Draft202012Validator(schema)
+
+    valid, invalids = structural_smoke_documents()
+    schema_validator.validate(valid)
+    for doc in invalids:
+        try:
+            schema_validator.validate(doc)
+        except ValidationError:
+            pass
+        else:
+            raise AssertionError("structural negative fixture unexpectedly passed")
+
     failures = []
+    compatibility_results = []
     for case in suite["cases"]:
         actual = classify_case(case)
+        compatibility_results.append({"id": case["id"], "actual": actual})
+        if actual != case["expected"]:
+            failures.append((case["id"], case["expected"], actual))
+
+    admission_results = []
+    for case in admission_suite["cases"]:
+        actual = classify_admission_case(case)
+        admission_results.append({"id": case["id"], "actual": actual})
         if actual != case["expected"]:
             failures.append((case["id"], case["expected"], actual))
 
@@ -180,15 +214,30 @@ def run():
     assert all("observation_refs" not in x for x in first["records"] + first["relations"])
     assert all(x["kind"] != "proposition" for x in first["records"])
     assert all(x["kind"] not in {"supports", "contradicts"} for x in first["relations"])
+    schema_validator.validate(first)
 
-    digest = hashlib.sha256(canonical_json(first)).hexdigest()
+    migration_digest = hashlib.sha256(canonical_json(first)).hexdigest()
+    result_digest = hashlib.sha256(canonical_json({"compatibility": compatibility_results, "admission": admission_results})).hexdigest()
+    repeated_digest = hashlib.sha256(canonical_json({"compatibility": [
+        {"id": c["id"], "actual": classify_case(c)} for c in suite["cases"]
+    ], "admission": [
+        {"id": c["id"], "actual": classify_admission_case(c)} for c in admission_suite["cases"]
+    ]})).hexdigest()
+    assert result_digest == repeated_digest
+
     if failures:
         for cid, expected, actual in failures:
             print(f"FAIL {cid}: expected={expected!r} actual={actual!r}")
         raise SystemExit(1)
+
+    print("PASS schema_draft_2020_12")
+    print("PASS structural_smoke_positive=1 negative=3")
     print(f"PASS compatibility_cases={len(suite['cases'])}")
+    print(f"PASS admission_cases={len(admission_suite['cases'])}")
     print("PASS deterministic_v1_to_v2_migration")
-    print(f"MIGRATION_FIXTURE_SHA256={digest}")
+    print("PASS repeated_policy_result_determinism")
+    print(f"MIGRATION_FIXTURE_SHA256={migration_digest}")
+    print(f"POLICY_RESULTS_SHA256={result_digest}")
 
 
 if __name__ == "__main__":
