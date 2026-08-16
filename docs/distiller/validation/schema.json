@@ -30,7 +30,6 @@
       "minProperties": 1,
       "properties": {
         "primary": {"$ref": "#/$defs/sourceList"},
-        "authority": {"$ref": "#/$defs/sourceList"},
         "corroborating": {"$ref": "#/$defs/sourceList"},
         "context": {"$ref": "#/$defs/sourceList"}
       }
@@ -43,7 +42,6 @@
         "temp_id": {"type": "string", "minLength": 1},
         "kind": {"enum": ["observation", "decision", "assumption", "uncertainty", "claim"]},
         "statement": {"type": "string", "minLength": 1},
-        "authority": {"enum": ["owner", "governed"]},
         "premise": {
           "type": "array",
           "minItems": 1,
@@ -53,13 +51,6 @@
         "provenance": {"$ref": "#/$defs/provenance"}
       },
       "allOf": [
-        {
-          "if": {"required": ["authority"]},
-          "then": {
-            "required": ["provenance"],
-            "properties": {"provenance": {"required": ["authority"]}}
-          }
-        },
         {
           "if": {
             "properties": {"kind": {"const": "observation"}},
