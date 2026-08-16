@@ -19,93 +19,43 @@ jobs:
           ref: pems-mapping-reconciliation
           fetch-depth: 1
 
-      - name: Verify base, append immutable note, and self-remove
+      - name: Append verified Architect note
         shell: bash
         run: |
-          set -euo pipefail
-          FILE="docs/handoff/architect_notes.md"
-          WORKFLOW=".github/workflows/architect-note-recovery.yml"
-          EXPECTED_BLOB="ce0036d1a68953b58bb882cdb3d02af3fb6b419f"
-          NOTE_ID="ARCH-20260815T193249-0700-025"
-
-          actual_blob="$(git hash-object "$FILE")"
-          if [ "$actual_blob" != "$EXPECTED_BLOB" ]; then
-            echo "Refusing append: expected $EXPECTED_BLOB, found $actual_blob" >&2
-            exit 1
-          fi
-
-          if grep -Fqx "## $NOTE_ID" "$FILE"; then
-            echo "Refusing duplicate append: $NOTE_ID already exists" >&2
-            exit 1
-          fi
-
-          cp "$FILE" /tmp/architect_notes.before
-
-          cat >> "$FILE" <<'NOTE_EOF'
-
-
-## ARCH-20260815T193249-0700-025
-
-- timestamp: `2026-08-15T19:32:49-07:00`
-- author: Engineering Knowledge Systems Architect
-- type: design-response
-- status: open
-- acknowledges: `STEWARD-20260815-018`; current Project Engineering Steward submission of `docs/distiller/PEMS_RGP_REVIEW_REQUEST.md`
-- subject: RGP mapping losses justify a closed PEMS/2 proposition capability
-
-### Assessment
-
-Reviewed the Steward-submitted RGP architecture request and all required supporting artifacts on `pems-mapping-reconciliation`, together with the frozen `pems/1` contract and current Architect governance history.
-
-Disposition: **accept direction and propose successor PEMS design**.
-
-The 14-case reconciliation evaluation demonstrates a real semantic boundary rather than an adapter defect: `pems/1` cannot losslessly preserve generic assumptions, generic empirical observations, generic logical/evidentiary claims, proposition-level `supports`, proposition-level `contradicts`, or RGP typed provenance roles. Those gaps span proposition, relation, and provenance semantics, so a versioned PEMS evolution is justified.
-
-The recommended successor is `pems/2`, with a small closed first-class proposition capability rather than an arbitrary extension namespace or separate reasoning sidecar. Add one generic `proposition` record for the currently uncovered RGP kinds (`observation`, `assumption`, `claim`); keep losslessly mapped project decisions and consequential uncertainties in the existing `decision` and `unresolved_item` domain kinds and allow those records to participate directly in reasoning relations. This single-representation rule avoids parallel canonical decision/unresolved identities.
-
-Normalize RGP premises to existing `derived_from`; add explicit `supports` and `contradicts`; retain `depends_on` only if its successor semantics are frozen broadly enough to match RGP conditional validity; and reuse governed PEMS supersession so candidate `supersedes` cannot mutate lifecycle until admitted. Typed provenance should continue to terminate at `source_observation`, using a successor common provenance object with `primary`, `corroborating`, `context`, and `untyped`. The `untyped` role is necessary because deterministic pems/1 -> pems/2 migration must not invent provenance roles for existing v1 `observation_refs`.
-
-The complete assessment is `docs/distiller/PEMS_RGP_ARCHITECTURE_ASSESSMENT.md`, committed at `a28cf1af5c7cf15e1a6185c17808c687fca2d142`.
-
-### Compatibility and governance
-
-`pems/1` remains frozen. A deterministic v1 -> v2 migration should preserve every existing stable identity and lifecycle state, map v1 `observation_refs` to `provenance.untyped`, and create no generic propositions solely as a migration side effect. Lossless downgrade from pems/2 must fail explicitly when v2-only proposition/relation/provenance meaning is present.
-
-RGP validity and proposition kind remain independent from PEMS admission, lifecycle, truth, and authority. Existing Steward identity admission, source/source-observation immutability, historical preservation, and authority derivation remain unchanged in principle. This review does not authorize implementation or canonical migration.
-
-### Unresolved questions
-
-Before freezing pems/2, resolve the exact domain-record proposition profile, historical export semantics for resolved uncertainties, contradiction symmetry, `depends_on` semantic breadth, generic-proposition promotion into a more precise domain record, typed-provenance enrichment atomicity, and the RGP major version bound by the compatibility profile.
-
-### Human reasoning
-
-The useful middle path is neither “turn PEMS into RGP” nor “bolt on an extension bag.” PEMS already owns durable project identity, provenance, lifecycle, history, and admission. RGP contributes a missing semantic layer for externally supportable propositions and their reasoning relationships. Integrating a small closed proposition primitive lets the same memory answer both “what project object/state exists?” and “what proposition supports, contradicts, or derives this understanding?” without allowing arbitrary unvalidated ontology growth.
-
-A concrete example is a project decision. If RGP says “Runtime streaming owns chunk residency” and the candidate satisfies the existing PEMS decision contract, PEMS should have one canonical decision identity that can be targeted by `derived_from` or `supports`. Creating a second generic proposition with the same meaning would fragment identity. By contrast, “A passing headless test does not establish browser rendering correctness” has no natural pems/1 domain record, so a generic claim proposition is the correct new semantic home.
-
-### Steward request
-
-Review the disposition and unresolved design questions. If accepted, authorize a bounded PEMS/2 **semantic-contract design tranche only**: successor normative schema, deterministic pems/1 migration contract, RGP compatibility profile, validation fixtures, and admission rules. Do not authorize successor implementation or canonical-memory migration merely from this assessment.
-NOTE_EOF
-
           python - <<'PY'
+          import base64
+          import subprocess
           from pathlib import Path
-          before = Path('/tmp/architect_notes.before').read_bytes()
-          after = Path('docs/handoff/architect_notes.md').read_bytes()
-          marker = b'## ARCH-20260815T193249-0700-025\n'
-          if not after.startswith(before):
-              raise SystemExit('append integrity failure: old bytes are not an exact prefix')
-          if after.count(marker) != 1:
-              raise SystemExit('append integrity failure: note marker count is not exactly one')
-          if len(after) <= len(before):
-              raise SystemExit('append integrity failure: file did not grow')
-          print(f'append verified: preserved {len(before)} bytes, appended {len(after)-len(before)} bytes')
-          PY
 
-          git config user.name "Engineering Knowledge Systems Architect"
-          git config user.email "actions@users.noreply.github.com"
-          git add "$FILE"
-          git rm "$WORKFLOW"
-          git diff --cached --check
-          git commit -m "Restore RGP architecture note"
-          git push origin HEAD:pems-mapping-reconciliation
+          file_path = Path("docs/handoff/architect_notes.md")
+          workflow_path = Path(".github/workflows/architect-note-recovery.yml")
+          expected_blob = "ce0036d1a68953b58bb882cdb3d02af3fb6b419f"
+          note_id = "ARCH-20260815T193249-0700-025"
+          note_b64 = "CgojIyBBUkNILTIwMjYwODE1VDE5MzI0OS0wNzAwLTAyNQoKLSB0aW1lc3RhbXA6IGAyMDI2LTA4LTE1VDE5OjMyOjQ5LTA3OjAwYAotIGF1dGhvcjogRW5naW5lZXJpbmcgS25vd2xlZGdlIFN5c3RlbXMgQXJjaGl0ZWN0Ci0gdHlwZTogZGVzaWduLXJlc3BvbnNlCi0gc3RhdHVzOiBvcGVuCi0gYWNrbm93bGVkZ2VzOiBgU1RFV0FSRC0yMDI2MDgxNS0wMThgOyBjdXJyZW50IFByb2plY3QgRW5naW5lZXJpbmcgU3Rld2FyZCBzdWJtaXNzaW9uIG9mIGBkb2NzL2Rpc3RpbGxlci9QRU1TX1JHUF9SRVZJRVdfUkVRVUVTVC5tZGAKLSBzdWJqZWN0OiBSR1AgbWFwcGluZyBsb3NzZXMganVzdGlmeSBhIGNsb3NlZCBQRU1TLzIgcHJvcG9zaXRpb24gY2FwYWJpbGl0eQoKIyMjIEFzc2Vzc21lbnQKClJldmlld2VkIHRoZSBTdGV3YXJkLXN1Ym1pdHRlZCBSR1AgYXJjaGl0ZWN0dXJlIHJlcXVlc3QgYW5kIGFsbCByZXF1aXJlZCBzdXBwb3J0aW5nIGFydGlmYWN0cyBvbiBgcGVtcy1tYXBwaW5nLXJlY29uY2lsaWF0aW9uYCwgdG9nZXRoZXIgd2l0aCB0aGUgZnJvemVuIGBwZW1zLzFgIGNvbnRyYWN0IGFuZCBjdXJyZW50IEFyY2hpdGVjdCBnb3Zlcm5hbmNlIGhpc3RvcnkuCgpEaXNwb3NpdGlvbjogKiphY2NlcHQgZGlyZWN0aW9uIGFuZCBwcm9wb3NlIHN1Y2Nlc3NvciBQRU1TIGRlc2lnbioqLgoKVGhlIDE0LWNhc2UgcmVjb25jaWxpYXRpb24gZXZhbHVhdGlvbiBkZW1vbnN0cmF0ZXMgYSByZWFsIHNlbWFudGljIGJvdW5kYXJ5IHJhdGhlciB0aGFuIGFuIGFkYXB0ZXIgZGVmZWN0OiBgcGVtcy8xYCBjYW5ub3QgbG9zc2xlc3NseSBwcmVzZXJ2ZSBnZW5lcmljIGFzc3VtcHRpb25zLCBnZW5lcmljIGVtcGlyaWNhbCBvYnNlcnZhdGlvbnMsIGdlbmVyaWMgbG9naWNhbC9ldmlkZW50aWFyeSBjbGFpbXMsIHByb3Bvc2l0aW9uLWxldmVsIGBzdXBwb3J0c2AsIHByb3Bvc2l0aW9uLWxldmVsIGBjb250cmFkaWN0c2AsIG9yIFJHUCB0eXBlZCBwcm92ZW5hbmNlIHJvbGVzLiBUaG9zZSBnYXBzIHNwYW4gcHJvcG9zaXRpb24sIHJlbGF0aW9uLCBhbmQgcHJvdmVuYW5jZSBzZW1hbnRpY3MsIHNvIGEgdmVyc2lvbmVkIFBFTVMgZXZvbHV0aW9uIGlzIGp1c3RpZmllZC4KClRoZSByZWNvbW1lbmRlZCBzdWNjZXNzb3IgaXMgYHBlbXMvMmAsIHdpdGggYSBzbWFsbCBjbG9zZWQgZmlyc3QtY2xhc3MgcHJvcG9zaXRpb24gY2FwYWJpbGl0eSByYXRoZXIgdGhhbiBhbiBhcmJpdHJhcnkgZXh0ZW5zaW9uIG5hbWVzcGFjZSBvciBzZXBhcmF0ZSByZWFzb25pbmcgc2lkZWNhci4gQWRkIG9uZSBnZW5lcmljIGBwcm9wb3NpdGlvbmAgcmVjb3JkIGZvciB0aGUgY3VycmVudGx5IHVuY292ZXJlZCBSR1Aga2luZHMgKGBvYnNlcnZhdGlvbmAsIGBhc3N1bXB0aW9uYCwgYGNsYWltYCk7IGtlZXAgbG9zc2xlc3NseSBtYXBwZWQgcHJvamVjdCBkZWNpc2lvbnMgYW5kIGNvbnNlcXVlbnRpYWwgdW5jZXJ0YWludGllcyBpbiB0aGUgZXhpc3RpbmcgYGRlY2lzaW9uYCBhbmQgYHVucmVzb2x2ZWRfaXRlbWAgZG9tYWluIGtpbmRzIGFuZCBhbGxvdyB0aG9zZSByZWNvcmRzIHRvIHBhcnRpY2lwYXRlIGRpcmVjdGx5IGluIHJlYXNvbmluZyByZWxhdGlvbnMuIFRoaXMgc2luZ2xlLXJlcHJlc2VudGF0aW9uIHJ1bGUgYXZvaWRzIHBhcmFsbGVsIGNhbm9uaWNhbCBkZWNpc2lvbi91bnJlc29sdmVkIGlkZW50aXRpZXMuCgpOb3JtYWxpemUgUkdQIHByZW1pc2VzIHRvIGV4aXN0aW5nIGBkZXJpdmVkX2Zyb21gOyBhZGQgZXhwbGljaXQgYHN1cHBvcnRzYCBhbmQgYGNvbnRyYWRpY3RzYDsgcmV0YWluIGBkZXBlbmRzX29uYCBvbmx5IGlmIGl0cyBzdWNjZXNzb3Igc2VtYW50aWNzIGFyZSBmcm96ZW4gYnJvYWRseSBlbm91Z2ggdG8gbWF0Y2ggUkdQIGNvbmRpdGlvbmFsIHZhbGlkaXR5OyBhbmQgcmV1c2UgZ292ZXJuZWQgUEVNUyBzdXBlcnNlc3Npb24gc28gY2FuZGlkYXRlIGBzdXBlcnNlZGVzYCBjYW5ub3QgbXV0YXRlIGxpZmVjeWNsZSB1bnRpbCBhZG1pdHRlZC4gVHlwZWQgcHJvdmVuYW5jZSBzaG91bGQgY29udGludWUgdG8gdGVybWluYXRlIGF0IGBzb3VyY2Vfb2JzZXJ2YXRpb25gLCB1c2luZyBhIHN1Y2Nlc3NvciBjb21tb24gcHJvdmVuYW5jZSBvYmplY3Qgd2l0aCBgcHJpbWFyeWAsIGBjb3Jyb2JvcmF0aW5nYCwgYGNvbnRleHRgLCBhbmQgYHVudHlwZWRgLiBUaGUgYHVudHlwZWRgIHJvbGUgaXMgbmVjZXNzYXJ5IGJlY2F1c2UgZGV0ZXJtaW5pc3RpYyBwZW1zLzEgLT4gcGVtcy8yIG1pZ3JhdGlvbiBtdXN0IG5vdCBpbnZlbnQgcHJvdmVuYW5jZSByb2xlcyBmb3IgZXhpc3RpbmcgdjEgYG9ic2VydmF0aW9uX3JlZnNgLgoKVGhlIGNvbXBsZXRlIGFzc2Vzc21lbnQgaXMgYGRvY3MvZGlzdGlsbGVyL1BFTVNfUkdQX0FSQ0hJVEVDVFVSRV9BU1NFU1NNRU5ULm1kYCwgY29tbWl0dGVkIGF0IGBhMjhjZjFhZjVjN2NmMTVlMWE2MTg1YzE3ODA4YzY4N2ZjYTJkMTQyYC4KCiMjIyBDb21wYXRpYmlsaXR5IGFuZCBnb3Zlcm5hbmNlCgpgcGVtcy8xYCByZW1haW5zIGZyb3plbi4gQSBkZXRlcm1pbmlzdGljIHYxIC0+IHYyIG1pZ3JhdGlvbiBzaG91bGQgcHJlc2VydmUgZXZlcnkgZXhpc3Rpbmcgc3RhYmxlIGlkZW50aXR5IGFuZCBsaWZlY3ljbGUgc3RhdGUsIG1hcCB2MSBgb2JzZXJ2YXRpb25fcmVmc2AgdG8gYHByb3ZlbmFuY2UudW50eXBlZGAsIGFuZCBjcmVhdGUgbm8gZ2VuZXJpYyBwcm9wb3NpdGlvbnMgc29sZWx5IGFzIGEgbWlncmF0aW9uIHNpZGUgZWZmZWN0LiBMb3NzbGVzcyBkb3duZ3JhZGUgZnJvbSBwZW1zLzIgbXVzdCBmYWlsIGV4cGxpY2l0bHkgd2hlbiB2Mi1vbmx5IHByb3Bvc2l0aW9uL3JlbGF0aW9uL3Byb3ZlbmFuY2UgbWVhbmluZyBpcyBwcmVzZW50LgoKUkdQIHZhbGlkaXR5IGFuZCBwcm9wb3NpdGlvbiBraW5kIHJlbWFpbiBpbmRlcGVuZGVudCBmcm9tIFBFTVMgYWRtaXNzaW9uLCBsaWZlY3ljbGUsIHRydXRoLCBhbmQgYXV0aG9yaXR5LiBFeGlzdGluZyBTdGV3YXJkIGlkZW50aXR5IGFkbWlzc2lvbiwgc291cmNlL3NvdXJjZS1vYnNlcnZhdGlvbiBpbW11dGFiaWxpdHksIGhpc3RvcmljYWwgcHJlc2VydmF0aW9uLCBhbmQgYXV0aG9yaXR5IGRlcml2YXRpb24gcmVtYWluIHVuY2hhbmdlZCBpbiBwcmluY2lwbGUuIFRoaXMgcmV2aWV3IGRvZXMgbm90IGF1dGhvcml6ZSBpbXBsZW1lbnRhdGlvbiBvciBjYW5vbmljYWwgbWlncmF0aW9uLgoKIyMjIFVucmVzb2x2ZWQgcXVlc3Rpb25zCgpCZWZvcmUgZnJlZXppbmcgcGVtcy8yLCByZXNvbHZlIHRoZSBleGFjdCBkb21haW4tcmVjb3JkIHByb3Bvc2l0aW9uIHByb2ZpbGUsIGhpc3RvcmljYWwgZXhwb3J0IHNlbWFudGljcyBmb3IgcmVzb2x2ZWQgdW5jZXJ0YWludGllcywgY29udHJhZGljdGlvbiBzeW1tZXRyeSwgYGRlcGVuZHNfb25gIHNlbWFudGljIGJyZWFkdGgsIGdlbmVyaWMtcHJvcG9zaXRpb24gcHJvbW90aW9uIGludG8gYSBtb3JlIHByZWNpc2UgZG9tYWluIHJlY29yZCwgdHlwZWQtcHJvdmVuYW5jZSBlbnJpY2htZW50IGF0b21pY2l0eSwgYW5kIHRoZSBSR1AgbWFqb3IgdmVyc2lvbiBib3VuZCBieSB0aGUgY29tcGF0aWJpbGl0eSBwcm9maWxlLgoKIyMjIEh1bWFuIHJlYXNvbmluZwoKVGhlIHVzZWZ1bCBtaWRkbGUgcGF0aCBpcyBuZWl0aGVyIOKAnHR1cm4gUEVNUyBpbnRvIFJHUOKAnSBub3Ig4oCcYm9sdCBvbiBhbiBleHRlbnNpb24gYmFnLuKAnSBQRU1TIGFscmVhZHkgb3ducyBkdXJhYmxlIHByb2plY3QgaWRlbnRpdHksIHByb3ZlbmFuY2UsIGxpZmVjeWNsZSwgaGlzdG9yeSwgYW5kIGFkbWlzc2lvbi4gUkdQIGNvbnRyaWJ1dGVzIGEgbWlzc2luZyBzZW1hbnRpYyBsYXllciBmb3IgZXh0ZXJuYWxseSBzdXBwb3J0YWJsZSBwcm9wb3NpdGlvbnMgYW5kIHRoZWlyIHJlYXNvbmluZyByZWxhdGlvbnNoaXBzLiBJbnRlZ3JhdGluZyBhIHNtYWxsIGNsb3NlZCBwcm9wb3NpdGlvbiBwcmltaXRpdmUgbGV0cyB0aGUgc2FtZSBtZW1vcnkgYW5zd2VyIGJvdGgg4oCcd2hhdCBwcm9qZWN0IG9iamVjdC9zdGF0ZSBleGlzdHM/4oCdIGFuZCDigJx3aGF0IHByb3Bvc2l0aW9uIHN1cHBvcnRzLCBjb250cmFkaWN0cywgb3IgZGVyaXZlcyB0aGlzIHVuZGVyc3RhbmRpbmc/4oCdIHdpdGhvdXQgYWxsb3dpbmcgYXJiaXRyYXJ5IHVudmFsaWRhdGVkIG9udG9sb2d5IGdyb3d0aC4KCkEgY29uY3JldGUgZXhhbXBsZSBpcyBhIHByb2plY3QgZGVjaXNpb24uIElmIFJHUCBzYXlzIOKAnFJ1bnRpbWUgc3RyZWFtaW5nIG93bnMgY2h1bmsgcmVzaWRlbmN54oCdIGFuZCB0aGUgY2FuZGlkYXRlIHNhdGlzZmllcyB0aGUgZXhpc3RpbmcgUEVNUyBkZWNpc2lvbiBjb250cmFjdCwgUEVNUyBzaG91bGQgaGF2ZSBvbmUgY2Fub25pY2FsIGRlY2lzaW9uIGlkZW50aXR5IHRoYXQgY2FuIGJlIHRhcmdldGVkIGJ5IGBkZXJpdmVkX2Zyb21gIG9yIGBzdXBwb3J0c2AuIENyZWF0aW5nIGEgc2Vjb25kIGdlbmVyaWMgcHJvcG9zaXRpb24gd2l0aCB0aGUgc2FtZSBtZWFuaW5nIHdvdWxkIGZyYWdtZW50IGlkZW50aXR5LiBCeSBjb250cmFzdCwg4oCcQSBwYXNzaW5nIGhlYWRsZXNzIHRlc3QgZG9lcyBub3QgZXN0YWJsaXNoIGJyb3dzZXIgcmVuZGVyaW5nIGNvcnJlY3RuZXNz4oCdIGhhcyBubyBuYXR1cmFsIHBlbXMvMSBkb21haW4gcmVjb3JkLCBzbyBhIGdlbmVyaWMgY2xhaW0gcHJvcG9zaXRpb24gaXMgdGhlIGNvcnJlY3QgbmV3IHNlbWFudGljIGhvbWUuCgojIyMgU3Rld2FyZCByZXF1ZXN0CgpSZXZpZXcgdGhlIGRpc3Bvc2l0aW9uIGFuZCB1bnJlc29sdmVkIGRlc2lnbiBxdWVzdGlvbnMuIElmIGFjY2VwdGVkLCBhdXRob3JpemUgYSBib3VuZGVkIFBFTVMvMiAqKnNlbWFudGljLWNvbnRyYWN0IGRlc2lnbiB0cmFuY2hlIG9ubHkqKjogc3VjY2Vzc29yIG5vcm1hdGl2ZSBzY2hlbWEsIGRldGVybWluaXN0aWMgcGVtcy8xIG1pZ3JhdGlvbiBjb250cmFjdCwgUkdQIGNvbXBhdGliaWxpdHkgcHJvZmlsZSwgdmFsaWRhdGlvbiBmaXh0dXJlcywgYW5kIGFkbWlzc2lvbiBydWxlcy4gRG8gbm90IGF1dGhvcml6ZSBzdWNjZXNzb3IgaW1wbGVtZW50YXRpb24gb3IgY2Fub25pY2FsLW1lbW9yeSBtaWdyYXRpb24gbWVyZWx5IGZyb20gdGhpcyBhc3Nlc3NtZW50Lg=="
+
+          actual_blob = subprocess.check_output(["git", "hash-object", str(file_path)], text=True).strip()
+          if actual_blob != expected_blob:
+              raise SystemExit(f"Refusing append: expected {expected_blob}, found {actual_blob}")
+
+          before = file_path.read_bytes()
+          marker = f"## {note_id}\n".encode()
+          if marker in before:
+              raise SystemExit(f"Refusing duplicate append: {note_id} already exists")
+
+          note = base64.b64decode(note_b64)
+          file_path.write_bytes(before + note)
+          after = file_path.read_bytes()
+          if after != before + note:
+              raise SystemExit("append integrity failure")
+          if after.count(marker) != 1:
+              raise SystemExit("append integrity failure: note marker count is not exactly one")
+
+          subprocess.run(["git", "config", "user.name", "Engineering Knowledge Systems Architect"], check=True)
+          subprocess.run(["git", "config", "user.email", "actions@users.noreply.github.com"], check=True)
+          subprocess.run(["git", "add", str(file_path)], check=True)
+          subprocess.run(["git", "rm", str(workflow_path)], check=True)
+          subprocess.run(["git", "diff", "--cached", "--check"], check=True)
+          subprocess.run(["git", "commit", "-m", "Restore RGP architecture note"], check=True)
+          subprocess.run(["git", "push", "origin", "HEAD:pems-mapping-reconciliation"], check=True)
+          print(f"append verified: preserved {len(before)} bytes, appended {len(note)} bytes")
+          PY
