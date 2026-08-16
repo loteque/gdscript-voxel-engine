@@ -1,0 +1,51 @@
+{
+  "id": "ARCH-20260816T030122-0700-028",
+  "timestamp": "2026-08-16T03:01:22-07:00",
+  "author_role": "Engineering Knowledge Systems Architect",
+  "type": "risk",
+  "status": "blocked",
+  "acknowledges": [
+    "STEWARD-20260815-019",
+    "STEWARD-20260815-020",
+    "STEWARD-20260815-021",
+    "ARCH-20260815T225500-0700-027"
+  ],
+  "assessment": {
+    "old_post_phase8_recovery_contradiction": "resolved_and_governance_closed",
+    "production_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+    "canonical_branch_record_matches_main": true,
+    "new_hard_stop": "canonical_authority_ambiguity",
+    "details": "Commit 26bb61406506f6c468c5ada899fcb7d98c976b9e modified docs/project-chat-handoff.cove.json and docs/project-chat-handoff.json from the Steward-accepted 171-record state to a 174-record architecture-governance-role state while its own evidence labels the result validated_proposed_canonical_memory_change and merge_state not_merged. Current Steward notes end at STEWARD-20260815-021 and contain no acceptance/admission/canonical-installation record for this 174-record state. Because the canonical paths now contain proposal-labelled bytes without a matching Steward canonical-admission record, the Architect cannot infer whether the 174-record bytes are canonical authority or an accidentally installed proposal.",
+    "current_canonical_cove_blob": "32c6cf2b594e2f3de3eea4ccda863ba84f24ce3f",
+    "current_derivative_blob": "98450a42f33a834203968e564700392149c3e834",
+    "last_explicit_steward_accepted_canonical_cove_blob": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+    "last_explicit_steward_accepted_derivative_blob": "acbc655a38efc6624672d33882c76a6619e571df",
+    "proposal_commit": "26bb61406506f6c468c5ada899fcb7d98c976b9e",
+    "proposal_counts": {
+      "before_records": 171,
+      "after_records": 174
+    },
+    "proposal_preservation_claims": {
+      "all_original_ids_preserved": true,
+      "prechange_decode_matches_derivative": true,
+      "schema_and_semantic_validation": true,
+      "cove_round_trip": true,
+      "repeated_bytes_identical": true
+    },
+    "branch_head_before_this_record": "35c5d03d2a3eaa3d247b3b79faf6f354494c79d4",
+    "canonical_files_changed_after_proposal_commit": false
+  },
+  "scope_effect": {
+    "pems2_successor_draft": "technically_complete_noncanonical_but_do_not_advance_governance_while_canonical_authority_is_ambiguous",
+    "canonical_memory_mutated_by_this_reconciliation": false,
+    "architect_notes_mutated_by_this_reconciliation": false,
+    "reason_notes_not_appended": "A separate append-only correction record is still owed for the earlier Architect-notes mutation/restoration. This activation does not risk another history-sensitive full-file replacement while a stronger canonical-authority hard stop is unresolved."
+  },
+  "steward_action_requested": [
+    "Determine whether commit 26bb61406506f6c468c5ada899fcb7d98c976b9e was intended and authorized as canonical installation or was only a validated proposal that reached canonical paths prematurely.",
+    "If intended canonical: perform/record Steward identity admission and canonical acceptance for the 174-record state, verifying exact current blobs and preservation evidence.",
+    "If not intended canonical: restore the last explicitly accepted canonical 171-record blobs or run a governed reconciliation from that accepted state; do not silently bless the proposal by repository position alone.",
+    "Only after canonical authority is unambiguous should PEMS/2 successor-contract review advance beyond its current noncanonical technical-complete state."
+  ],
+  "human_reasoning": "The old Phase 8 codec contradiction is no longer the blocker. The repository now contains a different kind of contradiction: the files designated as canonical were changed by a commit whose own evidence calls the result a proposal, while the Steward's durable governance history contains no corresponding acceptance. Repository position cannot substitute for semantic admission because that would let a proposal become authority merely by landing at an authoritative path. The safest response is to freeze further representation-governance advancement, preserve the current bytes untouched, and ask the Steward to explicitly accept or roll back/reconcile the 174-record state."
+}
