@@ -27,7 +27,7 @@ jobs:
           set -euo pipefail
           file='docs/handoff/architect_notes.md'
           payload='docs/handoff/pems/v2/ARCHITECT_FULL_CORPUS_NOTE_APPEND.md'
-          expected='1d322ac73b194631e63d1925dab9f5f9820c2a59'
+          expected='a5361fad967f3cc66d5092fca601f8a4c6522ea3'
           actual="$(git hash-object "$file")"
           test "$actual" = "$expected"
           cp "$file" /tmp/architect_notes.before
@@ -41,5 +41,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add docs/handoff/architect_notes.md
           git diff --cached --check
-          git commit -m 'docs: record architect pems2 full-corpus evidence'
+          git commit -m 'docs: record architect pems2 adoption readiness'
           git push origin HEAD:project-chat-handoff
