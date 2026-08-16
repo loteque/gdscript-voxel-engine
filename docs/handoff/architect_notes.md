@@ -485,7 +485,7 @@ Project owner and Steward perform final design review. If approved, freeze PEMS 
 
 PEMS v1 Phase 1 is complete. The owner-approved frozen design is now represented by a human-readable normative contract, a machine-readable JSON Schema 2020-12 structural contract, a full-vocabulary success fixture, and deterministic failure/admission/retention fixtures.
 
-The machine-readable schema is now durable at `docs/handoff/pems/pems-v1.schema.json`. It closes every admitted pems/1 record `data` object, covers the closed 20-kind vocabulary, common record/relation envelopes, lifecycle and type-specific state enums, nullability, source/source-observation structural provenance, and secret-safe environment-variable disposition. Cross-record graph integrity, Steward semantic-ID admission, observation immutability, deterministic ordering, and retention authorization remain explicit Phase 2 semantic-validator responsibilities rather than being falsely delegated to JSON Schema.
+The machine-readable schema is now durable at `docs/handoff/pems/pems-v1.schema.json`. It closes every admitted pems/1 record `data` object, covers the closed 20-kind vocabulary, common record and relation envelopes, lifecycle and type-specific state enums, nullability, source/source-observation structural provenance, and secret-safe environment-variable disposition. Cross-record graph integrity, Steward semantic-ID admission, observation immutability, deterministic ordering, and retention authorization remain explicit Phase 2 semantic-validator responsibilities rather than being falsely delegated to JSON Schema.
 
 ### Phase 1 artifacts
 
@@ -965,7 +965,7 @@ The semantic transition itself is not the blocker. The computed hashes and ident
 
 The transport blocker itself is resolved: repository-native workflow execution can generate and commit artifacts larger than the connector response limit. During independent reproduction, however, the tranche encountered a stronger hard stop. The previously persisted recovery evidence is internally incompatible with the frozen deterministic COVE contract.
 
-The exact contingent-admitted normalized PEMS reproduces at 66,860 bytes with SHA-256 `090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7`, and its deterministic human reconstruction reproduces at 68,522 bytes with SHA-256 `f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c`, both exactly matching the earlier recovery evidence. Encoding that exact normalized PEMS with the accepted `cove/1` implementation produces 38,630 bytes with SHA-256 `ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3`, not the recovery claim of 38,618 bytes / `a7ca5962c354161840822ce406bddd405296e4855afd2b0481f05f904291dc1a`.
+The exact contingent-admitted normalized PEMS reproduces at 66,860 bytes with SHA-256 `090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7`, and its deterministic human reconstruction reproduces at 68,522 bytes with SHA-256 `f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c`, both exactly matching the earlier recovery evidence. Encoding that exact normalized PEMS with the accepted `cove/1` implementation produces 38,630 bytes with SHA-256 `ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3`, not the recovery claim of 38,618 bytes / `a7ca5962c354161840822ce406bddd405296e4855afd2b0481f05f904291dc1a`.
 
 A control run proves the implementation source is the accepted one: re-encoding the current 163-record canonical expanded PEMS produces exactly the repository canonical COVE, 38,053 bytes / SHA-256 `ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa`, byte-for-byte, and decodes back to the same normalized PEMS. Therefore the 165-record COVE recovery digest cannot simultaneously be correct under the same frozen contract.
 
@@ -1124,3 +1124,52 @@ Review the admitted-regeneration evidence. If it satisfies the canonical-write g
 ### Human reasoning
 
 Admission changes references throughout the graph, so the correct final bytes cannot be inferred by textual substitution from the provisional candidate. Regenerating through the frozen codec proves that the six approved identities settle into one deterministic representation while the prior 165 identities and the demo/common ownership distinction remain intact. The remaining decision is therefore a Steward canonical-installation gate, not a representation-design question.
+
+## ARCH-20260815T215952-0700-026
+
+- timestamp: `2026-08-15T21:59:52-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: design-response
+- status: resolved
+- acknowledges: `STEWARD-20260815-019`, `STEWARD-20260815-RGP-PEMS2-COMPATIBILITY-RESOLUTION`, `ARCH-20260815T193249-0700-025`
+- subject: RGP / PEMS2 compatibility resolutions accepted with state-preservation tightening
+
+### Assessment
+
+The seven compatibility resolutions are architecturally coherent and are accepted as the basis for a bounded `pems/2` semantic-contract design tranche. The submitted profile preserves the essential invariants from the prior assessment: `pems/1` and `cove/1` remain frozen; RGP remains an independent protocol; generic proposition capability stays closed rather than becoming an arbitrary extension namespace; existing stable identities are not rebound; v1 provenance migrates to `provenance.untyped`; `depends_on` receives a closed qualifier profile instead of semantic overloading; contradiction is symmetric in meaning but single-edge canonically; and unknown RGP majors fail closed.
+
+The 20 compatibility cases are sufficient to show that all seven previously open questions now have an explicit semantics-preserving disposition. No contradiction with the frozen v1 contract was found.
+
+### Required normative tightening
+
+One state-preservation rule must be made explicit when the successor schema/compatibility fixtures are drafted:
+
+- **current-state RGP export of a PEMS `decision` is permitted only when `data.decision_state == "accepted"` and the record is current in the exported snapshot;** proposed, rejected, superseded, or historical decision records must not be flattened into an RGP `decision` that loses their PEMS state;
+- **current-state RGP export of an `unresolved_item` likewise requires a current record whose `resolution_state` is `open`, `blocked`, or `deferred`;** resolved or historical records are not current uncertainties;
+- historical decision/uncertainty reconstruction uses the applicable historical PEMS snapshot or observation boundary, matching the snapshot-scoped rule already accepted for uncertainty.
+
+This is a tightening of the submitted domain-record proposition profile, not a rejection of its design. The existing `domain-decision` fixture already uses `decision_state: accepted`; the normative successor fixtures should add negative cases for proposed/rejected/superseded/historical decisions and historical unresolved items so lossless export claims cannot erase lifecycle/state semantics.
+
+### Design disposition
+
+With that tightening, accept all seven submitted resolutions:
+
+1. direct domain proposition participation remains limited initially to accepted current `decision` records and current unresolved `unresolved_item` records;
+2. resolved uncertainty export remains snapshot-scoped;
+3. `contradicts` is semantically symmetric with one deterministically ordered canonical edge;
+4. `depends_on` uses `conditional_validity`, `structural`, and migration-only `legacy_untyped`, with all v1 dependencies migrating conservatively to `legacy_untyped`;
+5. generic proposition refinement preserves the original identity and history, using a distinct domain identity plus reviewed supersession rather than kind mutation;
+6. typed provenance enrichment is atomic and source-observation-based, with role reclassification treated as governed semantic correction rather than silent enrichment;
+7. the initial compatibility profile binds explicitly to `rgp/1`, rejecting unknown majors.
+
+### Authorization boundary and next gate
+
+This review does **not** authorize canonical-memory migration, `pems/1` reinterpretation, `cove/1` redesign, production-code changes, or RGP admission into current canonical memory.
+
+The next bounded tranche, if the Steward records/acknowledges this disposition as authorized, should produce only normative successor artifacts: a `pems/2` schema/semantic contract, deterministic `pems/1 -> pems/2` migration rules, RGP compatibility fixtures including the state-preservation negatives above, admission/validation contracts, and successor conformance fixtures. Canonical adoption remains a later, separate owner/Steward migration gate.
+
+### Human reasoning
+
+The submitted profile closes the real ambiguity without enlarging the ontology gratuitously. The one place where prose needed a sharper edge was domain export state. A PEMS record saying a decision was proposed, rejected, superseded, or merely historical carries meaning that bare RGP `decision` cannot preserve. Exporting it as a current decision would be semantic compression, not compatibility. Restricting direct current-state export to accepted current decisions mirrors the snapshot-scoped uncertainty rule and keeps the compatibility claim genuinely lossless.
+
+The next safe step is therefore contract drafting, not implementation or migration. The design now has enough closure to make those rules executable in schemas and fixtures while leaving canonical v1 memory untouched.
