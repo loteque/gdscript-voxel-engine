@@ -1,0 +1,42 @@
+version: 1
+candidate_change: remove_uncertainty_kind
+cases:
+  - id: missing-measurement
+    statement: "Browser runtime behavior has not been measured."
+    expected_without_uncertainty: observation
+    rationale: "This is directly observable project state: the measurement is absent."
+
+  - id: unknown-cause
+    statement: "The cause of the missing runtime UI is unknown."
+    expected_without_uncertainty: claim
+    rationale: "The proposition describes current epistemic status, not a directly observed runtime event."
+
+  - id: open-design-question
+    statement: "It is unresolved whether chunk residency should remain coupled to manifest lifetime."
+    expected_without_uncertainty: claim
+    rationale: "This is an unresolved design proposition, not empirical state."
+
+  - id: unverified-platform-equivalence
+    statement: "It has not been established that browser behavior matches native behavior."
+    expected_without_uncertainty: claim
+    rationale: "This is a scoped evidentiary-status proposition."
+
+  - id: absent-test-coverage
+    statement: "No validation currently covers unload during in-flight resource loading."
+    expected_without_uncertainty: observation
+    rationale: "Coverage absence is inspectable project state."
+
+  - id: unresolved-performance-cause
+    statement: "It is unknown whether allocation or deserialization dominates the remaining load time."
+    expected_without_uncertainty: claim
+    rationale: "This encodes an unresolved interpretation of existing evidence."
+
+  - id: owner-open-question
+    statement: "The project owner has not decided whether chunk LOD should precede runtime editing."
+    expected_without_uncertainty: observation
+    rationale: "The absence of an owner decision is inspectable through authoritative project history."
+
+  - id: future-behavior-unknown
+    statement: "The current evidence does not establish behavior for larger chunk sizes."
+    expected_without_uncertainty: claim
+    rationale: "This is an evidentiary scope boundary."
