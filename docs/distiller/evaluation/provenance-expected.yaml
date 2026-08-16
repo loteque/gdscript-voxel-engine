@@ -1,4 +1,4 @@
-version: 2
+version: 3
 expectations:
   direct-test-over-chat:
     required_primary_provenance:
@@ -10,7 +10,7 @@ expectations:
 
   owner-rule-over-agent-summary:
     required_authority: owner
-    required_primary_provenance:
+    required_authority_provenance:
       - source:owner:validation-requirement
     corroborating_only:
       - source:implementation:validation-scene
@@ -18,18 +18,14 @@ expectations:
       - source:chat:residency-summary
 
   conclusion-upstream-provenance:
+    required_kind: claim
     required_epistemic_role: derived
-    required_authority_any_of:
-      - observed
-      - agent
-    required_support_any_of:
+    requires_nonempty_premise: true
+    premise_records_must_be_grounded_by_any_of:
       - source:test:headless-pass
       - source:workflow:web-deploy-success
       - source:manual:web-demo-success
-    preferred_support:
-      - source:test:headless-pass
-      - source:workflow:web-deploy-success
-      - source:manual:web-demo-success
+    must_not_require_direct_provenance_on_derived_claim: true
     must_not_use_kind:
       - conclusion
     must_not_broaden_to:
@@ -43,7 +39,10 @@ expectations:
         statement_contains: deployment workflow completed successfully
       - provenance: source:manual:phone-ui-missing
         statement_contains: RuntimeWorkloadExperimentUI is missing
-    required_derived_or_unresolved_proposition:
+    required_derived_claim:
+      kind: claim
+      epistemic_role: derived
+      requires_nonempty_premise: true
       statement_contains: deployment success does not establish runtime UI startup correctness
     must_not_use_kind:
       - conclusion
@@ -60,7 +59,10 @@ global_hard_failures:
   - fabricated source identifier
   - broad chat or summary selected as sole provenance when direct immutable evidence is supplied
   - owner requirement attributed to agent summary
+  - owner or governed authority without authority provenance
   - conflicting direct evidence silently discarded
-  - derived proposition loses all upstream direct evidence
+  - derived proposition without a non-empty premise
+  - external source identifier used as a premise
+  - premise relationship duplicated in general relations
   - universal claim inferred from scoped validation evidence
   - conclusion emitted as a proposition kind
