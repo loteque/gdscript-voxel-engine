@@ -933,7 +933,7 @@ Both provisional and contingent-admitted variants contain 165 records and zero r
 Computed candidate hashes:
 
 - expanded PEMS `jcs/1`: 66,895 bytes; SHA-256 `1d2378cf19a247256c327dd8f12ed639c7508dba555fa7c7a92df44fd98b98ba`.
-- COVE + `jcs/1`: 38,628 bytes; SHA-256 `0b4a7478469c28e9d44b8358dd0ca21ec8cbb1135bb29afe14f2bddb0a43`.
+- COVE + `jcs/1`: 38,628 bytes; SHA-256 `0b4a7478469c28e9d44b8358dd0ca21ec8cbb1135bb33ba29afe14f2bddb0a43`.
 - human reconstruction: 68,552 bytes; SHA-256 `2d63d2c6765bd92d906a330864e8f59c0350c885d824f56279a660184675f9f0`.
 
 Computed contingent-admitted hashes:
@@ -1124,46 +1124,3 @@ Review the admitted-regeneration evidence. If it satisfies the canonical-write g
 ### Human reasoning
 
 Admission changes references throughout the graph, so the correct final bytes cannot be inferred by textual substitution from the provisional candidate. Regenerating through the frozen codec proves that the six approved identities settle into one deterministic representation while the prior 165 identities and the demo/common ownership distinction remain intact. The remaining decision is therefore a Steward canonical-installation gate, not a representation-design question.
-
-## ARCH-20260815T193249-0700-025
-
-- timestamp: `2026-08-15T19:32:49-07:00`
-- author: Engineering Knowledge Systems Architect
-- type: design-response
-- status: open
-- acknowledges: `STEWARD-20260815-018`; current Project Engineering Steward submission of `docs/distiller/PEMS_RGP_REVIEW_REQUEST.md`
-- subject: RGP mapping losses justify a closed PEMS/2 proposition capability
-
-### Assessment
-
-Reviewed the Steward-submitted RGP architecture request and all required supporting artifacts on `pems-mapping-reconciliation`, together with the frozen `pems/1` contract and current Architect governance history.
-
-Disposition: **accept direction and propose successor PEMS design**.
-
-The 14-case reconciliation evaluation demonstrates a real semantic boundary rather than an adapter defect: `pems/1` cannot losslessly preserve generic assumptions, generic empirical observations, generic logical/evidentiary claims, proposition-level `supports`, proposition-level `contradicts`, or RGP typed provenance roles. Those gaps span proposition, relation, and provenance semantics, so a versioned PEMS evolution is justified.
-
-The recommended successor is `pems/2`, with a small closed first-class proposition capability rather than an arbitrary extension namespace or separate reasoning sidecar. Add one generic `proposition` record for the currently uncovered RGP kinds (`observation`, `assumption`, `claim`); keep losslessly mapped project decisions and consequential uncertainties in the existing `decision` and `unresolved_item` domain kinds and allow those records to participate directly in reasoning relations. This single-representation rule avoids parallel canonical decision/unresolved identities.
-
-Normalize RGP premises to existing `derived_from`; add explicit `supports` and `contradicts`; retain `depends_on` only if its successor semantics are frozen broadly enough to match RGP conditional validity; and reuse governed PEMS supersession so candidate `supersedes` cannot mutate lifecycle until admitted. Typed provenance should continue to terminate at `source_observation`, using a successor common provenance object with `primary`, `corroborating`, `context`, and `untyped`. The `untyped` role is necessary because deterministic pems/1 -> pems/2 migration must not invent provenance roles for existing v1 `observation_refs`.
-
-The complete assessment is `docs/distiller/PEMS_RGP_ARCHITECTURE_ASSESSMENT.md`, committed at `a28cf1af5c7cf15e1a6185c17808c687fca2d142`.
-
-### Compatibility and governance
-
-`pems/1` remains frozen. A deterministic v1 -> v2 migration should preserve every existing stable identity and lifecycle state, map v1 `observation_refs` to `provenance.untyped`, and create no generic propositions solely as a migration side effect. Lossless downgrade from pems/2 must fail explicitly when v2-only proposition/relation/provenance meaning is present.
-
-RGP validity and proposition kind remain independent from PEMS admission, lifecycle, truth, and authority. Existing Steward identity admission, source/source-observation immutability, historical preservation, and authority derivation remain unchanged in principle. This review does not authorize implementation or canonical migration.
-
-### Unresolved questions
-
-Before freezing pems/2, resolve the exact domain-record proposition profile, historical export semantics for resolved uncertainties, contradiction symmetry, `depends_on` semantic breadth, generic-proposition promotion into a more precise domain record, typed-provenance enrichment atomicity, and the RGP major version bound by the compatibility profile.
-
-### Human reasoning
-
-The useful middle path is neither “turn PEMS into RGP” nor “bolt on an extension bag.” PEMS already owns durable project identity, provenance, lifecycle, history, and admission. RGP contributes a missing semantic layer for externally supportable propositions and their reasoning relationships. Integrating a small closed proposition primitive lets the same memory answer both “what project object/state exists?” and “what proposition supports, contradicts, or derives this understanding?” without allowing arbitrary unvalidated ontology growth.
-
-A concrete example is a project decision. If RGP says “Runtime streaming owns chunk residency” and the candidate satisfies the existing PEMS decision contract, PEMS should have one canonical decision identity that can be targeted by `derived_from` or `supports`. Creating a second generic proposition with the same meaning would fragment identity. By contrast, “A passing headless test does not establish browser rendering correctness” has no natural pems/1 domain record, so a generic claim proposition is the correct new semantic home.
-
-### Steward request
-
-Review the disposition and unresolved design questions. If accepted, authorize a bounded PEMS/2 **semantic-contract design tranche only**: successor normative schema, deterministic pems/1 migration contract, RGP compatibility profile, validation fixtures, and admission rules. Do not authorize successor implementation or canonical-memory migration merely from this assessment.
