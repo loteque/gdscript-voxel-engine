@@ -8,9 +8,9 @@ Stress the current distiller directive and deterministic validator with inputs d
 
 Corpus: `docs/distiller/evaluation/adversarial-cases.yaml`
 
-Five separated same-model passes were run for each of eight adversarial cases: 40 total outputs.
+Five separated same-model passes were run for each of eight adversarial cases: 40 total outputs per round.
 
-## Results
+## Round 1
 
 | Result | Count |
 | --- | ---: |
@@ -51,8 +51,9 @@ provenance.primary required
 
 This is intentionally narrower than requiring provenance for every axiom. Axiomhood remains logically independent from provenance. Normative or conceptual axioms may still exist without empirical provenance when the protocol permits them, but an axiomatic observation must be externally grounded because its semantic kind asserts observable project/world state.
 
-The invariant was added to both:
+The invariant was added to:
 
+- `docs/distiller/DIRECTIVE.md`
 - `docs/distiller/validation/schema.json`
 - `docs/distiller/validation/validate_distillation.py`
 
@@ -60,7 +61,21 @@ A regression fixture was added:
 
 - `docs/distiller/validation/fixtures/invalid-axiomatic-observation-without-primary-provenance.json`
 
-Under the tightened validator, the two adversarial outputs are rejected rather than silently admitted.
+## Round 2
+
+After aligning the directive and validator, the full adversarial corpus was rerun with five separated passes per case.
+
+| Result | Count |
+| --- | ---: |
+| Deterministically valid without repair | 40 / 40 |
+| Semantic expectation failures | 0 / 40 |
+| Authority-promotion failures | 0 |
+| Premise cycles | 0 |
+| Fabricated provenance identifiers | 0 |
+| Universal claims from scoped validation | 0 |
+| Unsupported axiomatic observations | 0 |
+
+The `missing-source-identifier` case now consistently omits the unsupported empirical record rather than manufacturing provenance or emitting an ungrounded observation axiom.
 
 ## Other Adversarial Findings
 
@@ -86,19 +101,13 @@ No pass promoted a single successful streaming validation into universal runtime
 
 ## Interpretation
 
-The adversarial corpus found a validator defect rather than an ontology defect.
+The adversarial corpus found a validator/prompt invariant gap rather than an ontology defect.
 
-This is a favorable result: the current proposition kinds, epistemic roles, premise model, authority model, and relation vocabulary did not require expansion.
+The current proposition kinds, epistemic roles, premise model, authority model, provenance model, and relation vocabulary did not require expansion.
 
-It also demonstrates why deterministic validation should remain reject-only. The invalid empirical axiom was not something a validator should repair by inventing provenance or changing epistemic role. Rejection correctly returns the semantic problem to the distillation stage.
+The reject-only validation boundary worked as intended: the invalid empirical axiom was rejected rather than repaired by inventing provenance or silently changing semantic role.
 
-## Remaining Gap
-
-The directive currently says provenance may be absent from axioms in general. It should be tightened to state the new narrower rule explicitly:
-
-> An `observation` with `epistemic_role: axiom` requires `provenance.primary`.
-
-The deterministic contract already enforces this rule. The prompt should be brought into exact alignment before the next live evaluation.
+After the prompt and deterministic contract were aligned, the adversarial corpus reached 40/40 valid outputs without repair.
 
 ## Limitation
 
@@ -106,4 +115,4 @@ As with prior repeated-pass experiments, these are separated passes of the same 
 
 ## Next Step
 
-Align `DIRECTIVE.md` with the new empirical-grounding invariant, rerun the adversarial corpus, and require 40/40 outputs to pass deterministic validation without repair before moving to PEMS candidate mapping.
+Proceed to PEMS candidate mapping while keeping distillation output provisional. The next phase should define how validated records and relations enter the existing project-memory lifecycle without allowing distiller output to become authoritative project truth merely because it is structurally valid.
