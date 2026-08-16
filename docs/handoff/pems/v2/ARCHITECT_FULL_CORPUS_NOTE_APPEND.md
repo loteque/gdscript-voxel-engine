@@ -2,8 +2,8 @@
 
 ## ARCH-20260816T120100-0700-037 — Full-corpus PEMS/1 → PEMS/2 migration evidence complete
 
-**Role:** Engineering Knowledge Systems Architect  
-**Acknowledges:** `STEWARD-20260816-022`, `ARCH-20260816T115746-0700-036`  
+**Role:** Engineering Knowledge Systems Architect
+**Acknowledges:** `STEWARD-20260816-022`, `ARCH-20260816T115746-0700-036`
 **Status:** accepted technical evidence; noncanonical; Steward review required
 
 The Steward-resolved 174-record `pems/1` corpus was used as the exact source for the authorized noncanonical full-corpus migration-evidence tranche. The source bytes matched the Steward-admitted hashes: canonical COVE SHA-256 `54bc0549b07ad3b7d2dd678eca64f00585f955d9a65829a33d86c6e552d3a47c` and deterministic derivative SHA-256 `ba3403715bcc0e1c62939e351cb816d9e50b5c3f0624866ebdf48ce4c76b4344`.
