@@ -1,0 +1,36 @@
+{
+  "evidence_contract": "pems/2-draft-conformance-evidence/1",
+  "authorization": "STEWARD-20260815-020",
+  "scope": "successor_contract_draft_only",
+  "canonical_mutation": false,
+  "local_validation": {
+    "schema_draft2020_12_meta_validation": "pass",
+    "compatibility_cases": {
+      "count": 28,
+      "result": "pass"
+    },
+    "deterministic_v1_to_v2_migration": "pass",
+    "migration_fixture_sha256": "df5ea0412072ff4f1926e09b5eee918e4f56ea49161a644bdc56a99d486f184b",
+    "repeat_runs_byte_identical": true
+  },
+  "artifact_sha256": {
+    "ADMISSION_CONFORMANCE.md": "eac1531b5ab070f5ecb88073dbc7e7636ebebcb5860896d99b54265eecc518f4",
+    "MIGRATION.md": "02ac63c8d8ae7ab8e469b7da015751f9d9c411cccba4b305320571117d552ff0",
+    "README.md": "74183a31c43fe0d88dea9746b1dd18efef1b8657cc5b9f25ce5cc876242a831b",
+    "RGP_COMPATIBILITY_FIXTURES.json": "797d79d3f0a3fe5800d064dd49ecc881ad6f9ed1f45f18213576ec0825832591",
+    "pems-v2.schema.json": "7d4708baf0818b1436ac74df4140640ee2ac0b0a3a120d5f0f1adfe988f1d300",
+    "validate_pems2_contract.py": "5ca3306d55c4c5778bd7edaf2e98d4a11bd642497af4fe1145af6c1e0bdec463"
+  },
+  "unresolved_questions": [
+    {
+      "id": "pems2-grounding-minima",
+      "status": "deferred_to_steward_review",
+      "summary": "Whether every admitted generic observation must have primary provenance is intentionally not frozen; current Distiller evidence supports a grounding policy, but the seven authorized compatibility resolutions did not establish a universal PEMS/2 semantic minimum."
+    },
+    {
+      "id": "pems2-canonical-serialization",
+      "status": "separately_gated",
+      "summary": "How PEMS/2 would be serialized canonically, including whether cove/1 can encode it without a representation-contract change, is outside this tranche and must be decided before any cutover."
+    }
+  ]
+}
