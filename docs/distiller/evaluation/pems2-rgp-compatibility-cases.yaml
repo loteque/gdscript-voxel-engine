@@ -1,0 +1,187 @@
+profile: pems2-rgp-compatibility
+cases:
+  - id: domain-decision
+    question: Can an admitted PEMS decision act directly as an RGP decision proposition?
+    input:
+      pems_kind: decision
+      decision_state: accepted
+      summary: Substantial features require validation scenes.
+    expected:
+      rgp_kind: decision
+      statement: Substantial features require validation scenes.
+      disposition: direct_domain_projection
+
+  - id: domain-requirement-not-implicit
+    question: Does a PEMS requirement implicitly become an RGP proposition?
+    input:
+      pems_kind: requirement
+      summary: Validation is required.
+    expected:
+      disposition: no_rgp_projection
+      reason: unprofiled_domain_kind
+
+  - id: unresolved-current
+    question: Does an open unresolved item export as RGP uncertainty?
+    input:
+      pems_kind: unresolved_item
+      resolution_state: open
+      summary: Browser startup behavior is not yet verified.
+    expected:
+      rgp_kind: uncertainty
+      disposition: direct_domain_projection
+
+  - id: unresolved-resolved-current
+    question: Does a resolved unresolved item remain a current RGP uncertainty?
+    input:
+      pems_kind: unresolved_item
+      resolution_state: resolved
+      summary: Browser startup behavior is not yet verified.
+    expected:
+      disposition: no_current_rgp_projection
+      reason: uncertainty_resolved_in_snapshot
+
+  - id: unresolved-historical
+    question: Can the earlier uncertainty be reconstructed from a snapshot in which it was unresolved?
+    input:
+      historical_snapshot_resolution_state: open
+    expected:
+      rgp_kind: uncertainty
+      disposition: historical_snapshot_projection
+
+  - id: contradiction-canonical-order
+    question: Do opposite input orientations produce one canonical contradiction identity?
+    input:
+      pairs:
+        - [pems:proposition:b, pems:proposition:a]
+        - [pems:proposition:a, pems:proposition:b]
+    expected:
+      canonical_from: pems:proposition:a
+      canonical_to: pems:proposition:b
+      semantic_symmetry: true
+      canonical_edge_count: 1
+
+  - id: contradiction-no-winner
+    question: Does contradiction mutate lifecycle or imply supersession?
+    input:
+      relation: contradicts
+    expected:
+      lifecycle_mutation: false
+      implies_supersession: false
+      selects_winner: false
+
+  - id: rgp-dependency
+    question: How does RGP depends_on map into PEMS/2?
+    input:
+      rgp_relation: depends_on
+    expected:
+      pems_relation: depends_on
+      dependency_kind: conditional_validity
+
+  - id: migrated-v1-dependency
+    question: How does an existing PEMS/1 depends_on relation migrate without invented semantics?
+    input:
+      source_semantic: pems/1
+      pems_relation: depends_on
+    expected:
+      pems2_relation: depends_on
+      dependency_kind: legacy_untyped
+
+  - id: native-structural-dependency
+    question: Can PEMS/2 retain domain structural dependency without claiming RGP conditional validity?
+    input:
+      pems2_relation: depends_on
+      intent: operational_dependency
+    expected:
+      dependency_kind: structural
+      rgp_exportable: false
+
+  - id: proposition-refinement
+    question: Does later domain precision mutate a generic proposition identity?
+    input:
+      existing: pems:proposition:alpha
+      new_domain_kind: decision
+    expected:
+      mutate_existing_kind: false
+      preserve_existing_identity: true
+      new_domain_identity_required: true
+      reconciliation: reviewed_supersession_if_established
+
+  - id: refinement-edge-history
+    question: Are old reasoning edges silently retargeted during refinement?
+    input:
+      reconciliation: semantic_refinement
+    expected:
+      automatic_edge_retargeting: false
+      historical_edges_preserved: true
+
+  - id: provenance-corroborating-enrichment
+    question: Does adding corroborating evidence require a new proposition?
+    input:
+      existing_proposition_unchanged: true
+      new_role: corroborating
+      source_observation: pems:source_observation:new
+    expected:
+      new_proposition_required: false
+      update_kind: atomic_provenance_enrichment
+
+  - id: provenance-primary-enrichment
+    question: Does an additional independent primary source require a new proposition when semantics are unchanged?
+    input:
+      existing_proposition_unchanged: true
+      new_role: primary
+    expected:
+      new_proposition_required: false
+      update_kind: atomic_provenance_enrichment
+
+  - id: provenance-untyped-classification
+    question: Can migrated untyped provenance be classified later?
+    input:
+      source_observation: pems:source_observation:legacy
+      old_role: untyped
+      established_new_role: primary
+    expected:
+      allowed: true
+      atomic_move: true
+      duplicate_across_untyped_and_primary_after_commit: false
+      review_or_governance_required: true
+
+  - id: provenance-typed-reclassification
+    question: Is primary to context an ordinary enrichment?
+    input:
+      old_role: primary
+      new_role: context
+    expected:
+      ordinary_enrichment: false
+      review_required: true
+      reason: semantic_provenance_correction
+
+  - id: changed-source-observation
+    question: Does a changed external source mutate the old source observation?
+    input:
+      external_source_changed: true
+    expected:
+      mutate_old_source_observation: false
+      create_new_source_observation: true
+
+  - id: rgp-version-accepted
+    question: Does the profile accept RGP major 1?
+    input:
+      rgp_semantic: rgp/1
+    expected:
+      accepted: true
+
+  - id: rgp-version-unknown-major
+    question: Does the profile guess compatibility for RGP major 2?
+    input:
+      rgp_semantic: rgp/2
+    expected:
+      accepted: false
+      failure: unsupported_rgp_major
+
+  - id: pems-version-independence
+    question: Does PEMS/2 imply RGP/2?
+    input:
+      pems_semantic: pems/2
+    expected:
+      rgp_major_implied: false
+      bound_profile: rgp/1
