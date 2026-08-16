@@ -1,0 +1,100 @@
+{
+  "record_id": "STEWARD-20260816-023",
+  "timestamp": "2026-08-16T12:37:59-07:00",
+  "author_role": "Project Engineering Steward",
+  "type": "pems2-full-corpus-migration-review",
+  "status": "accepted",
+  "acknowledges": [
+    "STEWARD-20260816-022",
+    "ARCH-20260816T120100-0700-037"
+  ],
+  "source_authority": {
+    "canonical_semantic": "pems/1",
+    "canonical_codec": "cove/1",
+    "canonical_record_count": 174,
+    "canonical_cove_sha256": "54bc0549b07ad3b7d2dd678eca64f00585f955d9a65829a33d86c6e552d3a47c",
+    "canonical_derivative_sha256": "ba3403715bcc0e1c62939e351cb816d9e50b5c3f0624866ebdf48ce4c76b4344",
+    "canonical_cutover_changed_by_this_record": false
+  },
+  "migration_evidence_review": {
+    "evidence_path": "docs/handoff/pems/v2/FULL_CORPUS_MIGRATION_EVIDENCE.json",
+    "evidence_blob": "b95033ab199abed98f593f6962563358e1fcb4b5",
+    "migrated_corpus_path": "docs/handoff/pems/v2/FULL_CORPUS_PEMS2.json",
+    "migrated_corpus_blob": "b1beb2dc45f6559efe41e32130db21c02df725ff",
+    "human_reconstruction_path": "docs/handoff/pems/v2/FULL_CORPUS_HUMAN_RECONSTRUCTION.md",
+    "human_reconstruction_blob": "10fd2073782e925c689c82778156cfc575dc72d7",
+    "artifact_commit": "cc6d0f25c1e3bb828ec32eab0570f537c11decba",
+    "reported_sha256": {
+      "migrated_corpus": "896e3b61077e063850cbb3693f27d8732719057ca3df3effb6382b4b16b6df01",
+      "migration_evidence": "d012f9beb0d6cbcb61ca954da1856d339a31d2db9690413dfecb2af8290063be",
+      "human_reconstruction": "580e642eb2dd07ad3f5743a28c294de6103ee34181ea95e6d306c65a926e383a"
+    },
+    "accepted_findings": {
+      "source_identity_count": 174,
+      "migrated_identity_count": 174,
+      "identity_sets_identical": true,
+      "semantic_rebinding": false,
+      "lifecycle_preserved": true,
+      "record_data_preserved": true,
+      "source_observation_count": 7,
+      "source_observation_ids_preserved": true,
+      "source_observation_evidence_preserved": true,
+      "observation_refs_moved_only_to_provenance_untyped": true,
+      "typed_provenance_inferred": false,
+      "primary_provenance_manufactured": false,
+      "relation_count": 0,
+      "legacy_depends_on_reinterpreted": false,
+      "pems2_schema_valid": true,
+      "repeated_migration_bytes_identical": true,
+      "deterministic_human_reconstruction": true,
+      "rgp_compatibility_cases": "28/28",
+      "admission_cases": "6/6"
+    },
+    "disposition": "accepted_noncanonical_full_corpus_migration_evidence"
+  },
+  "open_question_disposition": {
+    "universal_primary_grounding": {
+      "decision": "Do not impose universal primary provenance as a core pems/2 semantic invariant at this stage.",
+      "rationale": "The accepted full-corpus migration demonstrates semantics-preserving pems/2 representation without manufacturing typed provenance. Requiring universal primary grounding in the core contract would either invalidate preserved legacy semantics or force invented evidence roles. Grounding strength belongs in scoped admission/conformance profiles unless later evidence demonstrates a true universal invariant.",
+      "next_design_requirement": "Draft explicit scoped grounding/admission profiles and negative fixtures identifying which proposition/admission classes require primary provenance, which may remain untyped, and how unresolved provenance blocks admission without changing proposition semantics."
+    },
+    "canonical_serialization_and_cutover": {
+      "decision": "Remain separately gated; authorize design and proof only, not adoption or cutover.",
+      "rationale": "The migration proves semantic readiness but does not establish a canonical byte representation, codec-version policy, rollback procedure, or authority transition. cove/1 must not be assumed to encode pems/2 canonically merely because the semantic migration is green.",
+      "next_design_requirement": "Evaluate whether cove/1 can losslessly and deterministically encode the accepted pems/2 model without changing the frozen cove/1 contract. If not, draft a versioned successor codec contract such as cove/2. Define deterministic byte generation/round-trip evidence, compatibility/dual-read behavior, exact cutover and rollback procedure, canonical artifact identities, and owner-facing adoption criteria. jcs/1 remains unchanged unless evidence demonstrates a separate byte-contract requirement."
+    }
+  },
+  "authorized_next_tranche": {
+    "name": "noncanonical_pems2_canonical_adoption_readiness_design",
+    "authorized": true,
+    "scope": [
+      "Draft scoped primary-grounding admission/conformance profiles with positive and negative fixtures; do not add a universal core primary requirement without new evidence.",
+      "Evaluate canonical serialization options for pems/2, including explicit proof whether frozen cove/1 can or cannot encode pems/2 losslessly without contract reinterpretation.",
+      "If cove/1 is insufficient, draft a versioned successor codec contract and deterministic full-corpus encode/decode evidence; do not modify frozen cove/1.",
+      "Define canonical byte determinism, human reconstruction, compatibility/dual-read behavior, cutover sequence, rollback sequence, authority-transfer checks, and exact acceptance criteria.",
+      "Produce an owner-facing adoption recommendation separating technical readiness from the actual canonical-authority decision."
+    ],
+    "explicitly_not_authorized": [
+      "making pems/2 canonical",
+      "canonical project-memory cutover",
+      "changing canonical authority",
+      "mutating or reinterpreting canonical pems/1",
+      "modifying frozen cove/1",
+      "assuming cove/1 is the pems/2 canonical codec without proof",
+      "changing jcs/1 without a separately demonstrated need",
+      "modifying production code, ADRs, ROADMAP.md, demos, tests, or main"
+    ],
+    "hard_stops": [
+      "semantic identity rebinding",
+      "history or provenance loss",
+      "nondeterministic canonical candidate bytes",
+      "lossy codec round trip",
+      "frozen-contract reinterpretation",
+      "authority ambiguity",
+      "scope expansion into actual cutover"
+    ]
+  },
+  "owner_decision_required_now": false,
+  "next_owner_gate": "Owner approval is required before any future canonical-authority change or pems/2 cutover. The newly authorized tranche is design/evidence only and must return to the Steward before an owner adoption recommendation is made.",
+  "governance_outcome": "The exact 174-record noncanonical pems/1 -> pems/2 full-corpus migration evidence is accepted. PEMS/2 remains noncanonical. A bounded canonical-adoption-readiness design tranche is authorized; actual canonical adoption/cutover is not authorized."
+}
