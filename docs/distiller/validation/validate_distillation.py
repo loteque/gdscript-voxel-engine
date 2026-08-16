@@ -135,6 +135,10 @@ def validate(document: Any) -> list[str]:
             if not isinstance(provenance, dict) or "authority" not in provenance:
                 _error(errors, path, "authority requires provenance.authority")
 
+        if kind == "observation" and role == "axiom":
+            if not isinstance(provenance, dict) or "primary" not in provenance:
+                _error(errors, path, "axiomatic observations require provenance.primary")
+
     premise_graph: dict[str, list[str]] = {}
     for record_id, record in record_by_id.items():
         if record.get("epistemic_role") == "derived":
