@@ -1,0 +1,57 @@
+version: 1
+cases:
+  - id: runtime-contract-dependency
+    records:
+      - r1: "ChunkStreamer loads runtime chunk meshes through TerrainChunkManifest."
+      - r2: "TerrainChunkManifest remains the runtime lookup contract."
+    expected_relation: depends_on
+    rationale: "r1 may remain valid only while r2 remains true; r1 is not inferred from r2."
+
+  - id: configuration-applicability
+    records:
+      - r1: "The streaming demo is valid for manual QA."
+      - r2: "The required terrain asset is present in the exported build."
+    expected_relation: depends_on
+    rationale: "The applicability of r1 is conditional on r2, but r2 need not be a premise establishing r1."
+
+  - id: implementation-derived-from-tests
+    records:
+      - r1: "Headless validation passed."
+      - r2: "The tested implementation satisfies the headless validation requirement."
+    expected_encoding: premise
+    rationale: "r1 participates directly in deriving r2, so depends_on would be weaker and misleading."
+
+  - id: evidence-strengthens-decision
+    records:
+      - r1: "Chunk deserialization dominates the measured load time."
+      - r2: "Prioritize resource-loading optimization before adding LOD."
+    expected_relation: supports
+    rationale: "r1 strengthens the rationale for r2 but does not make r2 conditionally valid."
+
+  - id: policy-supersession
+    records:
+      - r1: "Validation demos must be exported under feature-specific preview URLs."
+      - r2: "Integration Preview categories should be updated in place whenever practical."
+    expected_relation: supersedes
+    rationale: "r2 replaces the earlier rule rather than being a continuing condition for it."
+
+  - id: platform-conditional-claim
+    records:
+      - r1: "The browser build is considered validated."
+      - r2: "The supported browser execution environment remains unchanged."
+    expected_relation: depends_on
+    rationale: "r1's continued applicability is conditional on r2."
+
+  - id: schema-compatibility
+    records:
+      - r1: "This serialized distillation remains valid under the current protocol."
+      - r2: "The protocol schema continues to accept its record and relation vocabulary."
+    expected_relation: depends_on
+    rationale: "r1 may cease to hold if r2 changes, even though r1 is not derived from r2."
+
+  - id: causal-overreach-control
+    records:
+      - r1: "The validation scene fails when the manifest is absent."
+      - r2: "The manifest absence caused every historical validation failure."
+    expected_encoding: none
+    rationale: "Neither depends_on nor the neighboring relations justify unsupported causal generalization."
