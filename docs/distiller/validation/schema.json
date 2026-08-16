@@ -38,12 +38,11 @@
     "record": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["temp_id", "kind", "statement", "epistemic_role"],
+      "required": ["temp_id", "kind", "statement"],
       "properties": {
         "temp_id": {"type": "string", "minLength": 1},
         "kind": {"enum": ["observation", "decision", "assumption", "uncertainty", "claim"]},
         "statement": {"type": "string", "minLength": 1},
-        "epistemic_role": {"enum": ["axiom", "derived", "unresolved"]},
         "authority": {"enum": ["owner", "governed"]},
         "premise": {
           "type": "array",
@@ -55,11 +54,6 @@
       },
       "allOf": [
         {
-          "if": {"properties": {"epistemic_role": {"const": "derived"}}, "required": ["epistemic_role"]},
-          "then": {"required": ["premise"]},
-          "else": {"not": {"required": ["premise"]}}
-        },
-        {
           "if": {"required": ["authority"]},
           "then": {
             "required": ["provenance"],
@@ -68,11 +62,9 @@
         },
         {
           "if": {
-            "properties": {
-              "kind": {"const": "observation"},
-              "epistemic_role": {"const": "axiom"}
-            },
-            "required": ["kind", "epistemic_role"]
+            "properties": {"kind": {"const": "observation"}},
+            "required": ["kind"],
+            "not": {"required": ["premise"]}
           },
           "then": {
             "required": ["provenance"],
