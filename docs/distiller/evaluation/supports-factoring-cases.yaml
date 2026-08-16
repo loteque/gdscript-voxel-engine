@@ -1,0 +1,76 @@
+version: 1
+cases:
+  - id: corroborating-runtime-observation
+    title: Independent observation strengthens but does not derive another observation
+    records:
+      - id: r1
+        kind: observation
+        statement: "Chunk reload passed in the headless validation scene."
+      - id: r2
+        kind: observation
+        statement: "Chunk reload also succeeded in the published browser demo."
+    target_relationship: "r2 strengthens confidence in r1 but r1 does not logically depend on r2."
+    question: "Can this meaning be preserved without a supports relation?"
+
+  - id: derivational-support
+    title: Evidence is actually constitutive of a derived proposition
+    records:
+      - id: r1
+        kind: observation
+        statement: "Headless validation passed."
+      - id: r2
+        kind: observation
+        statement: "Browser validation passed."
+      - id: r3
+        kind: claim
+        statement: "The tested revision exercised both required validation surfaces successfully."
+    target_relationship: "r1 and r2 are premises of r3."
+    question: "Does supports add anything beyond premise here?"
+
+  - id: external-corroboration
+    title: Reinforcing evidence exists only as an external source
+    records:
+      - id: r1
+        kind: observation
+        statement: "Deserialization dominated the measured chunk-load time."
+    target_relationship: "A second benchmark independently confirms the same measurement pattern."
+    question: "Should this be provenance.corroborating instead of supports?"
+
+  - id: architecture-pattern-support
+    title: One proposition is consistent with a broader architectural claim
+    records:
+      - id: r1
+        kind: observation
+        statement: "SurfaceNetsMesher delegates point indexing to PointFieldResource."
+      - id: r2
+        kind: observation
+        statement: "A Dual Contouring prototype also delegates point indexing to PointFieldResource."
+      - id: r3
+        kind: claim
+        statement: "Mesher implementations are converging on PointFieldResource-owned indexing."
+    target_relationship: "r1 and r2 may support r3, but if r3 is retained as derived they are also premises."
+    question: "Is supports distinct once derivation is represented explicitly?"
+
+  - id: decision-evidence-support
+    title: Evidence favors but does not logically derive a decision
+    records:
+      - id: r1
+        kind: observation
+        statement: "Precomputed chunk loading avoids runtime meshing cost in the measured workload."
+      - id: r2
+        kind: decision
+        statement: "The next streaming milestone will continue using precomputed chunk meshes."
+    target_relationship: "r1 is evidence favoring r2, but the decision also reflects owner priorities and alternatives."
+    question: "Can this relationship be preserved without supports?"
+
+  - id: uncertainty-evidence-support
+    title: Evidence increases plausibility of an unresolved hypothesis
+    records:
+      - id: r1
+        kind: observation
+        statement: "Resource deserialization consumed most measured load time."
+      - id: r2
+        kind: uncertainty
+        statement: "Deserialization may be the dominant cause of the browser loading stall."
+    target_relationship: "r1 increases plausibility of r2 without establishing it."
+    question: "Can premise, provenance, or another existing relation encode this without changing semantics?"
