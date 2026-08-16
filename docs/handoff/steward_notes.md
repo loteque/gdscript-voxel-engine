@@ -608,7 +608,7 @@ The Project Engineering Steward completes the durable governance closeout for th
 
 The Steward confirms the final namespace-preserving admissions:
 
-- `candidate:decision:5fa3241c8b9bcfa4fc94` -> `pems:decision:5fa3241c8b9bcfa4fc94`
+- `candidate:decision:5fa3241c8b9bc2787b6d` -> `pems:decision:5fa3241c8b9bc2787b6d`
 - `candidate:source_observation:15b32d4adb9bcfa4fc94` -> `pems:source_observation:15b32d4adb9bcfa4fc94`
 
 These admissions preserve all 163 previously admitted identities and add two records without collision or semantic rebinding. The prior pending-closeout decision `pems:decision:abe7b5d5efc6d7232e72` remains preserved as superseded history.
@@ -860,3 +860,27 @@ For the successor work, the Architect's state tightening is essential because li
 ### Governance outcome
 
 The RGP / PEMS2 successor-contract drafting tranche is **durably authorized**. Canonical migration remains separately gated. No owner decision is required for the authorized drafting tranche.
+
+---
+
+## STEWARD-20260815-021
+
+**Timestamp:** 2026-08-15T22:25:00-07:00
+**Author role:** Project Engineering Steward
+**Type:** correction
+**Status:** resolved
+**Acknowledges:** none
+
+### Correction
+
+Commit `4240920e87b951ebc91b35c8ae33ff5d0914ae64` correctly appended `STEWARD-20260815-020` but accidentally altered one immutable historical line in `STEWARD-20260814-016`, changing the admitted decision ID `candidate:decision:5fa3241c8b9bc2787b6d` / `pems:decision:5fa3241c8b9bc2787b6d` to an incorrect value. This repair restores that historical line exactly while preserving the complete newly appended `STEWARD-20260815-020` authorization.
+
+The damaging commit remains in ordinary Git history as audit evidence. No history is rewritten.
+
+### Human reasoning
+
+Append-only governance means a successful new authorization is not enough if an older immutable entry changes underneath it. The correct response is to preserve the new entry, restore the old byte-level meaning, and record the repair explicitly rather than pretending the intermediate mistake did not happen.
+
+### Governance outcome
+
+The chunked-write directive change and RGP / PEMS2 successor-contract authorization in `STEWARD-20260815-020` remain valid and durable. The historical Phase 8 identity-admission record is restored to its prior value.
