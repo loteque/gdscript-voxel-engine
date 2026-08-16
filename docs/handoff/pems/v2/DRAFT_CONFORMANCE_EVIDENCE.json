@@ -1,36 +1,69 @@
 {
-  "evidence_contract": "pems/2-draft-conformance-evidence/1",
+  "evidence_contract": "pems/2-draft-conformance-evidence/2",
   "authorization": "STEWARD-20260815-020",
   "scope": "successor_contract_draft_only",
   "canonical_mutation": false,
-  "local_validation": {
-    "schema_draft2020_12_meta_validation": "pass",
+  "artifact_blobs": {
+    "README.md": "7ea44570c0af3fb7d5ef3adc54dd8ead52ba2c52",
+    "pems-v2.schema.json": "0c3a2a0bc83869553171f063203fbbf16f7d7253",
+    "MIGRATION.md": "0a9c282f93c9173155f9963ccb811bdd3b5eb10c",
+    "RGP_COMPATIBILITY_FIXTURES.json": "5edd37470932d9fffaa7cde47039cf078af72607",
+    "ADMISSION_CONFORMANCE.md": "37d54fd8e3dfa5d097c68f3bd1cbd1034a46997d",
+    "ADMISSION_FIXTURES.json": "e5a9156dc6860fb5370e286d389e1fe0f3678a04",
+    "validate_pems2_contract.py": "756b1b4c2b138c0c3ab0d044d853404dae7abfbe"
+  },
+  "validation": {
+    "schema_draft2020_12_meta_validation": {
+      "result": "pass",
+      "evidence": "The original draft conformance execution validated the unchanged schema blob 0c3a2a0bc83869553171f063203fbbf16f7d7253 before this evidence extension."
+    },
     "compatibility_cases": {
       "count": 28,
-      "result": "pass"
+      "result": "pass",
+      "runtime_replay": true
     },
-    "deterministic_v1_to_v2_migration": "pass",
-    "migration_fixture_sha256": "df5ea0412072ff4f1926e09b5eee918e4f56ea49161a644bdc56a99d486f184b",
-    "repeat_runs_byte_identical": true
+    "admission_cases": {
+      "count": 6,
+      "result": "pass",
+      "runtime_replay": true
+    },
+    "deterministic_v1_to_v2_migration": {
+      "result": "pass",
+      "repeat_runs_byte_identical": true,
+      "migration_fixture_sha256": "df5ea0412072ff4f1926e09b5eee918e4f56ea49161a644bdc56a99d486f184b"
+    },
+    "repeated_policy_result_determinism": {
+      "result": "pass",
+      "policy_results_sha256": "6470553ec0202898097ae3037394c187a05b094d1a66fa67e041b1fc19f8e675"
+    },
+    "checked_in_validator_scope": [
+      "JSON Schema 2020-12 meta-validation and structural positive/negative smoke cases",
+      "28 RGP/PEMS2 compatibility dispositions including lifecycle/state negatives",
+      "6 admission pressure cases",
+      "deterministic pems/1 -> pems/2 migration with stable-ID/state/provenance preservation",
+      "repeated policy-result determinism"
+    ]
   },
-  "artifact_sha256": {
-    "ADMISSION_CONFORMANCE.md": "eac1531b5ab070f5ecb88073dbc7e7636ebebcb5860896d99b54265eecc518f4",
-    "MIGRATION.md": "02ac63c8d8ae7ab8e469b7da015751f9d9c411cccba4b305320571117d552ff0",
-    "README.md": "74183a31c43fe0d88dea9746b1dd18efef1b8657cc5b9f25ce5cc876242a831b",
-    "RGP_COMPATIBILITY_FIXTURES.json": "797d79d3f0a3fe5800d064dd49ecc881ad6f9ed1f45f18213576ec0825832591",
-    "pems-v2.schema.json": "7d4708baf0818b1436ac74df4140640ee2ac0b0a3a120d5f0f1adfe988f1d300",
-    "validate_pems2_contract.py": "5ca3306d55c4c5778bd7edaf2e98d4a11bd642497af4fe1145af6c1e0bdec463"
-  },
+  "resolved_design_points": [
+    "Bare current-state RGP decision export is limited to current PEMS decisions with decision_state=accepted.",
+    "Current RGP uncertainty export is limited to current unresolved_item records in open, blocked, or deferred state.",
+    "Historical reconstruction is snapshot-scoped; current export cannot flatten historical lifecycle/state.",
+    "Generic proposition refinement uses a distinct domain identity and reviewed supersession rather than ID/kind rebinding.",
+    "v1 observation_refs migrate only to provenance.untyped; typed roles are not inferred.",
+    "v1 depends_on migrates only to legacy_untyped; narrower dependency semantics are not inferred.",
+    "RGP compatibility binds exactly to rgp/1 and unknown majors fail closed."
+  ],
   "unresolved_questions": [
     {
       "id": "pems2-grounding-minima",
       "status": "deferred_to_steward_review",
-      "summary": "Whether every admitted generic observation must have primary provenance is intentionally not frozen; current Distiller evidence supports a grounding policy, but the seven authorized compatibility resolutions did not establish a universal PEMS/2 semantic minimum."
+      "summary": "Whether every admitted generic observation must have primary provenance is intentionally not frozen; current Distiller evidence supports grounding policies, but the authorized compatibility resolutions did not establish a universal PEMS/2 semantic minimum."
     },
     {
       "id": "pems2-canonical-serialization",
       "status": "separately_gated",
       "summary": "How PEMS/2 would be serialized canonically, including whether cove/1 can encode it without a representation-contract change, is outside this tranche and must be decided before any cutover."
     }
-  ]
+  ],
+  "next_gate": "Steward reviews the successor contract and may accept it, kick it back with bounded corrections, or separately authorize a noncanonical full-corpus pems/1 -> pems/2 migration-evidence tranche. Canonical migration/cutover remains unauthorized."
 }
