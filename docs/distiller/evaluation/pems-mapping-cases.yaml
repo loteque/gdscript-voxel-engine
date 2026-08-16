@@ -1,0 +1,161 @@
+version: 1
+contract: docs/distiller/PEMS_MAPPING.md
+cases:
+  - id: accepted-project-decision
+    candidate:
+      kind: decision
+      statement: Runtime streaming owns chunk residency.
+      provenance: {primary: [src-owner-or-governed]}
+    context:
+      decision_state_established: accepted
+    expected:
+      mapping: review_required
+      pems_kind: decision
+      preserves_statement_as: data.summary
+      reason: normative project decision requires admission review
+
+  - id: consequential-open-uncertainty
+    candidate:
+      kind: uncertainty
+      statement: Browser startup behavior on the target phone remains unverified.
+    expected:
+      mapping: mapped_new
+      pems_kind: unresolved_item
+      fields: {resolution_state: open}
+
+  - id: generic-assumption
+    candidate:
+      kind: assumption
+      statement: Asset read latency will remain below the residency update interval.
+    expected:
+      mapping: provisional_no_mapping
+      reason: pems/1 has no generic assumption record
+
+  - id: generic-observation
+    candidate:
+      kind: observation
+      statement: Deserialization took longer than file reading in the measured run.
+      provenance: {primary: [src-benchmark]}
+    expected:
+      mapping: provisional_no_mapping
+      reason: pems/1 source_observation is evidence capture, not a generic observed proposition
+
+  - id: validation-domain-observation
+    candidate:
+      kind: observation
+      statement: Chunk streaming headless validation is passing.
+      provenance: {primary: [src-test-run]}
+    context:
+      validation_target_id: pems:module:chunk-streamer
+      required_validation_fields_available: true
+    expected:
+      mapping: mapped_new
+      pems_kind: validation
+
+  - id: authoritative-requirement-claim
+    candidate:
+      kind: claim
+      statement: Browser-suitable substantial features require Integration Preview exposure.
+      provenance: {primary: [src-owner-rule]}
+    context:
+      source_authority: owner_instruction
+      requirement_state_established: active
+    expected:
+      mapping: review_required
+      pems_kind: requirement
+      reason: domain mapping exists but normative semantic admission requires review
+
+  - id: logical-scope-claim
+    candidate:
+      kind: claim
+      statement: A passing headless test does not establish browser rendering correctness.
+      premise: [r-test-scope, r-browser-scope]
+    expected:
+      mapping: provisional_no_mapping
+      reason: pems/1 has no generic logical/evidentiary claim record
+
+  - id: premise-edge
+    candidate_relation:
+      relation: premise
+      derived: r3
+      premise: r1
+    context:
+      canonical_ids: {r3: pems:decision:d3, r1: pems:validation:v1}
+    expected:
+      mapping: mapped_new
+      pems_relation_kind: derived_from
+      from: pems:decision:d3
+      to: pems:validation:v1
+
+  - id: dependency-edge
+    candidate_relation:
+      type: depends_on
+      from: r-runtime-contract
+      to: r-manifest-contract
+    context:
+      endpoints_canonical: true
+    expected:
+      mapping: mapped_new
+      pems_relation_kind: depends_on
+
+  - id: support-edge
+    candidate_relation:
+      type: supports
+      from: r-measurement
+      to: r-decision
+    context:
+      endpoints_canonical: true
+    expected:
+      mapping: provisional_no_mapping
+      reason: pems/1 has no non-derivational support relation
+
+  - id: contradiction-edge
+    candidate_relation:
+      type: contradicts
+      from: r-old-measurement
+      to: r-new-measurement
+    context:
+      endpoints_canonical: true
+    expected:
+      mapping: provisional_no_mapping
+      reason: pems/1 has no contradiction relation and supersedes is not equivalent
+
+  - id: established-supersession
+    candidate_relation:
+      type: supersedes
+      from: r-new
+      to: r-old
+    context:
+      endpoints_canonical: true
+      supersession_established: true
+    expected:
+      mapping: review_required
+      pems_relation_kind: supersedes
+      lifecycle_update_required: true
+
+  - id: equivalent-existing-record
+    candidate:
+      kind: decision
+      statement: Feature branches remain feature-named.
+    context:
+      existing_semantically_identical_id: pems:decision:existing
+      authority_compatible: true
+    expected:
+      mapping: mapped_existing
+      canonical_id: pems:decision:existing
+
+  - id: typed-provenance-role-loss
+    candidate:
+      kind: decision
+      statement: Preserve immutable release demo URLs.
+      provenance:
+        primary: [src-owner-rule]
+        corroborating: [src-current-workflow]
+        context: [src-chat-summary]
+    context:
+      pems_record_mapping_available: true
+    expected:
+      mapping: review_required
+      pems_observation_refs_can_preserve_sources: true
+      distiller_role_detail_loss: true
+      reason: pems/1 observation_refs do not encode primary/corroborating/context roles
