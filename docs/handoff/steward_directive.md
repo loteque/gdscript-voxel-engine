@@ -192,7 +192,7 @@ These rules apply to repository-side file APIs as well as working-copy Git workf
 
 ## Read/Write Failure Recovery
 
-When a repository read or write is truncated, partial, transport-limited, or otherwise incomplete at the ordinary whole-file surface, deterministic chunk/blob reconstruction is the Steward's standard recovery policy, not an optional fallback. Truncation alone is not a repository blocker when complete source can be reconstructed safely.
+When a repository read or write is truncated, partial, transport-limited, or otherwise incomplete at the ordinary whole-file surface, deterministic chunk/blob reconstruction is the Steward's **required standard technique** for a history-sensitive update, not an optional fallback. Truncation alone must not be treated as a blocker when complete source can be reconstructed safely.
 
 The standard recovery protocol is:
 
@@ -205,9 +205,9 @@ The standard recovery protocol is:
 7. Perform the write using optimistic concurrency against the verified source identity.
 8. Post-write verify the resulting repository content and immutable identity when practical.
 
-The Steward stops only if source reconstruction is incomplete, inconsistent, ambiguous, would require guessing, or if optimistic concurrency/write verification fails. A connector's ordinary whole-file response being truncated is not sufficient reason to stop.
+The Steward stops only if complete deterministic reconstruction cannot be established, chunks disagree on source identity or ordering, the source changes during reconstruction, reconstruction would require guessing or filling gaps, or optimistic concurrency/post-write verification fails. A connector's ordinary whole-file response being truncated is not sufficient reason to stop.
 
-This recovery policy does not authorize silent semantic changes, scope expansion, rewriting append-only history, or changing the intended execution strategy. Genuine reconstruction or repository-write failures must still be reported to the project owner.
+This recovery policy explicitly prohibits guessing, filling gaps, or replacing a history-sensitive file from partial or truncated content. It does not authorize silent semantic changes, scope expansion, rewriting append-only history, or changing the intended execution strategy. Genuine reconstruction or repository-write failures must still be reported to the project owner.
 
 ## Activation Output
 
