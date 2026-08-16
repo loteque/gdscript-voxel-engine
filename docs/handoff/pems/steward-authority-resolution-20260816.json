@@ -1,0 +1,96 @@
+{
+  "record_id": "STEWARD-20260816-022",
+  "timestamp": "2026-08-16T11:43:49-07:00",
+  "author_role": "Project Engineering Steward",
+  "type": "canonical-reconciliation-and-successor-gate",
+  "status": "accepted",
+  "authority_resolution": {
+    "prior_explicit_acceptance": {
+      "record_id": "STEWARD-20260815-019",
+      "record_count": 171,
+      "canonical_cove_blob": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+      "derivative_blob": "acbc655a38efc6624672d33882c76a6619e571df"
+    },
+    "examined_change_commit": "26bb61406506f6c468c5ada899fcb7d98c976b9e",
+    "examined_evidence": "docs/handoff/pems/architecture-governance-role-memory.evidence.json",
+    "proposal_status_recorded_by_original_evidence": "validated_proposed_canonical_memory_change",
+    "proposal_merge_state_recorded_by_original_evidence": "not_merged",
+    "finding": "The 174-record content is semantically and representationally valid; the defect was governance sequencing. Commit 26bb61406506f6c468c5ada899fcb7d98c976b9e wrote validated proposal bytes directly to the canonical paths before a durable Steward admission record was appended. Repository placement alone did not constitute admission, but the underlying evidence is sufficient for Steward admission now.",
+    "added_ids_admitted": [
+      "pems:role:d68bfd23c188c4931ddf",
+      "pems:source:2f650995e32b9b674365",
+      "pems:source_observation:8c7b03e7eb17cc709223"
+    ],
+    "added_semantics": {
+      "pems:role:d68bfd23c188c4931ddf": "Current Project Architecture and Governance Mentor role. It is a distinct current role and does not rebind the preserved historical mentor role pems:role:96953bd2d91f10def711.",
+      "pems:source:2f650995e32b9b674365": "Stable owner-instruction source identified by owner:architecture-governance-role-memory:2026-08-15.",
+      "pems:source_observation:8c7b03e7eb17cc709223": "Immutable owner-attestation observation of that owner instruction at 2026-08-15T21:11:58-07:00."
+    },
+    "identity_and_provenance_findings": {
+      "all_171_prior_ids_preserved": true,
+      "historical_role_preserved_exact": true,
+      "identity_collision": false,
+      "semantic_rebinding": false,
+      "owner_instruction_provenance_present": true,
+      "source_observation_present": true
+    },
+    "technical_validation_accepted": {
+      "base_schema": true,
+      "base_semantic": true,
+      "updated_schema": true,
+      "updated_semantic": true,
+      "cove_round_trip": true,
+      "cove_repeated_bytes_identical": true,
+      "derivative_repeated_bytes_identical": true
+    },
+    "canonical_state_accepted": {
+      "record_count": 174,
+      "canonical_path": "docs/project-chat-handoff.cove.json",
+      "canonical_git_blob": "32c6cf2b594e2f3de3eea4ccda863ba84f24ce3f",
+      "canonical_bytes": 41793,
+      "canonical_sha256": "54bc0549b07ad3b7d2dd678eca64f00585f955d9a65829a33d86c6e552d3a47c",
+      "derivative_path": "docs/project-chat-handoff.json",
+      "derivative_git_blob": "98450a42f33a834203968e564700392149c3e834",
+      "derivative_bytes": 71220,
+      "derivative_sha256": "ba3403715bcc0e1c62939e351cb816d9e50b5c3f0624866ebdf48ce4c76b4344",
+      "production_main_observation": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4"
+    },
+    "governance_outcome": "The exact current 174-record state is Steward-admitted and accepted as canonical. No canonical file rewrite is required because the current bytes are already the validated bytes being admitted. STEWARD-20260815-019 remains historical evidence of the prior 171-record accepted state. The prior authority ambiguity is resolved."
+  },
+  "pems2_successor_review": {
+    "acknowledges": "ARCH-20260815T225500-0700-027",
+    "evidence": "docs/handoff/pems/v2/DRAFT_CONFORMANCE_EVIDENCE.json",
+    "successor_contract_status": "accepted_for_noncanonical_migration_evidence",
+    "validation_accepted": {
+      "schema_meta_validation": true,
+      "compatibility_cases_passed": "28/28",
+      "admission_cases_passed": "6/6",
+      "deterministic_v1_to_v2_migration": true,
+      "repeat_migration_bytes_identical": true,
+      "migration_fixture_sha256": "df5ea0412072ff4f1926e09b5eee918e4f56ea49161a644bdc56a99d486f184b",
+      "policy_results_sha256": "6470553ec0202898097ae3037394c187a05b094d1a66fa67e041b1fc19f8e675"
+    },
+    "authorized_next_tranche": "noncanonical_full_corpus_pems1_to_pems2_migration_evidence",
+    "requirements": [
+      "Use the newly accepted 174-record pems/1 canonical semantics as the migration source.",
+      "Preserve all stable semantic IDs, lifecycle/history, source/source-observation provenance, and relationship meaning unless the accepted pems/2 contract explicitly requires a reviewed refinement.",
+      "Do not infer typed provenance roles from v1 observation_refs; migrate them only to provenance.untyped.",
+      "Do not narrow legacy v1 depends_on semantics; migrate only to legacy_untyped.",
+      "Prove schema and semantic validity, identity preservation/no rebinding, history/provenance preservation, deterministic repeated migration bytes, and deterministic human reconstruction over the full 174-record corpus.",
+      "Exercise the accepted RGP lifecycle/state negative cases against the migrated corpus where applicable.",
+      "Treat the universal primary-grounding minimum as unresolved; do not manufacture primary provenance to satisfy a policy not yet frozen.",
+      "Keep canonical serialization/cutover unresolved and separately gated."
+    ],
+    "explicitly_not_authorized": [
+      "canonical pems/2 migration or cutover",
+      "canonical authority change",
+      "reinterpretation or mutation of canonical pems/1 semantics",
+      "cove/1 redesign or assumption that cove/1 is the pems/2 canonical codec",
+      "jcs/1 redesign",
+      "production code, ADR, ROADMAP, demo, test, or main changes"
+    ]
+  },
+  "owner_decision_required_now": false,
+  "next_gate": "Architect produces the authorized noncanonical full-corpus migration evidence. Steward then reviews that evidence. Any canonical PEMS/2 adoption/cutover remains a separate owner/Steward decision.",
+  "coordination_note": "This durable Steward governance record is written as a standalone Steward-owned reconciliation artifact because the available connector exposes history-sensitive steward_notes.md only through complete-replacement writes and provides no atomic append operation. The complete steward_notes.md source was independently verified at immutable blob 23cb71630261befe2207508cc836f2e310f196ef using direct blob retrieval and deterministic non-overlapping line-range reconstruction; it was deliberately not rewritten through a model-generated full-file payload. This record must be treated as the latest Steward disposition by the following Architect activation. A future safe append/index reconciliation may mirror this disposition into steward_notes.md without changing its meaning."
+}
