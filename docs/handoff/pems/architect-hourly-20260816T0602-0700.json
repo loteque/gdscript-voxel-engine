@@ -1,0 +1,61 @@
+{
+  "architect_evidence_id": "ARCH-20260816T060240-0700-031",
+  "timestamp": "2026-08-16T06:02:40-07:00",
+  "author_role": "Engineering Knowledge Systems Architect",
+  "type": "reconciliation-evidence",
+  "status": "blocked",
+  "acknowledges": [
+    "STEWARD-20260815-019",
+    "STEWARD-20260815-020",
+    "STEWARD-20260815-021",
+    "ARCH-20260816T045734-0700-030"
+  ],
+  "repository": "loteque/gdscript-voxel-engine",
+  "branch": "project-chat-handoff",
+  "observed_branch_head": "6979feac21934a1340d8077abbd1face2681b105",
+  "observed_main_head": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4",
+  "assessment": {
+    "phase8_recovery_contradiction": "resolved_and_governance_closed",
+    "common_camera_reconciliation": "accepted_171_record_state_by_STEWARD-20260815-019",
+    "current_canonical_path_state": "174_record_architecture_governance_role_memory_state",
+    "authority_state": "ambiguous_hard_stop",
+    "pems2_successor_draft": "technically_complete_noncanonical_paused_pending_authority_resolution"
+  },
+  "authority_evidence": {
+    "last_explicit_steward_canonical_acceptance": "STEWARD-20260815-019",
+    "accepted_cove_blob": "44dec0d4b887a1905c850c1bd212ff4ec7fb9866",
+    "accepted_derivative_blob": "acbc655a38efc6624672d33882c76a6619e571df",
+    "later_steward_entries_020_021_change_canonical_authority": false,
+    "unadjudicated_change_commit": "26bb61406506f6c468c5ada899fcb7d98c976b9e",
+    "unadjudicated_change_commit_message": "Propose architecture governance mentor canonical memory",
+    "proposal_evidence_status": "validated_proposed_canonical_memory_change",
+    "proposal_evidence_merge_state": "not_merged",
+    "proposal_before_records": 171,
+    "proposal_after_records": 174,
+    "proposal_added_ids": [
+      "pems:role:d68bfd23c188c4931ddf",
+      "pems:source:2f650995e32b9b674365",
+      "pems:source_observation:8c7b03e7eb17cc709223"
+    ]
+  },
+  "repository_truth": {
+    "production_main_matches_current_memory_branch_observation": true,
+    "production_drift_detected": false,
+    "new_steward_acceptance_after_021_detected": false,
+    "new_repository_delta_since_ARCH_030_detected": false
+  },
+  "hard_stop_reason": "Canonicality is a governance property. The current canonical paths contain a validated proposal state that postdates the last explicit Steward canonical acceptance, while the proposal evidence itself says not_merged. Repository location alone cannot establish Steward admission. The Architect must not normalize this mismatch or advance successor-governance work while authority provenance is unresolved.",
+  "required_steward_gate": {
+    "option_accept": "Independently verify the exact current 174-record COVE/derivative bytes, identity/history/provenance preservation, and owner-attested source; then durably accept/admit that state as canonical if warranted.",
+    "option_restore": "If the 174-record state was not intended for canonical installation, restore or governed-reconcile from the last explicitly accepted 171-record state without losing the proposal/audit evidence.",
+    "after_resolution": "Resume Steward review of ARCH-20260815T225500-0700-027 and the noncanonical PEMS/2 successor package. Canonical PEMS/2 migration remains separately gated."
+  },
+  "mutations": {
+    "canonical_memory": false,
+    "architect_notes": false,
+    "architect_directive": false,
+    "steward_owned_files": false,
+    "production_code": false,
+    "adrs_roadmap_demos_tests_main": false
+  }
+}
