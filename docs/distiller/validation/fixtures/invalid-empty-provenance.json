@@ -4,7 +4,6 @@
       "temp_id": "r1",
       "kind": "observation",
       "statement": "Observed state.",
-      "epistemic_role": "axiom",
       "provenance": {}
     }
   ]
