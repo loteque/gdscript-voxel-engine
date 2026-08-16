@@ -10,11 +10,10 @@ from pathlib import Path
 from typing import Any
 
 KINDS = {"observation", "decision", "assumption", "uncertainty", "claim"}
-AUTHORITIES = {"owner", "governed"}
-PROVENANCE_ROLES = {"primary", "authority", "corroborating", "context"}
+PROVENANCE_ROLES = {"primary", "corroborating", "context"}
 RELATIONS = {"supports", "contradicts", "depends_on", "supersedes", "validated_by"}
 
-RECORD_KEYS = {"temp_id", "kind", "statement", "authority", "premise", "provenance"}
+RECORD_KEYS = {"temp_id", "kind", "statement", "premise", "provenance"}
 RELATION_KEYS = {"from", "type", "to", "provenance"}
 TOP_KEYS = {"records", "relations"}
 
@@ -105,10 +104,6 @@ def validate(document: Any) -> list[str]:
         if not _nonempty_string(record.get("statement")):
             _error(errors, f"{path}.statement", "must be a non-empty string")
 
-        authority = record.get("authority")
-        if authority is not None and authority not in AUTHORITIES:
-            _error(errors, f"{path}.authority", f"must be one of {sorted(AUTHORITIES)}")
-
         premise = record.get("premise")
         if premise is not None:
             _validate_string_list(premise, f"{path}.premise", errors)
@@ -116,10 +111,6 @@ def validate(document: Any) -> list[str]:
         provenance = record.get("provenance")
         if provenance is not None:
             _validate_provenance(provenance, f"{path}.provenance", errors)
-
-        if authority is not None:
-            if not isinstance(provenance, dict) or "authority" not in provenance:
-                _error(errors, path, "authority requires provenance.authority")
 
         if kind == "observation" and premise is None:
             if not isinstance(provenance, dict) or "primary" not in provenance:
