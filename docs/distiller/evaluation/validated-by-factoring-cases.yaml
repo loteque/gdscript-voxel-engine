@@ -1,0 +1,53 @@
+version: 1
+cases:
+  - id: direct-test-establishes-observation
+    target: "Reload after unload succeeds for the tested revision."
+    evidence:
+      - proposition: "The reload-after-unload test passed for the tested revision."
+    expected_without_validated_by:
+      - use the test-result proposition as a premise when the target is a derived summary
+      - alternatively encode the target directly as an observation with primary provenance to the test result
+      - validated_by is not required
+
+  - id: manual-qa-establishes-observation
+    target: "The published streaming demo exposes the expected runtime behavior."
+    evidence:
+      - proposition: "Manual QA observed the expected behavior in the published streaming demo."
+    expected_without_validated_by:
+      - use premise when deriving the broader observation from the QA proposition
+      - direct provenance is acceptable when the QA result directly establishes the target
+
+  - id: workflow-only-corroborates-runtime
+    target: "The runtime UI starts correctly."
+    evidence:
+      - proposition: "The deployment workflow completed successfully."
+    expected_without_validated_by:
+      - do not use premise because workflow success does not derive runtime UI correctness
+      - supports may be used only if the evidence genuinely strengthens the target
+      - preserve uncertainty when runtime evidence is absent
+
+  - id: contract-check-establishes-compliance
+    target: "The implementation satisfies the ownership contract."
+    evidence:
+      - proposition: "A machine-readable architecture check passed for the implementation."
+    expected_without_validated_by:
+      - use premise if the compliance claim is derived from the check result
+      - validated_by adds no unique semantics
+
+  - id: secondary-validation-corroborates
+    target: "The tested revision satisfies the required validation surfaces."
+    evidence:
+      - proposition: "Headless validation passed."
+      - proposition: "Manual web validation passed."
+      - proposition: "A deployment workflow also completed successfully."
+    expected_without_validated_by:
+      - direct validation results are premises of the derived target
+      - the deployment result may be supports or context if relevant but is not a premise merely because it is green
+
+  - id: validator-as-object-not-proposition
+    target: "Chunk asset metadata is internally consistent."
+    evidence:
+      - source: "A validator executable produced a passing result."
+    expected_without_validated_by:
+      - provenance should reference the validation result source rather than creating a relation to the validator tool itself
+      - validated_by is unnecessary when the validating entity is not itself a proposition
