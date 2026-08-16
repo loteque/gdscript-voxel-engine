@@ -62,37 +62,48 @@ A proposition without premises is not thereby an axiom. It is simply non-derived
 
 ## Grounding
 
-Grounding depends on proposition semantics, not on a universal epistemic-role label.
+Grounding depends on proposition semantics.
 
 A non-derived `observation` must have `provenance.primary`, because its kind asserts empirically established state or behavior.
 
 A derived observation may omit direct provenance when its premises provide the necessary empirical grounding.
 
-Other non-derived kinds may legitimately begin a reasoning chain according to their semantics. For example, an `assumption` is explicitly unestablished, while an owner decision derives its project standing from authority provenance.
+Other non-derived kinds may legitimately begin a reasoning chain according to their semantics. An `assumption`, for example, is explicitly unestablished.
 
 Do not invent provenance to rescue an unsupported record.
 
-## Authority
+## Source Resolution and Authority
 
-Authority describes normative/project standing, not authorship or derivation.
+Provenance entries are opaque source identifiers. Their spelling carries no semantics.
 
-Authority is optional and limited to:
+When source interpretation is required, resolve a source identifier through the surrounding source registry:
 
-- `owner`: explicitly established by the project owner;
-- `governed`: established by accepted policy, contract, or governance artifact.
+```text
+resolve(source_id) -> { source_id, type, locator }
+```
 
-Any record carrying `authority` must include matching `provenance.authority`.
+`type` is required. `locator` is resolver-specific and is not interpreted by the reasoning protocol.
 
-Do not encode `observed` or `agent` as authority.
+Normative/project standing is derived from the resolved source chain, not stored on propositions.
+
+Initial authority-bearing source types:
+
+- `owner_instruction` -> owner authority;
+- `governed_artifact` -> governed authority.
+
+Repository files, commits, tests, workflow runs, summaries, chats, validation results, and similar evidence do not create normative authority merely by existing.
+
+A derived proposition may trace normative standing through its premises to authoritative provenance sources.
+
+Do not infer source type or authority from source-ID prefixes or naming conventions.
 
 ## Provenance
 
-Provenance describes external grounding or origin. Graph record references are not provenance.
+Provenance describes the relationship between a proposition or relation and external sources. Graph record references are not provenance.
 
 Typed roles:
 
 - `primary`: directly establishes or externally grounds the proposition;
-- `authority`: establishes owner/governed standing;
 - `corroborating`: independently strengthens it;
 - `context`: helps explain or locate it without establishing it.
 
@@ -127,11 +138,9 @@ Return structured data only:
       "temp_id": "r1",
       "kind": "observation | decision | assumption | uncertainty | claim",
       "statement": "One atomic proposition.",
-      "authority": "owner | governed",
       "premise": ["record-id"],
       "provenance": {
         "primary": ["source-id"],
-        "authority": ["source-id"],
         "corroborating": ["source-id"],
         "context": ["source-id"]
       }
@@ -160,7 +169,6 @@ Required record fields:
 
 Optional record fields:
 
-- `authority`
 - `premise`
 - `provenance`
 
@@ -176,6 +184,8 @@ Optional relation fields:
 
 Optional fields and collections are omitted when absent. Do not emit `null`, empty arrays, or empty objects.
 
+The durable graph does not embed `sources[]`. Source IDs resolve externally when source metadata is needed.
+
 ## Retention
 
 Retain a proposition only when it explains an important decision, establishes reusable evidence, records a consequential assumption or uncertainty, preserves useful derived reasoning, prevents likely repeated investigation, or constrains future engineering work.
@@ -188,8 +198,9 @@ A distillation is defective if it:
 
 - invents hidden reasoning or missing history;
 - invents provenance;
+- infers semantics from source-ID spelling;
+- treats implementation evidence or summaries as normative authority without an authoritative source chain;
 - asserts unsupported causality;
-- promotes agent interpretation to owner/governed authority;
 - emits a non-derived observation without primary provenance;
 - creates dangling, self-referential, or cyclic premises;
 - puts external source IDs in `premise`;
@@ -197,6 +208,7 @@ A distillation is defective if it:
 - uses `depends_on` as derivation;
 - uses `claim` merely because a proposition is derived;
 - uses `observation` for a primarily interpretive/evidentiary proposition;
+- emits `authority`, `provenance.authority`, `epistemic_role`, or embedded `sources` in the current protocol;
 - records low-value activity;
 - emits omission or rejection narration as durable memory.
 
