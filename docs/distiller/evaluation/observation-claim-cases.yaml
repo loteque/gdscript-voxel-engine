@@ -1,0 +1,41 @@
+version: 1
+cases:
+  - id: measured-dominance
+    proposition: "Deserialization dominates the measured chunk-loading stages."
+    expected_kind: observation
+    reason: "Empirical synthesis over measured runtime stages."
+
+  - id: validation-summary
+    proposition: "The tested revision exercised all required validation surfaces successfully."
+    expected_kind: observation
+    reason: "Summary of directly observed validation outcomes for a scoped revision."
+
+  - id: deployment-evidence-boundary
+    proposition: "Successful deployment does not establish runtime UI startup correctness."
+    expected_kind: claim
+    reason: "Statement about what evidence warrants, not observed runtime state itself."
+
+  - id: contract-compliance
+    proposition: "The implementation satisfies the governed ownership contract."
+    expected_kind: claim
+    reason: "Compliance judgment requiring interpretation against a normative contract."
+
+  - id: cpu-bound-workload
+    proposition: "Chunk loading is CPU-bound under the measured workload."
+    expected_kind: observation
+    reason: "Empirically falsifiable statement about measured behavior."
+
+  - id: platform-scope-boundary
+    proposition: "The supplied validation does not establish correctness on untested platforms."
+    expected_kind: claim
+    reason: "Scope/evidentiary boundary rather than a direct observation of platform behavior."
+
+  - id: architecture-independence
+    proposition: "The current architecture keeps runtime residency independent of meshing."
+    expected_kind: observation
+    reason: "Inspectable statement about current structural state of the implementation."
+
+  - id: evidence-supports-bottleneck
+    proposition: "The supplied measurements support deserialization as the dominant measured stage."
+    expected_kind: claim
+    reason: "Statement about the evidentiary relationship between measurements and a proposition."
