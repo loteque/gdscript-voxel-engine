@@ -86,21 +86,24 @@ Do not automate semantic admission yet.
 
 Exit criterion: invalid distillation output is rejected mechanically before it can reach project memory.
 
-## Phase 4 — PEMS Candidate Mapping
+## Phase 4 — Admission Contract and PEMS Candidate Mapping
 
-Define how validated distillation candidates map into PEMS without conflating candidate interpretation with authoritative memory.
+The admission boundary is now defined in `docs/distiller/ADMISSION.md`.
 
-Establish:
+Validated distillation remains provisional until a separate admission step decides whether each connected candidate subgraph is rejected, retained provisionally, or admitted to canonical memory.
 
-- candidate lifecycle/state;
-- provenance mapping to source observations;
-- reconciliation with existing records;
-- conflict handling;
-- supersession behavior;
-- owner/governance admission boundaries;
-- retention policy for rejected or superseded candidates.
+Admission must preserve provenance, premise structure, conflicts, uncertainty, assumptions, and historical identity. Structural validity is necessary but never sufficient for admission. Normative standing is resolved from external source chains rather than created by the admission mechanism.
 
-Exit criterion: distillation candidates can enter the existing memory workflow without weakening PEMS provenance or lifecycle rules.
+Next establish:
+
+- mapping from candidate records to stable PEMS identities;
+- candidate-to-existing-record reconciliation;
+- transactional premise and relation rewrites from `temp_id` to canonical IDs;
+- conflict and supersession mapping;
+- provisional/rejected operational metadata;
+- initial review-required versus deterministically admissible policy classes.
+
+Exit criterion: validated candidates can be reconciled and admitted into PEMS without weakening provenance, graph integrity, authority boundaries, or historical traceability.
 
 ## Phase 5 — Shadow Operation
 
