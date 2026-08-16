@@ -1,0 +1,10 @@
+{
+  "records": [
+    {
+      "temp_id": "r1",
+      "kind": "claim",
+      "statement": "Derived claim without a premise.",
+      "epistemic_role": "derived"
+    }
+  ]
+}
