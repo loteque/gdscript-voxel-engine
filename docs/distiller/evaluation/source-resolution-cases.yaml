@@ -1,0 +1,91 @@
+version: 1
+
+# Evaluation-only source registry. This registry is external to the durable graph.
+# IDs are intentionally opaque; no semantics may be inferred from their spelling.
+registry:
+  s01:
+    type: owner_instruction
+    locator: eval://owner-validation-rule
+  s02:
+    type: governed_artifact
+    locator: eval://architecture-contract
+  s03:
+    type: repository_file
+    locator: eval://surface-nets-file
+  s04:
+    type: chat_summary
+    locator: eval://agent-summary
+  s05:
+    type: test_result
+    locator: eval://reload-test
+  s06:
+    type: workflow_run
+    locator: eval://deploy-run
+  s07:
+    type: validation_result
+    locator: eval://phone-runtime
+  s08:
+    type: benchmark_result
+    locator: eval://chunk-load-benchmark
+
+cases:
+  - id: owner-rule
+    statement: "Substantial engine features require dedicated validation scenes."
+    provenance:
+      primary: [s01]
+    expected_normative_source: owner_instruction
+    expected_authority: owner
+
+  - id: governed-contract
+    statement: "Runtime streaming owns chunk residency."
+    provenance:
+      primary: [s02]
+    expected_normative_source: governed_artifact
+    expected_authority: governed
+
+  - id: implementation-state-not-policy
+    statement: "SurfaceNetsMesher delegates indexing to PointFieldResource."
+    provenance:
+      primary: [s03]
+    expected_authority: none
+
+  - id: summary-not-authority
+    statement: "Substantial engine features require dedicated validation scenes."
+    provenance:
+      primary: [s04]
+    expected_authority: none
+
+  - id: empirical-test
+    statement: "Chunk reload after unload passed for the tested revision."
+    provenance:
+      primary: [s05]
+    expected_authority: none
+
+  - id: workflow-not-runtime-authority
+    statement: "Deployment completed successfully."
+    provenance:
+      primary: [s06]
+    expected_authority: none
+
+  - id: runtime-observation
+    statement: "The published phone demo failed to initialize the required UI."
+    provenance:
+      primary: [s07]
+    expected_authority: none
+
+  - id: derived-rule-from-authoritative-premise
+    records:
+      - temp_id: r1
+        kind: decision
+        statement: "Substantial engine features require dedicated validation scenes."
+        provenance:
+          primary: [s01]
+      - temp_id: r2
+        kind: claim
+        statement: "A substantial engine feature without a dedicated validation scene violates the owner requirement."
+        premise: [r1]
+    expected_authority_path:
+      from_record: r2
+      through: r1
+      to_source: s01
+      authority: owner
