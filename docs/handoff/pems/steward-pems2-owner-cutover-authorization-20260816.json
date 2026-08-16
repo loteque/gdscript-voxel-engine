@@ -1,0 +1,100 @@
+{
+  "id": "STEWARD-20260816-026",
+  "timestamp": "2026-08-16T14:51:00-07:00",
+  "author_role": "Project Engineering Steward",
+  "type": "decision",
+  "status": "resolved",
+  "acknowledges": [
+    "STEWARD-20260816-025"
+  ],
+  "subject": "Owner authorization for canonical PEMS/2 authority transfer",
+  "owner_authorization": {
+    "authorized": true,
+    "owner_statement": "Authorized",
+    "authorized_transition": "canonical authority transfer from PEMS/1 to PEMS/2",
+    "target_tuple": "cove/1|pems/2|jcs/1"
+  },
+  "prewrite_verification": {
+    "candidate_commit": "9dd3f34b2ff61c600a994fed9f14cc1face54162",
+    "candidate_record_count": 174,
+    "candidate_cove_path": "docs/handoff/pems/v2/CUTOVER_CANDIDATE.cove.json",
+    "candidate_cove_blob": "a6bd37d0a253241c5c217d684b6604e47c0ed72a",
+    "candidate_cove_bytes": 42908,
+    "candidate_cove_sha256": "209f9d0d10ccbffa7f13bb9bd5f152d121aea62314d8fc35ac523321d5b1006c",
+    "candidate_jcs_path": "docs/handoff/pems/v2/CUTOVER_CANDIDATE.pems2.jcs.json",
+    "candidate_jcs_blob": "876b24888dbf9c8f66126be8eacf2cd299a41cd9",
+    "candidate_jcs_bytes": 71928,
+    "candidate_jcs_sha256": "9f448f75ab56f580bef9c05da96e109f329645574943e6934507f276ad500460",
+    "current_canonical_cove_path": "docs/project-chat-handoff.cove.json",
+    "current_canonical_cove_blob": "32c6cf2b594e2f3de3eea4ccda863ba84f24ce3f",
+    "current_canonical_cove_bytes": 41793,
+    "current_canonical_cove_sha256": "54bc0549b07ad3b7d2dd678eca64f00585f955d9a65829a33d86c6e552d3a47c",
+    "current_canonical_derivative_path": "docs/project-chat-handoff.json",
+    "current_canonical_derivative_blob": "98450a42f33a834203968e564700392149c3e834",
+    "current_canonical_derivative_bytes": 71220,
+    "current_canonical_derivative_sha256": "ba3403715bcc0e1c62939e351cb816d9e50b5c3f0624866ebdf48ce4c76b4344",
+    "candidate_and_rollback_blob_identities_match_STEWARD_20260816_025": true
+  },
+  "cutover_authorization": {
+    "authorized": true,
+    "scope": "bounded canonical PEMS/2 cutover using exactly the previously verified candidate semantics and bytes",
+    "architect_may_change": [
+      "docs/project-chat-handoff.cove.json",
+      "docs/project-chat-handoff.json",
+      "Architect-owned cutover evidence under docs/handoff/pems/v2/",
+      "docs/handoff/architect_notes.md by append only"
+    ],
+    "steward_may_change_for_closeout": [
+      "docs/handoff/steward_notes.md by append only",
+      "Steward-owned closeout evidence under docs/handoff/pems/"
+    ],
+    "must_install_exact_candidate_cove_bytes": true,
+    "canonical_cove_target_blob_expected": "a6bd37d0a253241c5c217d684b6604e47c0ed72a",
+    "canonical_cove_target_sha256": "209f9d0d10ccbffa7f13bb9bd5f152d121aea62314d8fc35ac523321d5b1006c",
+    "canonical_cove_target_bytes": 42908,
+    "canonical_derivative_must_equal_verified_pems2_jcs_bytes": true,
+    "canonical_derivative_target_blob_expected": "876b24888dbf9c8f66126be8eacf2cd299a41cd9",
+    "canonical_derivative_target_sha256": "9f448f75ab56f580bef9c05da96e109f329645574943e6934507f276ad500460",
+    "canonical_derivative_target_bytes": 71928,
+    "record_count": 174,
+    "identity_rebinding_allowed": false,
+    "invent_typed_or_primary_provenance": false,
+    "preserve_history_lifecycle_provenance": true,
+    "preserve_dual_read_fail_closed_behavior": true,
+    "retain_exact_pems1_rollback_anchors": true,
+    "regeneration_may_not_change_accepted_candidate_bytes": true,
+    "optimistic_concurrency_required": true,
+    "post_write_verification_required": true
+  },
+  "hard_stops": [
+    "candidate or rollback blob/hash/byte-count mismatch",
+    "source drift from the verified canonical PEMS/1 rollback anchors before cutover",
+    "concurrent canonical change",
+    "identity collision or semantic rebinding",
+    "semantic, lifecycle, history, or provenance loss",
+    "invented typed or primary provenance",
+    "nondeterministic output",
+    "cove/1, pems/2, or jcs/1 profile/codec contradiction",
+    "authority ambiguity",
+    "post-write canonical bytes differ from the accepted candidate bytes"
+  ],
+  "required_architect_cutover_evidence": {
+    "prewrite_exact_blob_verification": true,
+    "installed_canonical_cove_blob_equals_candidate": true,
+    "installed_canonical_derivative_blob_equals_candidate_jcs": true,
+    "record_count_174": true,
+    "all_174_identities_preserved_zero_rebinding": true,
+    "history_lifecycle_provenance_preserved": true,
+    "typed_or_primary_provenance_invented": false,
+    "cove_structural_round_trip": true,
+    "pems2_semantic_validation": true,
+    "repeated_canonical_bytes_identical": true,
+    "dual_read_and_fail_closed_behavior_preserved": true,
+    "rollback_anchors_retained": true,
+    "authority_transferred_to_pems2": true,
+    "exact_commit_blobs_hashes_byte_counts_reported": true
+  },
+  "required_steward_closeout": "After Architect post-write evidence is green, the Steward must independently verify the exact installed blobs and invariants and durably record governance closeout. Technical installation alone is not governance closeout.",
+  "decision": "The project owner's explicit authorization is accepted. The bounded canonical PEMS/2 cutover tranche is authorized now. The Architect may install only the exact already-verified PEMS/2 candidate bytes into the canonical paths, preserving all 174 semantic identities and exact PEMS/1 rollback anchors, and must stop on any mismatch or drift.",
+  "human_reasoning": "The owner has now made the authority decision that technical readiness alone could not make. The safe path is intentionally narrow: promote the exact candidate that the Steward already verified, rather than regenerate or reinterpret it during cutover. This turns the previously tested PEMS/2 representation into canonical authority only if the repository still matches the verified PEMS/1 rollback anchors immediately before writing and the installed bytes match the accepted candidate exactly afterward."
+}
