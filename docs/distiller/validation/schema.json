@@ -65,6 +65,19 @@
             "required": ["provenance"],
             "properties": {"provenance": {"required": ["authority"]}}
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {"const": "observation"},
+              "epistemic_role": {"const": "axiom"}
+            },
+            "required": ["kind", "epistemic_role"]
+          },
+          "then": {
+            "required": ["provenance"],
+            "properties": {"provenance": {"required": ["primary"]}}
+          }
         }
       ]
     },
