@@ -1,0 +1,68 @@
+version: 1
+cases:
+  - id: evidentiary-boundary
+    statement: "Successful deployment does not establish runtime UI startup correctness."
+    current_kind: claim
+    pressure: "Retype without claim while preserving meaning."
+    expected_without_claim:
+      - observation is awkward because the proposition is about what evidence warrants
+      - decision is incorrect
+      - assumption is incorrect
+      - uncertainty is incorrect
+
+  - id: scoped-validity
+    statement: "The supplied validation evidence establishes correctness only for the tested revision and environment."
+    current_kind: claim
+    pressure: "Retype without claim while preserving scope semantics."
+    expected_without_claim:
+      - observation is awkward unless the statement is rewritten into observed test outcomes
+      - rewriting must not erase the evidentiary-boundary proposition
+
+  - id: compliance-judgment
+    statement: "This implementation satisfies the governed ownership contract."
+    current_kind: claim
+    pressure: "Retype without claim while preserving compliance semantics."
+    expected_without_claim:
+      - decision is incorrect
+      - assumption is incorrect
+      - uncertainty is incorrect
+      - observation is only suitable if a direct machine-checked compliance observation exists
+
+  - id: architectural-inference
+    statement: "The current dependency structure keeps runtime chunk residency independent of meshing."
+    current_kind: claim
+    pressure: "Retype without claim while preserving inferential content."
+    expected_without_claim:
+      - observation is acceptable only if the statement is directly inspectable as project state
+      - otherwise claim remains the cleaner classification
+
+  - id: negative-entailment
+    statement: "Passing the headless test does not imply that the browser demo renders correctly."
+    current_kind: claim
+    pressure: "Retype without claim while preserving logical non-entailment."
+    expected_without_claim:
+      - no remaining kind naturally expresses a logical relation between evidentiary propositions
+
+  - id: synthesis-from-observations
+    premises:
+      - "Resource read time was lower than deserialization time in the supplied benchmark."
+      - "Mesh construction time was lower than deserialization time in the supplied benchmark."
+    statement: "Deserialization dominates the measured loading stages."
+    current_kind: observation
+    pressure: "Ensure claim is not required merely because the proposition is derived."
+    expected_without_claim:
+      - observation remains correct
+
+  - id: unresolved-proposition
+    statement: "Whether browser behavior matches native behavior remains unknown."
+    current_kind: uncertainty
+    pressure: "Ensure claim is not being used as a generic fallback for uncertainty."
+    expected_without_claim:
+      - uncertainty remains correct
+
+  - id: explicit-project-choice
+    statement: "Runtime streaming owns chunk residency."
+    current_kind: decision
+    pressure: "Ensure claim is not being used as a generic fallback for decisions."
+    expected_without_claim:
+      - decision remains correct
