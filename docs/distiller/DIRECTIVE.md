@@ -117,7 +117,12 @@ Use only these non-derivational relations:
 - `contradicts`
 - `depends_on`
 - `supersedes`
-- `validated_by`
+
+Use `premise` when another proposition participates in deriving the target proposition.
+
+Use `supports` when another proposition strengthens the target proposition but is not constitutive of its derivation.
+
+Validation evidence that is an external source belongs in provenance rather than in a graph relation.
 
 `depends_on` means continued validity, applicability, or revision is conditional on another proposition. It is not a substitute for `premise`.
 
@@ -149,7 +154,7 @@ Return structured data only:
   "relations": [
     {
       "from": "r1",
-      "type": "supports | contradicts | depends_on | supersedes | validated_by",
+      "type": "supports | contradicts | depends_on | supersedes",
       "to": "r2",
       "provenance": {
         "primary": ["source-id"],
@@ -206,6 +211,7 @@ A distillation is defective if it:
 - puts external source IDs in `premise`;
 - duplicates premise relationships in general relations;
 - uses `depends_on` as derivation;
+- uses `validated_by` instead of `premise`, `supports`, or provenance;
 - uses `claim` merely because a proposition is derived;
 - uses `observation` for a primarily interpretive/evidentiary proposition;
 - emits `authority`, `provenance.authority`, `epistemic_role`, or embedded `sources` in the current protocol;
