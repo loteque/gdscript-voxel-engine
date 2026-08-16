@@ -1,0 +1,44 @@
+name: PEMS2 Cutover Candidate Proof
+
+on:
+  push:
+    branches: [project-chat-handoff]
+    paths:
+      - 'docs/handoff/pems/v2/generate_cutover_candidate.py'
+      - '.github/workflows/pems2-cutover-candidate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: project-chat-handoff
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate PEMS2 contract
+        run: |
+          python -m pip install --disable-pip-version-check jsonschema==4.25.1
+          python docs/handoff/pems/v2/validate_pems2_contract.py
+      - name: Generate twice and prove deterministic bytes
+        run: |
+          python docs/handoff/pems/v2/generate_cutover_candidate.py | tee /tmp/run1.txt
+          sha256sum docs/handoff/pems/v2/CUTOVER_CANDIDATE.cove.json docs/handoff/pems/v2/CUTOVER_CANDIDATE.pems2.jcs.json docs/handoff/pems/v2/CUTOVER_CANDIDATE_HUMAN_RECONSTRUCTION.md docs/handoff/pems/v2/CUTOVER_DUAL_READ_FIXTURES.json docs/handoff/pems/v2/CUTOVER_CANDIDATE_EVIDENCE.json > /tmp/h1
+          python docs/handoff/pems/v2/generate_cutover_candidate.py | tee /tmp/run2.txt
+          sha256sum docs/handoff/pems/v2/CUTOVER_CANDIDATE.cove.json docs/handoff/pems/v2/CUTOVER_CANDIDATE.pems2.jcs.json docs/handoff/pems/v2/CUTOVER_CANDIDATE_HUMAN_RECONSTRUCTION.md docs/handoff/pems/v2/CUTOVER_DUAL_READ_FIXTURES.json docs/handoff/pems/v2/CUTOVER_CANDIDATE_EVIDENCE.json > /tmp/h2
+          diff -u /tmp/h1 /tmp/h2
+          cat /tmp/h2
+      - name: Commit noncanonical candidate evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/handoff/pems/v2/CUTOVER_CANDIDATE.cove.json docs/handoff/pems/v2/CUTOVER_CANDIDATE.pems2.jcs.json docs/handoff/pems/v2/CUTOVER_CANDIDATE_HUMAN_RECONSTRUCTION.md docs/handoff/pems/v2/CUTOVER_DUAL_READ_FIXTURES.json docs/handoff/pems/v2/CUTOVER_CANDIDATE_EVIDENCE.json
+          if git diff --cached --quiet; then echo 'Candidate already current.'; exit 0; fi
+          git commit -m 'pems2: record exact noncanonical cutover candidate'
+          git push origin HEAD:project-chat-handoff
