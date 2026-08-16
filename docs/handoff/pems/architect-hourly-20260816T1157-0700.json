@@ -1,0 +1,67 @@
+{
+  "record_id": "ARCH-20260816T115746-0700-036",
+  "timestamp": "2026-08-16T11:57:46-07:00",
+  "author_role": "Engineering Knowledge Systems Architect",
+  "type": "hourly-reconciliation-and-migration-evidence",
+  "status": "technical_complete_steward_review_required",
+  "acknowledges": [
+    "STEWARD-20260816-022",
+    "ARCH-20260815T225500-0700-027"
+  ],
+  "authority": {
+    "canonical_pems1_records": 174,
+    "steward_authority_record": "STEWARD-20260816-022",
+    "prior_171_174_ambiguity": "resolved",
+    "canonical_pems2_cutover_authorized": false
+  },
+  "authorized_tranche": "noncanonical_full_corpus_pems1_to_pems2_migration_evidence",
+  "validation": {
+    "github_actions_run": 31966167550,
+    "conclusion": "success",
+    "source_records": 174,
+    "source_relations": 0,
+    "source_exact_steward_admitted_hashes": true,
+    "pems2_schema_validation": true,
+    "all_source_identities_preserved_no_rebinding": true,
+    "lifecycle_history_and_record_data_preserved": true,
+    "source_observation_count": 7,
+    "source_observation_provenance_preserved": true,
+    "observation_refs_to_provenance_untyped_only": true,
+    "typed_or_primary_provenance_manufactured": false,
+    "relation_meaning_preserved": true,
+    "deterministic_repeated_migration_bytes": true,
+    "deterministic_human_reconstruction": true,
+    "compatibility_cases": "28/28",
+    "admission_cases": "6/6"
+  },
+  "artifacts": {
+    "evidence_commit": "cc6d0f25c1e3bb828ec32eab0570f537c11decba",
+    "migrated": {
+      "path": "docs/handoff/pems/v2/FULL_CORPUS_PEMS2.json",
+      "sha256": "896e3b61077e063850cbb3693f27d8732719057ca3df3effb6382b4b16b6df01",
+      "git_blob": "b1beb2dc45f6559efe41e32130db21c02df725ff"
+    },
+    "migration_evidence": {
+      "path": "docs/handoff/pems/v2/FULL_CORPUS_MIGRATION_EVIDENCE.json",
+      "sha256": "d012f9beb0d6cbcb61ca954da1856d339a31d2db9690413dfecb2af8290063be",
+      "git_blob": "b95033ab199abed98f593f6962563358e1fcb4b5"
+    },
+    "human_reconstruction": {
+      "path": "docs/handoff/pems/v2/FULL_CORPUS_HUMAN_RECONSTRUCTION.md",
+      "sha256": "580e642eb2dd07ad3f5743a28c294de6103ee34181ea95e6d306c65a926e383a",
+      "git_blob": "10fd2073782e925c689c82778156cfc575dc72d7"
+    }
+  },
+  "unresolved_by_design": [
+    "Universal primary-grounding minimum remains unresolved; no typed or primary provenance was manufactured.",
+    "Canonical PEMS/2 serialization and cutover remain separately gated; cove/1 is not assumed to be the PEMS/2 canonical codec."
+  ],
+  "coordination": {
+    "architect_notes_append_attempt_workflow": 31966215719,
+    "architect_notes_append_attempt_result": "failure_before_jobs",
+    "architect_notes_changed": false,
+    "reason_for_separate_evidence_record": "Preserve append-only history rather than risking a replacement write after the repository-side append workflow failed to instantiate jobs."
+  },
+  "next_gate": "Project Engineering Steward reviews the exact noncanonical full-corpus PEMS/2 migration artifacts. Steward may accept the migration evidence, issue bounded corrections, or open a separately governed canonical-adoption/cutover decision. Canonical PEMS/2 adoption remains unauthorized.",
+  "owner_decision_required_now": false
+}
