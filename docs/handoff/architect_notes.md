@@ -965,7 +965,7 @@ The semantic transition itself is not the blocker. The computed hashes and ident
 
 The transport blocker itself is resolved: repository-native workflow execution can generate and commit artifacts larger than the connector response limit. During independent reproduction, however, the tranche encountered a stronger hard stop. The previously persisted recovery evidence is internally incompatible with the frozen deterministic COVE contract.
 
-The exact contingent-admitted normalized PEMS reproduces at 66,860 bytes with SHA-256 `090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7`, and its deterministic human reconstruction reproduces at 68,522 bytes with SHA-256 `f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c`, both exactly matching the earlier recovery evidence. Encoding that exact normalized PEMS with the accepted `cove/1` implementation produces 38,630 bytes with SHA-256 `ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3`, not the recovery claim of 38,618 bytes / `a7ca5962c354161840822ce406bddd405296e4855afd2b0481f05f904291dc1a`.
+The exact contingent-admitted normalized PEMS reproduces at 66,860 bytes with SHA-256 `090466c8a5683bb01c7038531f4cfdf59a2793a65fa344da13721ed294a7a6f7`, and its deterministic human reconstruction reproduces at 68,522 bytes with SHA-256 `f2a71b0606711de6f94fc0c598c43b4549e03708556ba9f94c3eacd991511e0c`, both exactly matching the earlier recovery evidence. Encoding that exact normalized PEMS with the accepted `cove/1` implementation produces 38,630 bytes with SHA-256 `ddccba7a10eee37a0ff851bb78d678484943ebda0610a100748c855198fb2fe3`, not the recovery claim of 38,618 bytes / `a7ca5962c354161840822ce406bddd405296e4855afd2b0481f05f904291dc1a`.
 
 A control run proves the implementation source is the accepted one: re-encoding the current 163-record canonical expanded PEMS produces exactly the repository canonical COVE, 38,053 bytes / SHA-256 `ef8951e67a7219bf829a5667f562f0f552360ce5c220cb5202b6eb84e806eaaa`, byte-for-byte, and decodes back to the same normalized PEMS. Therefore the 165-record COVE recovery digest cannot simultaneously be correct under the same frozen contract.
 
@@ -1173,3 +1173,62 @@ The next bounded tranche, if the Steward records/acknowledges this disposition a
 The submitted profile closes the real ambiguity without enlarging the ontology gratuitously. The one place where prose needed a sharper edge was domain export state. A PEMS record saying a decision was proposed, rejected, superseded, or merely historical carries meaning that bare RGP `decision` cannot preserve. Exporting it as a current decision would be semantic compression, not compatibility. Restricting direct current-state export to accepted current decisions mirrors the snapshot-scoped uncertainty rule and keeps the compatibility claim genuinely lossless.
 
 The next safe step is therefore contract drafting, not implementation or migration. The design now has enough closure to make those rules executable in schemas and fixtures while leaving canonical v1 memory untouched.
+
+## ARCH-20260815T225500-0700-027
+
+- timestamp: `2026-08-15T22:55:00-07:00`
+- author: Engineering Knowledge Systems Architect
+- type: handoff
+- status: open
+- acknowledges: `STEWARD-20260815-020`, `STEWARD-20260815-021`, `ARCH-20260815T215952-0700-026`
+- subject: PEMS/2 successor-contract draft and deterministic conformance evidence ready for Steward review
+
+### Assessment
+
+The bounded successor-contract drafting tranche authorized by `STEWARD-20260815-020` is technically complete as a **noncanonical contract draft**. No canonical project-memory artifact, frozen `pems/1`, `cove/1`, `jcs/1`, Steward-owned file, production code, ADR, ROADMAP, demo, test, or `main` state was changed.
+
+The draft defines a closed `pems/2` successor semantic model that preserves stable semantic identity across schema evolution, keeps proposition kind distinct from epistemic role, keeps provenance roles distinct from source authority, and keeps admission outcome outside proposition semantics. Generic proposition refinement uses a distinct domain identity and reviewed supersession rather than mutating an existing proposition kind/ID.
+
+The seven compatibility resolutions accepted by `ARCH-20260815T215952-0700-026` are incorporated, including the required tightening: a bare current-state RGP `decision` may project directly only from a **current** PEMS decision with `decision_state=accepted`; proposed, rejected, superseded, tombstoned, or historical decisions are not flattened. Current RGP uncertainty export likewise requires a current unresolved item in `open`, `blocked`, or `deferred` state. Historical reasoning reconstruction is snapshot-scoped.
+
+### Durable successor artifacts
+
+The normative/review artifacts live under `docs/handoff/pems/v2/`:
+
+- `README.md`: normative PEMS/2 semantic contract;
+- `pems-v2.schema.json`: JSON Schema 2020-12 structural contract;
+- `MIGRATION.md`: deterministic semantics-preserving PEMS/1 -> PEMS/2 migration;
+- `RGP_COMPATIBILITY_FIXTURES.json`: 28 compatibility pressure cases including decision/unresolved lifecycle negatives;
+- `ADMISSION_CONFORMANCE.md`: semantic validation, admission, conformance, and later cutover gates;
+- `ADMISSION_FIXTURES.json`: six admission pressure cases covering identity reconciliation, domain refinement, atomic premise admission, unresolved provenance, explicit conflict preservation, and anti-recency supersession;
+- `validate_pems2_contract.py`: deterministic executable validator;
+- `DRAFT_CONFORMANCE_EVIDENCE.json`: machine-readable review evidence.
+
+Current artifact blobs are recorded in `DRAFT_CONFORMANCE_EVIDENCE.json`. The schema blob is `0c3a2a0bc83869553171f063203fbbf16f7d7253`; migration-contract blob `0a9c282f93c9173155f9963ccb811bdd3b5eb10c`; semantic-contract blob `7ea44570c0af3fb7d5ef3adc54dd8ead52ba2c52`; RGP fixture blob `5edd37470932d9fffaa7cde47039cf078af72607`; admission-contract blob `37d54fd8e3dfa5d097c68f3bd1cbd1034a46997d`; admission fixture blob `e5a9156dc6860fb5370e286d389e1fe0f3678a04`; validator blob `756b1b4c2b138c0c3ab0d044d853404dae7abfbe`.
+
+### Deterministic validation evidence
+
+The unchanged PEMS/2 schema draft previously passed JSON Schema 2020-12 meta-validation. The compatibility/migration execution was independently replayed during this tranche and all **28/28 compatibility cases** matched their expected disposition. All **6/6 admission pressure cases** likewise matched their expected disposition.
+
+Repeated PEMS/1 -> PEMS/2 migration of the same fixture was byte-identical, preserved record/relation ID sets, preserved the historical accepted decision state, moved legacy `observation_refs` only into `provenance.untyped`, narrowed no legacy dependency semantics beyond `legacy_untyped`, and created no generic proposition/support/contradiction meaning. Migration fixture SHA-256: `df5ea0412072ff4f1926e09b5eee918e4f56ea49161a644bdc56a99d486f184b`.
+
+Repeated compatibility/admission policy classification was deterministic with SHA-256 `6470553ec0202898097ae3037394c187a05b094d1a66fa67e041b1fc19f8e675` for the normalized result set. The checked-in validator now also contains structural positive/negative schema smoke cases and executes the same migration, compatibility, admission, and repeated-result checks.
+
+### Intentionally unresolved / separately gated questions
+
+Two items remain visible rather than being silently frozen:
+
+1. **Generic grounding minimum:** current Distiller evidence suggests useful grounding policies, but the authorized seven-resolution profile did not establish a universal semantic rule that every admitted generic observation must carry `primary` provenance. The draft therefore leaves minimum grounding at the admission-policy/Steward review boundary.
+2. **Canonical serialization/cutover:** this tranche does not decide how PEMS/2 canonical bytes would be represented, whether `cove/1` can encode the successor model without a contract revision, or how authority would cut over. Those questions require a separate migration/cutover gate with real-corpus evidence.
+
+Neither ambiguity changes canonical memory or weakens frozen v1 authority.
+
+### Steward action requested
+
+Review the successor semantic/schema contract, deterministic migration rules, RGP compatibility fixtures, admission/conformance contract, and machine-readable evidence. The Steward may accept this successor contract, kick it back with bounded resolution requirements, or separately authorize a **noncanonical full-corpus PEMS/1 -> PEMS/2 migration-evidence tranche**.
+
+Acceptance of this draft must **not** be interpreted as canonical migration authorization. Any canonical PEMS/2 adoption/cutover remains a separate owner/Steward authority gate requiring real-corpus identity/history/provenance preservation, serialization/codec disposition, deterministic byte/human reconstruction evidence, rollback/cutover procedure, and explicit governance approval.
+
+### Human reasoning
+
+The successor draft makes the reasoning layer richer without allowing that richness to rewrite project history. The central safety rule is simple: migration may change representation shape, but it may not invent meaning. That is why v1 provenance becomes `untyped`, v1 dependencies remain `legacy_untyped`, historical decisions stay historical, and ontology refinement receives a new identity rather than borrowing an old one. The next useful question is whether the Steward accepts that contract boundary, not whether canonical memory should move yet.
