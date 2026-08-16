@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic validator for reasoning-distiller output.
-
-Uses only the Python standard library. JSON Schema documents the structural
-contract; this validator enforces both that shape and cross-record invariants.
-"""
+"""Deterministic validator for reasoning-distiller output."""
 
 from __future__ import annotations
 
@@ -14,12 +10,11 @@ from pathlib import Path
 from typing import Any
 
 KINDS = {"observation", "decision", "assumption", "uncertainty", "claim"}
-ROLES = {"axiom", "derived", "unresolved"}
 AUTHORITIES = {"owner", "governed"}
 PROVENANCE_ROLES = {"primary", "authority", "corroborating", "context"}
 RELATIONS = {"supports", "contradicts", "depends_on", "supersedes", "validated_by"}
 
-RECORD_KEYS = {"temp_id", "kind", "statement", "epistemic_role", "authority", "premise", "provenance"}
+RECORD_KEYS = {"temp_id", "kind", "statement", "authority", "premise", "provenance"}
 RELATION_KEYS = {"from", "type", "to", "provenance"}
 TOP_KEYS = {"records", "relations"}
 
@@ -91,7 +86,7 @@ def validate(document: Any) -> list[str]:
         if unknown:
             _error(errors, path, f"unknown fields: {sorted(unknown)}")
 
-        for required in ("temp_id", "kind", "statement", "epistemic_role"):
+        for required in ("temp_id", "kind", "statement"):
             if required not in record:
                 _error(errors, path, f"missing required field '{required}'")
 
@@ -110,22 +105,13 @@ def validate(document: Any) -> list[str]:
         if not _nonempty_string(record.get("statement")):
             _error(errors, f"{path}.statement", "must be a non-empty string")
 
-        role = record.get("epistemic_role")
-        if role not in ROLES:
-            _error(errors, f"{path}.epistemic_role", f"must be one of {sorted(ROLES)}")
-
         authority = record.get("authority")
         if authority is not None and authority not in AUTHORITIES:
             _error(errors, f"{path}.authority", f"must be one of {sorted(AUTHORITIES)}")
 
         premise = record.get("premise")
-        if role == "derived":
-            if premise is None:
-                _error(errors, path, "derived propositions require 'premise'")
-            else:
-                _validate_string_list(premise, f"{path}.premise", errors)
-        elif premise is not None:
-            _error(errors, path, "'premise' is forbidden unless epistemic_role is 'derived'")
+        if premise is not None:
+            _validate_string_list(premise, f"{path}.premise", errors)
 
         provenance = record.get("provenance")
         if provenance is not None:
@@ -135,23 +121,22 @@ def validate(document: Any) -> list[str]:
             if not isinstance(provenance, dict) or "authority" not in provenance:
                 _error(errors, path, "authority requires provenance.authority")
 
-        if kind == "observation" and role == "axiom":
+        if kind == "observation" and premise is None:
             if not isinstance(provenance, dict) or "primary" not in provenance:
-                _error(errors, path, "axiomatic observations require provenance.primary")
+                _error(errors, path, "non-derived observations require provenance.primary")
 
     premise_graph: dict[str, list[str]] = {}
     for record_id, record in record_by_id.items():
-        if record.get("epistemic_role") == "derived":
-            premise = record.get("premise")
-            if isinstance(premise, list):
-                premise_graph[record_id] = []
-                for premise_id in premise:
-                    if premise_id == record_id:
-                        _error(errors, f"record:{record_id}.premise", "must not reference itself")
-                    elif premise_id not in record_by_id:
-                        _error(errors, f"record:{record_id}.premise", f"unknown premise record '{premise_id}'")
-                    else:
-                        premise_graph[record_id].append(premise_id)
+        premise = record.get("premise")
+        if isinstance(premise, list):
+            premise_graph[record_id] = []
+            for premise_id in premise:
+                if premise_id == record_id:
+                    _error(errors, f"record:{record_id}.premise", "must not reference itself")
+                elif premise_id not in record_by_id:
+                    _error(errors, f"record:{record_id}.premise", f"unknown premise record '{premise_id}'")
+                else:
+                    premise_graph[record_id].append(premise_id)
 
     state: dict[str, int] = {}
 
@@ -172,27 +157,6 @@ def validate(document: Any) -> list[str]:
 
     for record_id in premise_graph:
         visit(record_id, [])
-
-    def leaf_is_anchor(record: dict[str, Any]) -> bool:
-        if record.get("epistemic_role") == "axiom":
-            return True
-        provenance = record.get("provenance")
-        if not isinstance(provenance, dict):
-            return False
-        return any(role in provenance for role in ("primary", "authority", "corroborating"))
-
-    def has_anchor(record_id: str, seen: set[str]) -> bool:
-        if record_id in seen:
-            return False
-        record = record_by_id[record_id]
-        premises = premise_graph.get(record_id)
-        if not premises:
-            return leaf_is_anchor(record)
-        return any(has_anchor(premise_id, seen | {record_id}) for premise_id in premises)
-
-    for record_id in premise_graph:
-        if premise_graph[record_id] and not has_anchor(record_id, set()):
-            _error(errors, f"record:{record_id}", "derived chain does not terminate in an axiom or externally grounded proposition")
 
     for index, relation in enumerate(relations or []):
         path = f"$.relations[{index}]"
