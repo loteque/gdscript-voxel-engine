@@ -1,37 +1,35 @@
 
 
-## ARCH-20260816T120100-0700-037 — Full-corpus PEMS/1 → PEMS/2 migration evidence complete
+## ARCH-20260816T124900-0700-038 — PEMS/2 canonical-adoption readiness design complete
 
 **Role:** Engineering Knowledge Systems Architect
-**Acknowledges:** `STEWARD-20260816-022`, `ARCH-20260816T115746-0700-036`
-**Status:** accepted technical evidence; noncanonical; Steward review required
+**Acknowledges:** `STEWARD-20260816-023`, `ARCH-20260816T120100-0700-037`
+**Status:** design/evidence complete; noncanonical; Steward review required
 
-The Steward-resolved 174-record `pems/1` corpus was used as the exact source for the authorized noncanonical full-corpus migration-evidence tranche. The source bytes matched the Steward-admitted hashes: canonical COVE SHA-256 `54bc0549b07ad3b7d2dd678eca64f00585f955d9a65829a33d86c6e552d3a47c` and deterministic derivative SHA-256 `ba3403715bcc0e1c62939e351cb816d9e50b5c3f0624866ebdf48ce4c76b4344`.
+The Steward accepted the 174-record noncanonical PEMS/1 → PEMS/2 migration evidence and authorized a bounded canonical-adoption-readiness design tranche. That tranche is complete without changing canonical authority.
 
-Repository-side validation run `31966167550` succeeded. The successor-contract validator passed schema draft 2020-12 checks, structural positive/negative smoke cases, all 28 RGP compatibility cases, all 6 admission cases, the deterministic migration fixture, and repeated policy-result determinism. The full-corpus evidence generator then ran twice and produced byte-identical results.
+The decisive codec result is that frozen `cove/1` can represent normalized `pems/2` without contract reinterpretation. COVE/1 is explicitly domain-agnostic: its `p` field is an opaque semantic/profile identifier, and its core encoding understands only JSON structural value classes via global string interning and deterministic object-shape factoring. PEMS/2 introduces new semantic/schema vocabulary but no non-JSON structural value type. Therefore the recommended future canonical tuple is `cove/1` + `pems/2` + `jcs/1`; a `cove/2` successor is not justified by the current evidence.
 
-Full-corpus migration findings:
+This does not weaken fail-closed behavior. A COVE/1 reader presented with `p: "pems/2"` must explicitly support the PEMS/2 validator or reject the artifact. Semantic-profile support is independently versioned from structural codec support.
 
-- 174/174 stable semantic identities preserved; no identity rebinding.
-- Lifecycle/history and record data preserved exactly.
-- All seven `source_observation` identities and their evidence locator/fingerprint data preserved.
-- Legacy `observation_refs` moved only to `provenance.untyped`; no `primary`, `corroborating`, or `context` provenance was inferred or manufactured.
-- Source corpus contains zero relations, so no relation endpoint or `depends_on` reinterpretation occurred; the migration rule remains `legacy_untyped` for any legacy `depends_on` relation when encountered.
-- PEMS/2 schema validation passed on the complete migrated corpus.
-- Repeated migration bytes are identical.
-- Deterministic human reconstruction bytes are identical.
-- Applicable RGP lifecycle/state negative cases remain passing, including proposed, rejected, superseded, historical, tombstoned, resolved, and unprofiled current-state negatives.
+Scoped grounding policy is now explicit rather than universal. `GROUNDING_PROFILES.json` defines:
 
-Evidence artifacts:
+- `legacy_preservation`: preserved migrated semantics may retain only untyped provenance when stronger roles cannot be established without invention;
+- `grounded_current_claim`: newly admitted current claims whose truth depends on repository/external evidence require at least one primary `source_observation`;
+- `derived_interpretation`: derived durable propositions require explicit derivation/support structure; evidence roles are never manufactured merely to obtain admission.
 
-- `docs/handoff/pems/v2/FULL_CORPUS_PEMS2.json` — SHA-256 `896e3b61077e063850cbb3693f27d8732719057ca3df3effb6382b4b16b6df01`, Git blob `b1beb2dc45f6559efe41e32130db21c02df725ff`.
-- `docs/handoff/pems/v2/FULL_CORPUS_MIGRATION_EVIDENCE.json` — SHA-256 `d012f9beb0d6cbcb61ca954da1856d339a31d2db9690413dfecb2af8290063be`, Git blob `b95033ab199abed98f593f6962563358e1fcb4b5`.
-- `docs/handoff/pems/v2/FULL_CORPUS_HUMAN_RECONSTRUCTION.md` — SHA-256 `580e642eb2dd07ad3f5743a28c294de6103ee34181ea95e6d306c65a926e383a`, Git blob `10fd2073782e925c689c82778156cfc575dc72d7`.
-- Evidence artifact commit: `cc6d0f25c1e3bb828ec32eab0570f537c11decba`.
+Admission failure under a grounding profile blocks admission only; it must not retype a proposition, rebind identity, alter lifecycle, or manufacture provenance.
 
-Unresolved by design:
+The readiness design defines dual-read behavior for `(cove/1,pems/1,jcs/1)` and `(cove/1,pems/2,jcs/1)`, fail-closed unknown-profile behavior, exact future cutover/rollback sequencing, authority-transfer checks, deterministic byte/round-trip requirements, and the owner-facing adoption criteria. Reverse migration of future PEMS/2-only admissions is deliberately not assumed; rollback after such admissions requires an explicit retention/compatibility disposition rather than lossy down-conversion.
 
-1. The universal `primary`-grounding minimum remains unresolved. This tranche deliberately manufactured no typed or primary provenance.
-2. Canonical PEMS/2 serialization and cutover remain separately gated. `cove/1` is not assumed to be the PEMS/2 canonical codec.
+Durable artifacts:
 
-**Architect disposition:** the authorized noncanonical full-corpus migration-evidence tranche is complete and technically green. No canonical PEMS/1/COVE bytes were modified. The next gate belongs to the Project Engineering Steward: review these exact artifacts and either accept the migration evidence, issue bounded corrections, or open a separately governed canonical-adoption/cutover decision. Canonical PEMS/2 adoption is not authorized by this entry.
+- `docs/handoff/pems/v2/CANONICAL_ADOPTION_READINESS.md` — Git blob `748ab352fd6b053e686eb9b52d088fff97f5c80a`.
+- `docs/handoff/pems/v2/GROUNDING_PROFILES.json` — Git blob `ab49f7574a68d0bd9bb922931420b9bab9fc03c9`.
+- `docs/handoff/pems/v2/ADOPTION_READINESS_EVIDENCE.json` — Git blob `93722fc2be927f51dfb96ae937ee604dbacee47e`.
+
+The accepted full-corpus migration evidence remains unchanged: 174/174 identities preserved, no rebinding, no typed/primary provenance manufactured, 28/28 RGP compatibility cases, and 6/6 admission cases.
+
+**Architect recommendation:** return this package to the Steward. If the Steward accepts the readiness design, the next bounded technical gate should be an exact noncanonical cutover-candidate generation/proof tranche against one frozen canonical PEMS/1 revision, producing the candidate `cove/1` envelope with `p: "pems/2"`, deterministic `jcs/1` bytes, structural decode → exact normalized PEMS/2 equality, dual-read fixtures, rollback artifact identities, and owner-facing exact candidate hashes. Actual canonical adoption must still require explicit owner approval followed by Steward admission of those exact bytes and governance closeout.
+
+No canonical PEMS/1/COVE artifact, Steward-owned file, production code, ADR, ROADMAP, demo, test, or `main` state was modified by this tranche.
