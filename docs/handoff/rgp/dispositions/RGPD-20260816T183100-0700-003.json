@@ -1,0 +1,174 @@
+{
+  "disposition_id": "RGPD-20260816T183100-0700-003",
+  "submission_id": "RGP-20260816T152100-0700-001",
+  "created_at": "2026-08-16T18:31:00-07:00",
+  "steward": "Project Engineering Steward",
+  "disposition": "admitted",
+  "supersedes_disposition": "RGPD-20260816T171759-0700-002",
+  "supersedes_disposition_path": "docs/handoff/rgp/dispositions/RGPD-20260816T171759-0700-002.json",
+  "supersedes_disposition_blob": "11cc741a7f7940db5cf50e3169042af7c46948db",
+  "submission_snapshot": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T152100-0700-001.json",
+    "blob": "c6aebafed624c8231696770b48efae285e44a0b6"
+  },
+  "canonical_base": {
+    "branch": "project-chat-handoff",
+    "selected_commit": "9e04636770aac8106ee02737c3a21da1b392d226",
+    "pems_path": "docs/project-chat-handoff.json",
+    "pems_blob": "876b24888dbf9c8f66126be8eacf2cd299a41cd9",
+    "cove_path": "docs/project-chat-handoff.cove.json",
+    "cove_blob": "a6bd37d0a253241c5c217d684b6604e47c0ed72a",
+    "normalized_pems_sha256": "9f448f75ab56f580bef9c05da96e109f329645574943e6934507f276ad500460",
+    "record_count": 174,
+    "relation_count": 0,
+    "semantic": "pems/2"
+  },
+  "validator_replay": {
+    "validator_path": "docs/handoff/rgp/validator/rgp_validator.py",
+    "validator_blob": "5675c652b6ad894fe3e1388a4290d2965b2540a0",
+    "command": "python3 docs/handoff/rgp/validator/rgp_validator.py docs/handoff/rgp/submissions/RGP-20260816T152100-0700-001.json",
+    "result": "pass",
+    "evidence_path": "docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003/validator-replay.txt",
+    "evidence_blob": "93b4e2b33056b6eddf4024ca67b7e964493dac51"
+  },
+  "identity_reconciliation": {
+    "reused": {
+      "r4": "pems:decision:2197184a0ef4b2a120e4"
+    },
+    "created": {
+      "r1": "pems:proposition:c182a3621c50ca0a72a2",
+      "r2": "pems:proposition:7e912c63b137e4d61c10",
+      "r3": "pems:proposition:02d7775743aced7cf526"
+    }
+  },
+  "provenance_reconciliation": {
+    "created_source": "pems:source:62553c84fc8f07553bbd",
+    "created_source_observation": "pems:source_observation:33f20411467adcdf5db7",
+    "immutable_git_evidence": {
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "da59ddaa352f09d6e64908c458d7e61e1fae61fd",
+      "path": "docs/handoff/rgp/SUBMISSION_PROTOCOL.md",
+      "blob": "0df2d40146a30b163ff78bd445cc2b52d5cb2221"
+    },
+    "r1_primary": [
+      "pems:source_observation:33f20411467adcdf5db7"
+    ],
+    "r2_primary": [
+      "pems:source_observation:33f20411467adcdf5db7"
+    ],
+    "r4_reused_source": "pems:source:eb92b21e7f3c92db6d23",
+    "r4_reused_source_observation": "pems:source_observation:be6819991bf46e7cc226"
+  },
+  "reasoning_graph": {
+    "relations": [
+      {
+        "id": "pems:relation:fdb1ff6319d4f62f87cf",
+        "kind": "derived_from",
+        "from": "pems:proposition:02d7775743aced7cf526",
+        "to": "pems:proposition:7e912c63b137e4d61c10"
+      },
+      {
+        "id": "pems:relation:c4e53fcc04f234848108",
+        "kind": "supports",
+        "from": "pems:proposition:c182a3621c50ca0a72a2",
+        "to": "pems:proposition:02d7775743aced7cf526"
+      },
+      {
+        "id": "pems:relation:ddd25b5b4093d80d7f49",
+        "kind": "supports",
+        "from": "pems:decision:2197184a0ef4b2a120e4",
+        "to": "pems:proposition:02d7775743aced7cf526"
+      }
+    ],
+    "semantic_reconstruction": "r1 observation; r2 observation; r3 derived claim; existing accepted r4 decision; r3 derived_from r2; r1 supports r3; r4 supports r3",
+    "semantic_loss": false
+  },
+  "admission_transaction": {
+    "contract": "rgp-pems2-admission-transaction/1",
+    "plan_path": "docs/handoff/rgp/admission/transactions/RGP-20260816T152100-0700-001.steward-003.json",
+    "plan_blob": "b8971f36c5a98ed2a0e8602899ea1edf1312451e",
+    "tool_path": "docs/handoff/rgp/admission/apply_admission_transaction.py",
+    "tool_blob": "0f0117a7770f1928e41bd76082d9a572102e823a",
+    "proof_path": "docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003/admission-proof.json",
+    "proof_blob": "98217300225dbaf3c3d060960fa7620452b678d0",
+    "proof_result": "pass",
+    "proofs": {
+      "exact_base_hash_match": true,
+      "record_ids_unique": true,
+      "relation_ids_unique": true,
+      "dangling_relation_endpoints": 0,
+      "derived_propositions_have_premises": true,
+      "pems_schema_valid": true,
+      "repeated_pems_bytes_identical": true,
+      "repeated_cove_bytes_identical": true,
+      "cove_structural_round_trip": true,
+      "profile": "cove/1|pems/2|jcs/1"
+    },
+    "candidate": {
+      "record_count": 179,
+      "relation_count": 3,
+      "pems_jcs_sha256": "aeba21697477ccb667d8dd31124ed7dc64d0887b2cadf3b1188a07b0005b2a4e",
+      "cove_jcs_sha256": "635d40098b0458c71bab358cf7161fcfee0336212c5da089317acd3fe7839d6c"
+    }
+  },
+  "pems2_validation": {
+    "schema_candidate_validation": "pass",
+    "contract_validator_path": "docs/handoff/pems/v2/validate_pems2_contract.py",
+    "contract_validator_blob": "756b1b4c2b138c0c3ab0d044d853404dae7abfbe",
+    "contract_suite_result": "pass",
+    "contract_suite_evidence_path": "docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003/pems2-contract-validator.txt",
+    "contract_suite_evidence_blob": "45c6ee28a0e53d6ee5e3a7639714bb47a4a933e9",
+    "independent_verification_path": "docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003/independent-verification.json",
+    "independent_verification_blob": "9da2c29f93ecf50ee3f14e5fa47361fe20019289",
+    "independent_verification_result": "pass"
+  },
+  "canonical_installation": {
+    "performed": true,
+    "transactional": true,
+    "canonical_commit": "fecbc644bb552b5203ecfef45932cca8714bcfce",
+    "pems_path": "docs/project-chat-handoff.json",
+    "installed_pems_blob": "303e6219bdde775481c1093dec6d6382213e6dde",
+    "validated_pems_candidate_blob": "303e6219bdde775481c1093dec6d6382213e6dde",
+    "cove_path": "docs/project-chat-handoff.cove.json",
+    "installed_cove_blob": "f4afac03f16517b2d977e143836821521527faf1",
+    "validated_cove_candidate_blob": "f4afac03f16517b2d977e143836821521527faf1",
+    "exact_generated_bytes_installed": true,
+    "post_install_profiles": {
+      "semantic": "pems/2",
+      "cove": "cove/1",
+      "serializer": "jcs/1"
+    },
+    "unrelated_canonical_records_changed": false
+  },
+  "workflow": {
+    "name": "RGP Admission Reconsideration 003",
+    "run_id": 31985090393,
+    "head_commit": "800bab848f6488f81334490d62b007b2196c7597",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/loteque/gdscript-voxel-engine/actions/runs/31985090393"
+  },
+  "reason_codes": [
+    "RGP_VALIDATOR_REPLAY_PASSED",
+    "CANONICAL_IDENTITY_RECONCILED",
+    "CANONICAL_PROVENANCE_RESOLVED",
+    "ATOMIC_REASONING_GRAPH_PROVED",
+    "PEMS2_SCHEMA_VALID",
+    "PEMS2_CONTRACT_SUITE_PASSED",
+    "COVE_JCS_ROUND_TRIP_DETERMINISTIC",
+    "CANONICAL_INSTALL_EXACT_BYTES_VERIFIED"
+  ],
+  "remaining_protocol_tooling_defects": [
+    {
+      "code": "PEMS2_CONTRACT_VALIDATOR_NOT_CANDIDATE_PARAMETERIZED",
+      "status": "non_blocking",
+      "detail": "validate_pems2_contract.py validates the PEMS/2 contract and fixtures but has no CLI candidate argument; candidate-specific schema, graph, provenance, determinism, and COVE round-trip validation were therefore supplied by the admission transaction proof plus independent verification."
+    },
+    {
+      "code": "NO_GENERIC_REPOSITORY_NATIVE_RGP_ADMISSION_RUNNER",
+      "status": "non_blocking",
+      "detail": "The supplied admission CLI had no pre-existing generic GitHub Actions execution surface. This reconsideration used a trial-scoped repository-native runner; future admissions would benefit from a parameterized standing runner without changing Steward semantic authority."
+    }
+  ],
+  "authoritative_effect": "The complete r1/r2/r3 plus existing-r4 reasoning graph is admitted atomically into canonical PEMS/2 and its deterministic COVE/1 compatibility representation. Prior provisional dispositions remain immutable historical evidence and are superseded by this disposition."
+}
