@@ -1,0 +1,79 @@
+{
+  "disposition_id": "RGPD-20260816T225400-0700-011",
+  "submission_id": "RGP-20260816T222500-0700-004",
+  "created_at": "2026-08-16T22:54:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "provisional",
+  "supersedes_disposition": "RGPD-20260816T223500-0700-010",
+  "canonical_snapshot": {
+    "canonical_pems2_blob": "bacb825f1ea6bb8f7aa92dc086444d7c68850f05",
+    "canonical_cove_blob": "090e77317e1f50ab020ac5f0291be2cbb2ca8946",
+    "normalized_pems_sha256": "936ed6d5e5079b1b680cd3faa3a67ffec86aaa4b2b27f6e228b2576e75fce971",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "record_map": {
+    "r1": "pems:proposition:297653e183984377a669",
+    "r2": "pems:proposition:a0f06b966ae693845071",
+    "r3": "pems:proposition:c20a6da4818c6b583952",
+    "r4": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+    "r5": "pems:unresolved_item:45dfe8cbb234a3f99b00",
+    "r6": "pems:proposition:babcd53c975cdc327216"
+  },
+  "rejected_records": {
+    "r7": "unsupported_universal_generalization"
+  },
+  "provenance_map": {
+    "trial3_proof_source": "pems:source:370b344cf8853f61b576",
+    "trial3_proof_observation": "pems:source_observation:8c7ef7c99e72e46e9c80",
+    "trial3_disposition_source": "pems:source:04ba61a902ccfd74077d",
+    "trial3_disposition_observation": "pems:source_observation:2f46ca5fa923b1aa5005",
+    "r1_existing_primary": "pems:source_observation:c28bd5fb6aa528e94f10"
+  },
+  "relation_map": {
+    "r1_contradicts_r4": "pems:relation:2f0fc7bc1228246f28ee",
+    "r1_supersedes_r4": "pems:relation:8c2e4ee3e1b8006bb746",
+    "r6_derived_from_r1": "pems:relation:1a78acc7e397c10aefc9",
+    "r6_derived_from_r2": "pems:relation:8b8753b59b6324e685c2",
+    "r6_derived_from_r3": "pems:relation:7c23c2757b985254cfb1"
+  },
+  "proof_authorization": {
+    "transaction_contract": "rgp-pems2-admission-transaction/2",
+    "expected_base_sha256": "936ed6d5e5079b1b680cd3faa3a67ffec86aaa4b2b27f6e228b2576e75fce971",
+    "reuse_record_ids": [
+      "pems:proposition:297653e183984377a669",
+      "pems:unresolved_item:f9b6d2ffa30628f5c387"
+    ],
+    "reuse_relation_ids": [
+      "pems:relation:2f0fc7bc1228246f28ee",
+      "pems:relation:8c2e4ee3e1b8006bb746"
+    ],
+    "new_record_ids": [
+      "pems:source:370b344cf8853f61b576",
+      "pems:source_observation:8c7ef7c99e72e46e9c80",
+      "pems:source:04ba61a902ccfd74077d",
+      "pems:source_observation:2f46ca5fa923b1aa5005",
+      "pems:proposition:a0f06b966ae693845071",
+      "pems:proposition:c20a6da4818c6b583952",
+      "pems:unresolved_item:45dfe8cbb234a3f99b00",
+      "pems:proposition:babcd53c975cdc327216"
+    ],
+    "new_relation_ids": [
+      "pems:relation:1a78acc7e397c10aefc9",
+      "pems:relation:8b8753b59b6324e685c2",
+      "pems:relation:7c23c2757b985254cfb1"
+    ],
+    "excluded": [
+      "r7",
+      "r7 contradicts r5"
+    ]
+  },
+  "canonical_mutation": "withheld_pending_proof",
+  "reason_codes": [
+    "SEMANTIC_RECONCILIATION_REUSED_FROM_RGPD_010",
+    "STEWARD_CANONICAL_IDENTITIES_ALLOCATED",
+    "PROVENANCE_IDENTITIES_ALLOCATED",
+    "R7_REMAINS_REJECTED",
+    "EXACT_BASE_TRANSACTION_V2_PROOF_AUTHORIZED"
+  ],
+  "next_gate": "RGP Engineer executes the authorized exact-base transaction-v2 plan, persists exact proof artifacts, and returns them for Steward installation/admission."
+}
