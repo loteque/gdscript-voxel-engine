@@ -1,0 +1,149 @@
+{
+  "contract": "rgp-pems2-admission-transaction/2",
+  "expected_base_sha256": "936ed6d5e5079b1b680cd3faa3a67ffec86aaa4b2b27f6e228b2576e75fce971",
+  "reuse_record_ids": [
+    "pems:proposition:297653e183984377a669",
+    "pems:unresolved_item:f9b6d2ffa30628f5c387"
+  ],
+  "record_updates": [],
+  "new_records": [
+    {
+      "id": "pems:source:370b344cf8853f61b576",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_file",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "path": "docs/handoff/rgp/evidence/RGP-20260816T215500-0700-003.admission-008-v2.runner-artifact/admission-proof.json"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:8c7ef7c99e72e46e9c80",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:370b344cf8853f61b576",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-16T22:54:00-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "030fa0c4b2326ed2c98e8105b866d070cde62d76",
+          "path": "docs/handoff/rgp/evidence/RGP-20260816T215500-0700-003.admission-008-v2.runner-artifact/admission-proof.json"
+        },
+        "captured_fingerprint": "git-blob:ca7cd65ece40b82cf4d8459de07d80d9eed8a111"
+      }
+    },
+    {
+      "id": "pems:source:04ba61a902ccfd74077d",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_file",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "path": "docs/handoff/rgp/dispositions/RGPD-20260816T221030-0700-009.json"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:2f46ca5fa923b1aa5005",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:04ba61a902ccfd74077d",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-16T22:54:00-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "8b493fe186be82d0e3cfddb8853106dd7e95754e",
+          "path": "docs/handoff/rgp/dispositions/RGPD-20260816T221030-0700-009.json"
+        },
+        "captured_fingerprint": "git-blob:1d5e316961d00b5f02470c8e09f03592c861fb4a"
+      }
+    },
+    {
+      "id": "pems:proposition:a0f06b966ae693845071",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": [
+          "pems:source_observation:8c7ef7c99e72e46e9c80"
+        ]
+      },
+      "data": {
+        "statement": "Trial 3's guarded admission transaction v2 passed with an exact before-state lifecycle update to a reused canonical unresolved-item record while preserving record identity and kind.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:c20a6da4818c6b583952",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": [
+          "pems:source_observation:2f46ca5fa923b1aa5005"
+        ]
+      },
+      "data": {
+        "statement": "Trial 3 installed the exact persisted v2 proof candidate as canonical PEMS/2 and COVE state and preserved unrelated repository tree content.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:unresolved_item:45dfe8cbb234a3f99b00",
+      "kind": "unresolved_item",
+      "lifecycle": "current",
+      "provenance": {
+        "context": [
+          "pems:source_observation:8c7ef7c99e72e46e9c80"
+        ]
+      },
+      "data": {
+        "summary": "Whether guarded admission transaction v2 preserves its guarantees when one connected admission updates multiple reused canonical records remains unverified.",
+        "resolution_state": "open"
+      }
+    },
+    {
+      "id": "pems:proposition:babcd53c975cdc327216",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "data": {
+        "statement": "RGP admission has demonstrated multi-generation canonical evolution across both additive non-no-op admission and a guarded reused-record lifecycle transition.",
+        "proposition_kind": "claim",
+        "epistemic_role": "derived"
+      }
+    }
+  ],
+  "new_relations": [
+    {
+      "id": "pems:relation:1a78acc7e397c10aefc9",
+      "kind": "derived_from",
+      "from": "pems:proposition:babcd53c975cdc327216",
+      "to": "pems:proposition:297653e183984377a669",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:8b8753b59b6324e685c2",
+      "kind": "derived_from",
+      "from": "pems:proposition:babcd53c975cdc327216",
+      "to": "pems:proposition:a0f06b966ae693845071",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:7c23c2757b985254cfb1",
+      "kind": "derived_from",
+      "from": "pems:proposition:babcd53c975cdc327216",
+      "to": "pems:proposition:c20a6da4818c6b583952",
+      "lifecycle": "current",
+      "data": {}
+    }
+  ]
+}
