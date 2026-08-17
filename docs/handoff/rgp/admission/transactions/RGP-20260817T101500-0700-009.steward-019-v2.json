@@ -1,0 +1,51 @@
+{
+  "contract": "rgp-pems2-admission-transaction/2",
+  "expected_base_sha256": "e32dae550132582e2f1a9689b04b181989ccb97e978acdb7a47996d8ed347b79",
+  "reuse_record_ids": [],
+  "record_updates": [],
+  "new_records": [
+    {
+      "id": "pems:source:387bd2fbf628054f3b3b",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_pull_request",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "uri": "https://github.com/loteque/gdscript-voxel-engine/pull/45"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:1407b029a39f0658838d",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:387bd2fbf628054f3b3b",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-17T10:16:00-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "8707a141524b419915c6b90b42078e546bedc599",
+          "uri": "https://github.com/loteque/gdscript-voxel-engine/pull/45"
+        },
+        "captured_fingerprint": "github:pull/45@merge:8707a141524b419915c6b90b42078e546bedc599"
+      }
+    },
+    {
+      "id": "pems:proposition:344a7c89a8f50415a8ae",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:1407b029a39f0658838d"]
+      },
+      "data": {
+        "statement": "Validation for prioritized bounded chunk loading exposed queued priority and active loading under deliberately small budgets while retaining the existing Web thread smoke test and baked terrain fixture.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    }
+  ],
+  "new_relations": []
+}
