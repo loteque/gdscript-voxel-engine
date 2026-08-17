@@ -1,0 +1,115 @@
+name: Distiller Operations Dashboard
+
+on:
+  push:
+    branches: [project-chat-handoff]
+    paths:
+      - 'docs/handoff/rgp/**'
+      - 'docs/distiller/evaluation/**'
+      - 'docs/distiller/operations/**'
+      - 'docs/project-chat-handoff.json'
+      - 'docs/project-chat-handoff.cove.json'
+      - '.github/scripts/build_distiller_ops_dashboard.py'
+      - '.github/workflows/distiller-operations-dashboard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and publish operations snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Build dashboard data
+        run: |
+          set -euo pipefail
+          mkdir -p build/operations
+          python3 .github/scripts/build_distiller_ops_dashboard.py --out build/operations/data.json
+          cp docs/distiller/operations/site/index.html build/operations/index.html
+          cp docs/distiller/operations/site/styles.css build/operations/styles.css
+          cp docs/distiller/operations/site/app.js build/operations/app.js
+
+      - name: Test generated dashboard invariants
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('build/operations/data.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['contract']=='distiller-operations-dashboard/1'
+          assert d['authority']['distiller']=='candidate_producer_only'
+          assert d['authority']['reconciliation_authority']=='project-engineering-steward'
+          assert d['authority']['executor_performs_semantic_reconciliation'] is False
+          assert sum(d['pipeline_state_counts'].values())==d['summary']['submissions']
+          assert d['summary']['canonical_records']>0
+          assert d['summary']['test_fail_lines']>=0
+          assert d['summary']['test_pass_lines']>=0
+          print('PASS dashboard_contract')
+          print(f"PASS submissions={d['summary']['submissions']}")
+          print(f"PASS canonical_records={d['summary']['canonical_records']} canonical_relations={d['summary']['canonical_relations']}")
+          print(f"PASS tests={d['summary']['test_pass_lines']} fail_lines={d['summary']['test_fail_lines']}")
+          PY
+
+      - name: Update operations path in Pages archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARCHIVE="$RUNNER_TEMP/pages-archive"
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git fetch origin gh-pages:refs/heads/gh-pages
+            git worktree add "$ARCHIVE" gh-pages
+          else
+            git worktree add -b gh-pages "$ARCHIVE"
+            git -C "$ARCHIVE" rm -rf .
+          fi
+          rm -rf "$ARCHIVE/operations"
+          mkdir -p "$ARCHIVE/operations"
+          cp -a build/operations/. "$ARCHIVE/operations/"
+          touch "$ARCHIVE/.nojekyll"
+          git -C "$ARCHIVE" config user.name "github-actions[bot]"
+          git -C "$ARCHIVE" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$ARCHIVE" add -A operations .nojekyll
+          if git -C "$ARCHIVE" diff --cached --quiet; then
+            echo 'operations dashboard already current'
+          else
+            git -C "$ARCHIVE" commit -m "Publish Distiller operations dashboard"
+            git -C "$ARCHIVE" push origin gh-pages
+          fi
+
+      - name: Package complete Pages site
+        run: |
+          mkdir -p "$RUNNER_TEMP/pages-site"
+          git -C "$RUNNER_TEMP/pages-archive" archive HEAD | tar -x -C "$RUNNER_TEMP/pages-site"
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ runner.temp }}/pages-site
+
+  deploy:
+    name: Deploy operations dashboard
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages-preview
+      url: ${{ steps.deployment.outputs.page_url }}operations/
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
