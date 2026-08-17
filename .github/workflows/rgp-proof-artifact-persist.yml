@@ -120,5 +120,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$EVIDENCE_DIR"
           git diff --cached --quiet && { echo "no evidence bytes staged" >&2; exit 1; }
-          git commit -m "Persist Trial 2 admission proof artifact bytes"
+          git commit -m "Persist RGP admission proof artifact bytes"
           git push origin HEAD:project-chat-handoff
