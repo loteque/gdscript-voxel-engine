@@ -1,0 +1,124 @@
+name: RGP Proof Artifact Persist
+
+on:
+  push:
+    branches: [project-chat-handoff]
+    paths:
+      - 'docs/handoff/rgp/proof-persist-requests/*.json'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  persist:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact request commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Resolve immutable persistence request
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t REQUESTS < <(
+            git diff-tree --no-commit-id --name-status -r "$GITHUB_SHA" -- docs/handoff/rgp/proof-persist-requests/ \
+              | awk '$1 == "A" && $2 ~ /\.json$/ {print $2}'
+          )
+          if [ "${#REQUESTS[@]}" -ne 1 ]; then
+            echo "expected exactly one newly added persistence request; found ${#REQUESTS[@]}" >&2
+            exit 1
+          fi
+          REQUEST="${REQUESTS[0]}"
+          python - "$REQUEST" >> "$GITHUB_OUTPUT" <<'PY'
+          import json, pathlib, sys
+          p = pathlib.Path(sys.argv[1])
+          d = json.loads(p.read_text())
+          assert d["contract"] == "rgp-proof-artifact-persist-request/1"
+          required = ["artifact_id", "source_run_id", "source_head_sha", "evidence_dir", "expected_files"]
+          for k in required:
+              assert k in d, k
+          ev = d["evidence_dir"]
+          assert ev.startswith("docs/handoff/rgp/evidence/")
+          assert ".." not in ev and not ev.endswith("/")
+          expected = d["expected_files"]
+          assert isinstance(expected, dict) and expected
+          print(f"request={p}")
+          print(f"artifact_id={int(d['artifact_id'])}")
+          print(f"source_run_id={int(d['source_run_id'])}")
+          print(f"source_head_sha={d['source_head_sha']}")
+          print(f"evidence_dir={ev}")
+          for name, sha in expected.items():
+              assert "/" not in name and name not in {".", ".."}
+              assert len(sha) == 64 and all(c in "0123456789abcdef" for c in sha)
+          PY
+
+      - name: Verify source artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.request.outputs.artifact_id }}
+          SOURCE_RUN_ID: ${{ steps.request.outputs.source_run_id }}
+          SOURCE_HEAD_SHA: ${{ steps.request.outputs.source_head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID" > artifact-meta.json
+          python - <<'PY'
+          import json, os
+          d = json.load(open("artifact-meta.json"))
+          assert not d["expired"]
+          assert d["workflow_run"]["id"] == int(os.environ["SOURCE_RUN_ID"])
+          assert d["workflow_run"]["head_sha"] == os.environ["SOURCE_HEAD_SHA"]
+          PY
+
+      - name: Download exact successful proof artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.request.outputs.artifact_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" > proof.zip
+          mkdir proof
+          unzip -q proof.zip -d proof
+
+      - name: Verify every requested file hash and exact file set
+        env:
+          REQUEST: ${{ steps.request.outputs.request }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, pathlib
+          d = json.loads(pathlib.Path(os.environ["REQUEST"]).read_text())
+          root = pathlib.Path("proof")
+          actual_names = sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file())
+          expected_names = sorted(d["expected_files"])
+          assert actual_names == expected_names, (actual_names, expected_names)
+          for name, expected in d["expected_files"].items():
+              b = (root / name).read_bytes()
+              got = hashlib.sha256(b).hexdigest()
+              assert got == expected, (name, got, expected)
+          PY
+
+      - name: Persist exact artifact bytes under immutable RGP evidence
+        env:
+          EVIDENCE_DIR: ${{ steps.request.outputs.evidence_dir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -e "$EVIDENCE_DIR" ]; then
+            echo "immutable evidence directory already exists: $EVIDENCE_DIR" >&2
+            exit 1
+          fi
+          mkdir -p "$EVIDENCE_DIR"
+          cp -a proof/. "$EVIDENCE_DIR/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$EVIDENCE_DIR"
+          git diff --cached --quiet && { echo "no evidence bytes staged" >&2; exit 1; }
+          git commit -m "Persist Trial 2 admission proof artifact bytes"
+          git push origin HEAD:project-chat-handoff
