@@ -2,7 +2,7 @@
   "contract": "distiller-phase1-independent-invocation-manifest/1",
   "invocation": 1,
   "branch": "project-chat-handoff",
-  "input_revision": "7ae3fefe1b3f2f9cb19020977874de55346bb24b",
+  "input_revision": "5a0967eb35e37c3bcde917250644c5f594bf7033",
   "rgp_contract": "rgp/1",
   "inputs": {
     "docs/distiller/DIRECTIVE.md": "d578841d64da93f0883686eda80f00fde53d5f66",
@@ -19,9 +19,9 @@
     "deployed-ui-failure"
   ],
   "candidate_blobs": {
-    "field-authority": "aabb10ccd2a857b6fca8c9b9e418b77947b43d45",
-    "offline-runtime-split": "1a3e236d05fff85a367ab4690824c330203bb938",
-    "validation-demo-contract": "b3b7f59d6ca3f5f81b50274185dc703439f1ecfe",
+    "field-authority": "7ab8fb4e22916e23da6af1fd03a17a6e47d69a5e",
+    "offline-runtime-split": "30a07277e7f2fec69c559be0b814b83e45a715ea",
+    "validation-demo-contract": "f1846eb4127f8574c0b2225aeffb5444a6115388",
     "resource-loading-investigation": "eb15a0961c37d0de8cfb8473b4f2eca636b794be",
     "deployed-ui-failure": "af5794a01a43961b5b8c4b0471b366f256686d95"
   },

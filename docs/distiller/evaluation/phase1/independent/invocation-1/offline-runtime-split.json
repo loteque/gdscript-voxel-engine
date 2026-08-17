@@ -15,6 +15,14 @@
       "provenance": {
         "primary": ["eval:phase1:offline-runtime-split:governed-architecture"]
       }
+    },
+    {
+      "temp_id": "r3",
+      "kind": "decision",
+      "statement": "PointFieldResource and SurfaceNetsMesher remain generation-side concerns.",
+      "provenance": {
+        "primary": ["eval:phase1:offline-runtime-split:governed-architecture"]
+      }
     }
   ]
 }
