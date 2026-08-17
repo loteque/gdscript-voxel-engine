@@ -18,6 +18,7 @@
     "fixture_cases": 7,
     "fixture_cases_passed": 7,
     "deterministic_projection": true,
+    "local_replay_result": "{\"cases\": 7, \"contract\": \"pems/2-rgp/1-uncertainty-import/1\", \"passed\": true}",
     "semantic_distinctions_preserved": [
       "uncertainty_not_claim",
       "premise_to_derived_from",
@@ -26,7 +27,8 @@
       "no_blocked_or_deferred_inference"
     ],
     "contract_sha256": "561de5adc90ac02341a65f915da660a2a700d9f51533870228ce4e0ef47d5acf",
-    "fixtures_sha256": "3f1e131995eb8d026865e82734412f8de08892991b5547bcfdbd12881471752b"
+    "fixtures_sha256": "3f1e131995eb8d026865e82734412f8de08892991b5547bcfdbd12881471752b",
+    "validator_sha256": "3db1bff68cf704d5f94b251246b03bf00f0e5db1f8d29d8b1437e078dc0294b1"
   },
   "scope": {
     "schema_change_required": false,
