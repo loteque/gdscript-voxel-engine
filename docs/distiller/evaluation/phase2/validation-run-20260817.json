@@ -1,0 +1,41 @@
+{
+  "contract": "distiller-phase2-validation-evidence/1",
+  "date": "2026-08-17",
+  "branch": "project-chat-handoff",
+  "workflow_commit": "58fb03645e48f5e5b96e197e9aac1a47b1cace76",
+  "workflow_run_id": 32009429892,
+  "job_id": 95325614264,
+  "validator_blob": "a9bcc452a561c37fff818f92b1527d1c534878b6",
+  "fixture_runner_blob": "e16c9422b14bd2b280d93ce8a66eedde8494fb57",
+  "fixture_suite": {
+    "result": "pass",
+    "passed": [
+      "invalid-empty-premise.json",
+      "invalid-empty-provenance.json",
+      "invalid-legacy-authority-field.json",
+      "invalid-legacy-validated-by-relation.json",
+      "invalid-missing-premise-reference.json",
+      "invalid-observation-without-primary-provenance.json",
+      "invalid-premise-cycle.json",
+      "valid-derived.json"
+    ],
+    "failed": []
+  },
+  "phase1_candidate_batch": {
+    "result": "pass",
+    "candidate_count": 15,
+    "directories": [
+      "docs/distiller/evaluation/phase1/independent/invocation-1",
+      "docs/distiller/evaluation/phase1/independent/invocation-20260817-b",
+      "docs/distiller/evaluation/phase1/independent/invocation-20260817-c"
+    ],
+    "passed_count": 15,
+    "failed_count": 0,
+    "candidates_modified_for_validation": false
+  },
+  "producer_specific_validator_exceptions_added": false,
+  "canonical_pems_cove_modified": false,
+  "admission_artifacts_modified": false,
+  "phase2_exit_criterion_met": true,
+  "next_phase": "Phase 3 — Shadow Operation"
+}
