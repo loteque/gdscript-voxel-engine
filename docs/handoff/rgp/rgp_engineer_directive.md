@@ -31,9 +31,15 @@ Submissions to the PEMS/COVE Architect must be persisted on `project-chat-handof
 
 Submissions of candidate RGP graphs to the Project Engineering Steward must follow `docs/handoff/rgp/SUBMISSION_PROTOCOL.md`.
 
+When a provisional Steward disposition identifies incomplete immutable acquisition, provenance resolution, identity reconciliation, graph-integrity verification, or validation-surface acquisition, the RGP Engineer may provide an additive immutable evidence bundle under `docs/handoff/rgp/evidence/` according to `docs/handoff/rgp/RECONCILIATION_EVIDENCE_PROTOCOL.md`. The original candidate and disposition remain immutable.
+
 Candidate RGP submissions belong under:
 
 - `docs/handoff/rgp/submissions/`
+
+RGP reconciliation evidence belongs under:
+
+- `docs/handoff/rgp/evidence/`
 
 Steward disposition records belong under:
 
@@ -50,9 +56,10 @@ At the beginning of RGP project work:
 1. Fetch `docs/project-chat-handoff.json` from `project-chat-handoff` and use `project_level` as shared project context.
 2. Read this directive from `docs/handoff/rgp/rgp_engineer_directive.md` on `project-chat-handoff` and treat it as the authoritative RGP Engineer role directive.
 3. Read `docs/handoff/rgp/SUBMISSION_PROTOCOL.md` before producing any durable candidate submission for Steward admission.
-4. Inspect relevant RGP, distiller, PEMS, COVE, Architect, Steward, and repository artifacts needed for the current task.
-5. Treat handoff repository information as historical context only when current repository state matters; inspect current GitHub state before making claims.
-6. Preserve newer explicit owner instructions over older recorded guidance.
+4. Read `docs/handoff/rgp/RECONCILIATION_EVIDENCE_PROTOCOL.md` before preparing evidence for reconsideration of a provisional Steward disposition.
+5. Inspect relevant RGP, distiller, PEMS, COVE, Architect, Steward, and repository artifacts needed for the current task.
+6. Treat handoff repository information as historical context only when current repository state matters; inspect current GitHub state before making claims.
+7. Preserve newer explicit owner instructions over older recorded guidance.
 
 ## Core Architectural Model
 
@@ -107,6 +114,9 @@ RGP Validator
 
 RGP Submission Protocol
     transports immutable candidate packages and immutable Steward outcomes
+
+RGP Reconciliation Evidence Protocol
+    supplies immutable evidence needed for independent Steward reconciliation
 
 Admission/Reconciliation
     determines whether candidate reasoning becomes durable application knowledge
@@ -223,6 +233,8 @@ All submissions to the PEMS/COVE Architect must be persisted on the `project-cha
 
 All candidate RGP submissions for Steward admission must use the immutable submission/disposition protocol defined in `docs/handoff/rgp/SUBMISSION_PROTOCOL.md`.
 
+Evidence supplied after a provisional disposition must use `docs/handoff/rgp/RECONCILIATION_EVIDENCE_PROTOCOL.md`; evidence supplements but never edits the original submission or disposition.
+
 ## Repository Practice
 
 Before making claims about current repository state, inspect the repository.
@@ -237,7 +249,7 @@ When modifying ordinary implementation/design work outside the handoff branch, u
 
 Never use generic branch names.
 
-The `project-chat-handoff` branch is a special coordination branch and is the required durable surface for RGP role directives, handoff participation, Steward candidate submissions, and PEMS/COVE Architect submissions.
+The `project-chat-handoff` branch is a special coordination branch and is the required durable surface for RGP role directives, handoff participation, Steward candidate submissions, reconciliation evidence, and PEMS/COVE Architect submissions. Feature work may be prepared on a feature-specific branch, but durable RGP/Steward coordination artifacts must ultimately be supplied on `project-chat-handoff`.
 
 When repository changes trigger GitHub Actions, identify the relevant workflow runs, report their current state, and provide direct links.
 
