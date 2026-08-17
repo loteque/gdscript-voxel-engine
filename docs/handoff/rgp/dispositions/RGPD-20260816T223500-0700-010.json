@@ -1,0 +1,83 @@
+{
+  "disposition_id": "RGPD-20260816T223500-0700-010",
+  "submission_id": "RGP-20260816T222500-0700-004",
+  "created_at": "2026-08-16T22:35:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "provisional",
+  "canonical_snapshot": {
+    "branch_head": "25abf188cedb183caafc358827fdd3d7d6afd02f",
+    "canonical_pems2_blob": "bacb825f1ea6bb8f7aa92dc086444d7c68850f05",
+    "canonical_cove_blob": "090e77317e1f50ab020ac5f0291be2cbb2ca8946",
+    "normalized_pems_sha256": "936ed6d5e5079b1b680cd3faa3a67ffec86aaa4b2b27f6e228b2576e75fce971",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "submission": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T222500-0700-004.json",
+    "blob": "223deb439e357344dbefbcb0fe30fdf5cd04a434",
+    "rgp_version": "rgp/1",
+    "validator": "rgp-validator/1",
+    "validator_blob": "5675c652b6ad894fe3e1388a4290d2965b2540a0",
+    "structural_assessment": "passes_current_validator_rules"
+  },
+  "candidate_results": {
+    "r1": "admissible_reuse_existing_trial2_proof_success_observation",
+    "r2": "admissible_new_trial3_guarded_update_proof_observation",
+    "r3": "admissible_new_trial3_canonical_install_observation",
+    "r4": "stale_historical_uncertainty_replay_not_reactivated",
+    "r5": "admissible_new_current_uncertainty_pending_transaction_proof",
+    "r6": "admissible_new_derived_claim_pending_transaction_proof",
+    "r7": "rejected_unsupported_universal_generalization"
+  },
+  "record_reconciliation": {
+    "r1": "reuse pems:proposition:297653e183984377a669",
+    "r4": "reconcile to pems:unresolved_item:f9b6d2ffa30628f5c387 as historical-only; do not reactivate or mutate to current",
+    "r2": "new identity required after deterministic Steward allocation",
+    "r3": "new identity required after deterministic Steward allocation",
+    "r5": "new unresolved_item identity required after deterministic Steward allocation",
+    "r6": "new proposition identity required after deterministic Steward allocation",
+    "r7": "no canonical identity allocated because rejected"
+  },
+  "provenance_reconciliation": {
+    "r1": "reuse pems:source_observation:c28bd5fb6aa528e94f10 for immutable Trial-2 admission-proof blob e4b0fbf4f7e031614b0177e9ffedfde4cd06a83f",
+    "r2_r5": "resolve immutable Trial-3 admission-proof blob ca7cd65ece40b82cf4d8459de07d80d9eed8a111 through one canonical repository-file source/source_observation chain",
+    "r3": "resolve immutable admitted Trial-3 disposition blob 1d5e316961d00b5f02470c8e09f03592c861fb4a through one canonical repository-file source/source_observation chain",
+    "r4": "candidate context blob d160687805e0959323eb7b5efbc912014ea29c9b must be acquired and resolved before any proof transaction; semantic identity is already historical pems:unresolved_item:f9b6d2ffa30628f5c387",
+    "r6": "derived claim obtains grounding through constitutive premises r1, r2, and r3",
+    "r7": "rejected; no canonical provenance installation"
+  },
+  "relation_reconciliation": {
+    "r1_contradicts_r4": "semantic replay of existing pems:relation:2f0fc7bc1228246f28ee; no duplicate canonical relation",
+    "r1_supersedes_r4": "semantic replay of existing pems:relation:8c2e4ee3e1b8006bb746; no duplicate canonical relation",
+    "r7_contradicts_r5": "not admitted because r7 is rejected; do not install a relation whose rejected endpoint would be absent"
+  },
+  "semantic_findings": [
+    "r1 is a lexical restatement of the current canonical Trial-2 proof-success observation pems:proposition:297653e183984377a669.",
+    "r2 is materially later than r1: it asserts successful guarded transaction-v2 execution with an exact before-state reused-record update, identity preservation, and kind preservation.",
+    "r3 is distinct from r2 because successful proof execution and subsequent exact canonical installation are different events.",
+    "r4 is stale as a current uncertainty. Canonical state already preserves that uncertainty historically and contains current contradicts and supersedes relations from the Trial-2 proof-success observation. Trial 4 must not reactivate it.",
+    "r5 is a genuinely new uncertainty: the existing pressure tests and Trial-3 proof establish one guarded reused-record update, not one connected admission containing multiple reused-record updates.",
+    "r6 is supportable as a derived claim only with all three constitutive premises r1, r2, and r3 retained.",
+    "r7 is rejected. A successful single-record guarded-update proof does not establish correctness for arbitrary update counts or every future transaction.",
+    "The r7 contradicts r5 edge is structurally valid candidate syntax but cannot be canonically installed when r7 is rejected."
+  ],
+  "graph_integrity": "semantic reconciliation complete; canonical candidate proof not yet executed",
+  "canonical_mutation": "withheld",
+  "execution_blocker": {
+    "code": "DETERMINISTIC_ADMISSION_PROOF_NOT_YET_EXECUTED",
+    "detail": "Trial 4 introduces new canonical records and a new unresolved item. Steward semantic reconciliation is complete, but no exact-base transaction-v2 plan and no repository-native proof bundle exist yet for this submission. Canonical PEMS/COVE installation is therefore not authorized.",
+    "required_repair": "RGP Engineer must prepare the deterministic transaction-v2 plan from this Steward reconciliation, using the current normalized base 936ed6d5e5079b1b680cd3faa3a67ffec86aaa4b2b27f6e228b2576e75fce971; reuse r1/r4 and the two existing replayed relations; allocate only Steward-selected new identities/provenance for r2/r3/r5/r6; exclude r7 and its contradiction relation; run the authoritative RGP validator and deterministic admission proof; persist exact candidate evidence for Steward verification.",
+    "safety_effect": "Canonical PEMS/COVE remains unchanged."
+  },
+  "reason_codes": [
+    "RGP_STRUCTURE_ACCEPTED",
+    "MULTI_SUBMISSION_IDEMPOTENT_REUSE_RECONCILED",
+    "STALE_HISTORICAL_UNCERTAINTY_NOT_REACTIVATED",
+    "NEW_UNCERTAINTY_PRESERVED_DISTINCTLY",
+    "PROOF_AND_INSTALL_EVENTS_PRESERVED_DISTINCTLY",
+    "CROSS_GENERATION_DERIVATION_RECONCILED",
+    "R7_REJECTED_UNSUPPORTED_UNIVERSAL_GENERALIZATION",
+    "REJECTED_ENDPOINT_RELATION_WITHHELD",
+    "CANONICAL_MUTATION_WITHHELD_PENDING_DETERMINISTIC_PROOF"
+  ],
+  "next_gate": "RGP Engineer executes and persists an exact-base transaction-v2 proof for the reconciled admissible Trial-4 subgraph; Steward then verifies exact candidate bytes and may issue a superseding admitted disposition."
+}
