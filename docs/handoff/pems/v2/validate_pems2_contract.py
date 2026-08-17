@@ -3,11 +3,12 @@
 
 This validator intentionally does not mutate canonical memory. It checks the
 machine-readable compatibility and admission pressure cases, structural schema
-smoke cases, and deterministic v1->v2 migration invariants defined by the
-adjacent normative documents.
+smoke cases, deterministic v1->v2 migration invariants, and optionally a
+complete PEMS/2 candidate document supplied with ``--candidate``.
 """
 from __future__ import annotations
 
+import argparse
 import copy
 import hashlib
 import json
@@ -166,7 +167,85 @@ def structural_smoke_documents():
     return valid, [bad_role, bad_dependency, bad_secret]
 
 
-def run():
+def validate_candidate_document(candidate, schema_validator):
+    """Validate a complete PEMS/2 candidate without making admission decisions."""
+    schema_validator.validate(candidate)
+
+    records = candidate["records"]
+    relations = candidate["relations"]
+    record_ids = [record["id"] for record in records]
+    relation_ids = [relation["id"] for relation in relations]
+    if len(record_ids) != len(set(record_ids)):
+        raise AssertionError("candidate contains duplicate record IDs")
+    if len(relation_ids) != len(set(relation_ids)):
+        raise AssertionError("candidate contains duplicate relation IDs")
+
+    record_by_id = {record["id"]: record for record in records}
+    project = record_by_id.get(candidate["project_id"])
+    if not project or project["kind"] != "project":
+        raise AssertionError("candidate project_id must resolve to a project record")
+
+    source_observation_ids = {
+        record_id
+        for record_id, record in record_by_id.items()
+        if record["kind"] == "source_observation"
+    }
+
+    for record in records:
+        if record["kind"] == "source_observation":
+            source_id = record["data"]["source_id"]
+            source = record_by_id.get(source_id)
+            if not source or source["kind"] != "source":
+                raise AssertionError(f"source observation {record['id']} has invalid source_id {source_id}")
+        for refs in record.get("provenance", {}).values():
+            missing = sorted(set(refs) - source_observation_ids)
+            if missing:
+                raise AssertionError(f"record {record['id']} has unresolved provenance refs: {missing}")
+
+    derived = {
+        record["id"]
+        for record in records
+        if record["kind"] == "proposition" and record["data"].get("epistemic_role") == "derived"
+    }
+    premise_sources = set()
+    contradiction_pairs = set()
+    for relation in relations:
+        if relation["from"] not in record_by_id or relation["to"] not in record_by_id:
+            raise AssertionError(f"relation {relation['id']} has dangling endpoint")
+        if relation["from"] == relation["to"]:
+            raise AssertionError(f"relation {relation['id']} is self-referential")
+        for refs in relation.get("provenance", {}).values():
+            missing = sorted(set(refs) - source_observation_ids)
+            if missing:
+                raise AssertionError(f"relation {relation['id']} has unresolved provenance refs: {missing}")
+        if relation["kind"] == "derived_from":
+            premise_sources.add(relation["from"])
+        if relation["kind"] == "contradicts":
+            pair = (relation["from"], relation["to"])
+            if pair[0] > pair[1]:
+                raise AssertionError(f"contradiction {relation['id']} is not in canonical endpoint order")
+            if pair in contradiction_pairs:
+                raise AssertionError(f"duplicate contradiction pair: {pair}")
+            contradiction_pairs.add(pair)
+
+    missing_premises = sorted(derived - premise_sources)
+    if missing_premises:
+        raise AssertionError(f"derived propositions missing derived_from relations: {missing_premises}")
+
+    return {
+        "record_count": len(records),
+        "relation_count": len(relations),
+        "record_ids_unique": True,
+        "relation_ids_unique": True,
+        "project_reference_valid": True,
+        "provenance_references_resolved": True,
+        "relation_endpoints_resolved": True,
+        "derived_propositions_have_premises": True,
+        "contradictions_canonicalized": True,
+    }
+
+
+def run(candidate_path=None):
     suite = json.loads(FIXTURES.read_text())
     admission_suite = json.loads(ADMISSION_FIXTURES.read_text())
     schema = json.loads(SCHEMA.read_text())
@@ -239,6 +318,28 @@ def run():
     print(f"MIGRATION_FIXTURE_SHA256={migration_digest}")
     print(f"POLICY_RESULTS_SHA256={result_digest}")
 
+    if candidate_path is not None:
+        candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+        result = validate_candidate_document(candidate, schema_validator)
+        candidate_digest = hashlib.sha256(
+            json.dumps(candidate, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        print(f"PASS candidate={candidate_path}")
+        print(f"PASS candidate_records={result['record_count']} candidate_relations={result['relation_count']}")
+        print("PASS candidate_graph_reference_integrity")
+        print(f"CANDIDATE_SHA256={candidate_digest}")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--candidate",
+        type=Path,
+        help="optional complete PEMS/2 candidate document to validate after the contract suite",
+    )
+    args = parser.parse_args()
+    run(args.candidate)
+
 
 if __name__ == "__main__":
-    run()
+    main()
