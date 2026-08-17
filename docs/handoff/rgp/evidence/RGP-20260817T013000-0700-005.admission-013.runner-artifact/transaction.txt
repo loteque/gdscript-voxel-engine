@@ -1,0 +1,36 @@
+{
+  "base": {
+    "record_count": 204,
+    "relation_count": 14,
+    "sha256": "79b00395daaabd1ca567e9a528703a98a26f231b92cc43445d2fa99eac655ddb"
+  },
+  "candidate": {
+    "cove_jcs_sha256": "51284ecc3f159edd84965bd27a29abe7a9a2f0a9c1fb34d44bb79318bb206eb8",
+    "cove_tuple": "cove/1|pems/2|jcs/1",
+    "pems_jcs_sha256": "728404854694ff1603523d5a06766a54db0b4faa8a814390a3e00fdc0404b044",
+    "record_count": 210,
+    "relation_count": 14,
+    "semantic": "pems/2"
+  },
+  "contract": "rgp-pems2-admission-transaction/1",
+  "proofs": {
+    "canonical_written": false,
+    "cove_structural_round_trip": true,
+    "graph_integrity": {
+      "contradictions_canonicalized": true,
+      "dangling_relation_endpoints": 0,
+      "derived_propositions_have_premises": true,
+      "derived_relation_count": 6,
+      "record_ids_unique": true,
+      "relation_ids_unique": true
+    },
+    "pems_schema_valid": true,
+    "repeated_cove_bytes_identical": true,
+    "repeated_pems_bytes_identical": true
+  },
+  "transaction": {
+    "new_record_count": 6,
+    "new_relation_count": 0,
+    "reuse_record_count": 1
+  }
+}
