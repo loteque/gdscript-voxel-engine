@@ -1,0 +1,16 @@
+{
+  "records": [
+    {
+      "temp_id": "r1",
+      "kind": "decision",
+      "statement": "PointFieldResource is the authoritative scalar-field abstraction.",
+      "provenance": {"primary": ["eval:phase1:field-authority:governed-architecture"]}
+    },
+    {
+      "temp_id": "r2",
+      "kind": "decision",
+      "statement": "Consumers should not duplicate field indexing or scalar-field state.",
+      "provenance": {"primary": ["eval:phase1:field-authority:governed-architecture"]}
+    }
+  ]
+}
