@@ -1,0 +1,114 @@
+{
+  "submission_id": "RGP-20260816T215500-0700-003",
+  "producer": {
+    "role": "reasoning-distiller",
+    "instance": "rgp-engineer-identity-reconciliation-trial-3"
+  },
+  "created_at": "2026-08-16T21:55:00-07:00",
+  "rgp_version": "rgp/1",
+  "status": "candidate",
+  "source_context": {
+    "summary": "Trial 3 identity-reconciliation stress test over the admitted Trial 2 state. Exercises exact canonical reuse, semantic paraphrase reuse, similar-but-distinct propositions, multi-source convergence on one proposition, and uncertainty resolution through contradiction plus supersession.",
+    "refs": [
+      "docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json",
+      "docs/handoff/rgp/evidence/RGP-20260816T190100-0700-002.admission-006.runner-artifact/admission-proof.json",
+      "docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+    ]
+  },
+  "candidate_graph": {
+    "records": [
+      {
+        "temp_id": "r1",
+        "kind": "observation",
+        "statement": "A standing RGP Admission Proof workflow exists and can replay validation and deterministic admission proof generation without installing canonical PEMS/COVE state.",
+        "provenance": {
+          "primary": [
+            "github:blob:d53b49792a645d5775a15fea980b671d74b922f3:docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r2",
+        "kind": "observation",
+        "statement": "A standing RGP Admission Proof workflow is available to replay RGP validation and deterministic admission-proof generation without writing canonical PEMS/COVE state.",
+        "provenance": {
+          "primary": [
+            "github:blob:d53b49792a645d5775a15fea980b671d74b922f3:docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r3",
+        "kind": "observation",
+        "statement": "A branch-local immutable proof-request workflow successfully executed the Trial 2 non-no-op admission proof on project-chat-handoff without itself installing canonical PEMS/COVE state.",
+        "provenance": {
+          "primary": [
+            "github:blob:6e5056966ee69ee0ac48394e2e74240e3670c17b:docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json"
+          ]
+        }
+      },
+      {
+        "temp_id": "r4",
+        "kind": "uncertainty",
+        "statement": "Whether the standing RGP Admission Proof workflow preserves its guarantees for a novel non-no-op admission transaction remains unverified.",
+        "provenance": {
+          "context": [
+            "github:blob:d53b49792a645d5775a15fea980b671d74b922f3:docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r5",
+        "kind": "observation",
+        "statement": "The Trial 2 novel non-no-op admission transaction completed a successful deterministic admission proof with valid PEMS/2 output, graph integrity, deterministic PEMS/COVE bytes, and a successful COVE structural round trip.",
+        "provenance": {
+          "primary": [
+            "github:blob:e4b0fbf4f7e031614b0177e9ffedfde4cd06a83f:docs/handoff/rgp/evidence/RGP-20260816T190100-0700-002.admission-006.runner-artifact/admission-proof.json"
+          ]
+        }
+      },
+      {
+        "temp_id": "r6",
+        "kind": "observation",
+        "statement": "Trial 2's real non-no-op transaction passed the deterministic RGP-to-PEMS/2 admission proof, including graph-integrity and COVE/JCS round-trip checks.",
+        "provenance": {
+          "primary": [
+            "github:blob:6e5056966ee69ee0ac48394e2e74240e3670c17b:docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json"
+          ]
+        }
+      },
+      {
+        "temp_id": "r7",
+        "kind": "observation",
+        "statement": "The successful Trial 2 candidate PEMS/2 and COVE bytes were persisted under immutable RGP evidence before the Steward installed those exact blobs as canonical memory.",
+        "provenance": {
+          "primary": [
+            "github:blob:6e5056966ee69ee0ac48394e2e74240e3670c17b:docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json"
+          ]
+        }
+      }
+    ],
+    "relations": [
+      {
+        "from": "r5",
+        "type": "contradicts",
+        "to": "r4"
+      },
+      {
+        "from": "r5",
+        "type": "supersedes",
+        "to": "r4"
+      },
+      {
+        "from": "r3",
+        "type": "supports",
+        "to": "r5"
+      }
+    ]
+  },
+  "validation": {
+    "status": "passed",
+    "validator": "rgp-validator/1",
+    "validated_at": "2026-08-16T21:55:01-07:00"
+  }
+}
