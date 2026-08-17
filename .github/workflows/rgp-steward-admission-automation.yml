@@ -1,4 +1,4 @@
-name: RGP Steward Admission Automation
+name: RGP Externally Authorized Admission Executor
 
 on:
   push:
@@ -10,14 +10,14 @@ permissions:
   contents: write
 
 concurrency:
-  group: rgp-steward-admission-project-chat-handoff
+  group: rgp-admission-executor-project-chat-handoff
   cancel-in-progress: false
 
 jobs:
-  automate:
+  execute:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout exact approval commit
+      - name: Checkout exact execution-request commit
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
@@ -30,44 +30,54 @@ jobs:
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check jsonschema==4.25.1
 
-      - name: Resolve isolated Steward approval request
+      - name: Resolve isolated execution request
         id: request
         shell: bash
         env:
-          EXPECTED_APPROVER: loteque
+          EXPECTED_EXECUTION_ACTOR: loteque
         run: |
           set -euo pipefail
           mapfile -t CHANGES < <(git diff-tree --no-commit-id --name-status -r "$GITHUB_SHA")
           if [ "${#CHANGES[@]}" -ne 1 ]; then
-            echo "approval commit must contain exactly one changed path; found ${#CHANGES[@]}" >&2
+            echo "execution-request commit must contain exactly one changed path; found ${#CHANGES[@]}" >&2
             printf '%s\n' "${CHANGES[@]}" >&2
             exit 1
           fi
           STATUS="$(printf '%s\n' "${CHANGES[0]}" | awk '{print $1}')"
           REQUEST="$(printf '%s\n' "${CHANGES[0]}" | awk '{print $2}')"
           if [ "$STATUS" != "A" ] || [[ ! "$REQUEST" =~ ^docs/handoff/rgp/automation-requests/[^/]+\.json$ ]]; then
-            echo "approval commit must add exactly one automation request JSON" >&2
+            echo "execution-request commit must add exactly one automation request JSON" >&2
             exit 1
           fi
-          python3 - "$REQUEST" "$GITHUB_OUTPUT" "$GITHUB_ACTOR" "$EXPECTED_APPROVER" <<'PY'
+          python3 - "$REQUEST" "$GITHUB_OUTPUT" "$GITHUB_ACTOR" "$EXPECTED_EXECUTION_ACTOR" <<'PY'
           import json, re, sys
           from pathlib import Path, PurePosixPath
 
           path = Path(sys.argv[1])
           out = Path(sys.argv[2])
           actor = sys.argv[3]
-          expected_approver = sys.argv[4]
+          expected_execution_actor = sys.argv[4]
           req = json.loads(path.read_text(encoding='utf-8'))
-          if req.get('contract') != 'rgp-steward-admission-automation-request/1':
-              raise SystemExit('unsupported automation request contract')
-          if req.get('authority') != 'project-engineering-steward':
-              raise SystemExit('semantic authority must be project-engineering-steward')
-          if req.get('approved_by_github_actor') != expected_approver or actor != expected_approver:
-              raise SystemExit(f'approval actor mismatch: request={req.get("approved_by_github_actor")} event={actor}')
-          if req.get('approved') is not True:
-              raise SystemExit('request must explicitly set approved=true')
+          if req.get('contract') != 'rgp-admission-execution-request/2':
+              raise SystemExit('unsupported execution request contract')
+          if actor != expected_execution_actor:
+              raise SystemExit(f'execution actor mismatch: event={actor}')
+          if req.get('execute') is not True:
+              raise SystemExit('request must explicitly set execute=true')
           if not isinstance(req.get('install'), bool):
               raise SystemExit('install must be boolean')
+
+          external = req.get('external_reconciliation_authorization')
+          if not isinstance(external, dict):
+              raise SystemExit('external_reconciliation_authorization must be an object')
+          if external.get('authority_class') != 'external':
+              raise SystemExit('reconciliation authority must be external')
+          for key in ['reference','reconciliation_digest']:
+              if not isinstance(external.get(key), str) or not external[key].strip():
+                  raise SystemExit(f'external_reconciliation_authorization.{key} is required')
+          digest = external['reconciliation_digest']
+          if not re.fullmatch(r'sha256:[0-9a-f]{64}', digest):
+              raise SystemExit('reconciliation_digest must be sha256:<64 lowercase hex>')
 
           required = ['submission_path','plan_path','base_path','evidence_key']
           for key in required:
@@ -89,6 +99,12 @@ jobs:
               if not Path(req[key]).is_file():
                   raise SystemExit(f'referenced file does not exist: {req[key]}')
 
+          import hashlib
+          plan_bytes = Path(req['plan_path']).read_bytes()
+          actual_digest = 'sha256:' + hashlib.sha256(plan_bytes).hexdigest()
+          if actual_digest != digest:
+              raise SystemExit(f'external reconciliation digest mismatch: expected {digest} got {actual_digest}')
+
           values = {
               'request_path': path.as_posix(),
               'submission_path': req['submission_path'],
@@ -96,6 +112,8 @@ jobs:
               'base_path': req['base_path'],
               'evidence_key': req['evidence_key'],
               'install': 'true' if req['install'] else 'false',
+              'external_authorization_ref': external['reference'],
+              'reconciliation_digest': digest,
           }
           with out.open('a', encoding='utf-8') as f:
               for key, value in values.items():
@@ -117,7 +135,7 @@ jobs:
       - name: Run guarded-update pressure tests
         run: python3 docs/handoff/rgp/admission/test_admission_transaction_v2.py
 
-      - name: Execute deterministic Steward reconciliation proof
+      - name: Execute deterministic externally-authorized reconciliation proof
         env:
           PLAN_PATH: ${{ steps.request.outputs.plan_path }}
           BASE_PATH: ${{ steps.request.outputs.base_path }}
@@ -152,7 +170,7 @@ jobs:
             --candidate "runner-output/$EVIDENCE_KEY/candidate.pems2.jcs.json" \
             | tee "runner-output/$EVIDENCE_KEY/pems2-candidate-validation.txt"
 
-      - name: Record deterministic automation summary
+      - name: Record deterministic execution summary
         env:
           REQUEST_PATH: ${{ steps.request.outputs.request_path }}
           SUBMISSION_PATH: ${{ steps.request.outputs.submission_path }}
@@ -160,6 +178,8 @@ jobs:
           BASE_PATH: ${{ steps.request.outputs.base_path }}
           EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
           INSTALL: ${{ steps.request.outputs.install }}
+          EXTERNAL_AUTHORIZATION_REF: ${{ steps.request.outputs.external_authorization_ref }}
+          RECONCILIATION_DIGEST: ${{ steps.request.outputs.reconciliation_digest }}
         shell: bash
         run: |
           set -euo pipefail
@@ -173,16 +193,19 @@ jobs:
               data = (out / name).read_bytes()
               files[name] = {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
           summary = {
-              'contract':'rgp-steward-admission-automation-evidence/1',
+              'contract':'rgp-admission-execution-evidence/2',
               'status':'proof_passed',
-              'approval_commit':os.environ['GITHUB_SHA'],
+              'execution_request_commit':os.environ['GITHUB_SHA'],
               'request_path':os.environ['REQUEST_PATH'],
               'submission_path':os.environ['SUBMISSION_PATH'],
               'plan_path':os.environ['PLAN_PATH'],
               'base_path':os.environ['BASE_PATH'],
               'evidence_key':key,
-              'install_authorized':os.environ['INSTALL'] == 'true',
-              'semantic_authority':'project-engineering-steward',
+              'install_requested':os.environ['INSTALL'] == 'true',
+              'reconciliation_authority':'external',
+              'external_authorization_ref':os.environ['EXTERNAL_AUTHORIZATION_REF'],
+              'reconciliation_digest':os.environ['RECONCILIATION_DIGEST'],
+              'repository_authorizes_reconciliation':False,
               'canonical_written_during_proof':False,
               'files':files,
           }
@@ -207,7 +230,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$EVIDENCE_DIR"
-          git commit -m "Persist Steward admission proof $EVIDENCE_KEY"
+          git commit -m "Persist externally authorized admission proof $EVIDENCE_KEY"
           EVIDENCE_COMMIT="$(git rev-parse HEAD)"
           git push origin HEAD:project-chat-handoff
           echo "evidence_dir=$EVIDENCE_DIR" >> "$GITHUB_OUTPUT"
@@ -225,13 +248,13 @@ jobs:
           git fetch origin project-chat-handoff
           REMOTE="$(git rev-parse refs/remotes/origin/project-chat-handoff)"
           test "$REMOTE" = "$EVIDENCE_COMMIT" || { echo "branch moved before canonical installation: $REMOTE" >&2; exit 1; }
-          cmp -s "$EVIDENCE_DIR/candidate.pems2.jcs.json" docs/project-chat-handoff.json && { echo "authorized install is a no-op" >&2; exit 1; }
+          cmp -s "$EVIDENCE_DIR/candidate.pems2.jcs.json" docs/project-chat-handoff.json && { echo "requested install is a no-op" >&2; exit 1; }
           python3 docs/handoff/pems/v2/validate_pems2_contract.py --candidate "$EVIDENCE_DIR/candidate.pems2.jcs.json"
           cp "$EVIDENCE_DIR/candidate.pems2.jcs.json" docs/project-chat-handoff.json
           cp "$EVIDENCE_DIR/candidate.cove.json" docs/project-chat-handoff.cove.json
           git add docs/project-chat-handoff.json docs/project-chat-handoff.cove.json
           git diff --cached --quiet && { echo "no canonical bytes changed" >&2; exit 1; }
-          git commit -m "Install Steward-approved RGP candidate $EVIDENCE_KEY"
+          git commit -m "Install externally authorized RGP candidate $EVIDENCE_KEY"
           INSTALL_COMMIT="$(git rev-parse HEAD)"
           git push origin HEAD:project-chat-handoff
           test "$(git hash-object docs/project-chat-handoff.json)" = "$(git hash-object "$EVIDENCE_DIR/candidate.pems2.jcs.json")"
