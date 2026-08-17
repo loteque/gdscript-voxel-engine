@@ -1,0 +1,84 @@
+name: RGP Canonical Install Request
+
+on:
+  push:
+    branches: [project-chat-handoff]
+    paths:
+      - 'docs/handoff/rgp/install-requests/*.json'
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact request commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Resolve immutable install request
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t REQUESTS < <(git diff-tree --no-commit-id --name-status -r "$GITHUB_SHA" -- docs/handoff/rgp/install-requests/ | awk '$1 == "A" && $2 ~ /\.json$/ {print $2}')
+          if [ "${#REQUESTS[@]}" -ne 1 ]; then
+            echo "expected exactly one newly added install request; found ${#REQUESTS[@]}" >&2
+            exit 1
+          fi
+          REQUEST="${REQUESTS[0]}"
+          python - "$REQUEST" >> "$GITHUB_OUTPUT" <<'PY'
+          import json, pathlib, sys
+          p = pathlib.Path(sys.argv[1]); d = json.loads(p.read_text())
+          assert d['contract'] == 'rgp-canonical-install-request/1'
+          for k in ['evidence_dir','expected_base_pems_blob','expected_base_cove_blob','candidate_pems_blob','candidate_cove_blob','candidate_pems_sha256','candidate_cove_sha256']:
+              assert k in d, k
+          ev = d['evidence_dir']
+          assert ev.startswith('docs/handoff/rgp/evidence/') and '..' not in ev
+          for k in ['expected_base_pems_blob','expected_base_cove_blob','candidate_pems_blob','candidate_cove_blob']:
+              v=d[k]; assert len(v)==40 and all(c in '0123456789abcdef' for c in v)
+          for k in ['candidate_pems_sha256','candidate_cove_sha256']:
+              v=d[k]; assert len(v)==64 and all(c in '0123456789abcdef' for c in v)
+          print(f'request={p}')
+          for k,v in d.items():
+              if k != 'contract': print(f'{k}={v}')
+          PY
+
+      - name: Verify unchanged canonical base and exact persisted candidate
+        env:
+          EVIDENCE_DIR: ${{ steps.request.outputs.evidence_dir }}
+          EXPECTED_BASE_PEMS_BLOB: ${{ steps.request.outputs.expected_base_pems_blob }}
+          EXPECTED_BASE_COVE_BLOB: ${{ steps.request.outputs.expected_base_cove_blob }}
+          CANDIDATE_PEMS_BLOB: ${{ steps.request.outputs.candidate_pems_blob }}
+          CANDIDATE_COVE_BLOB: ${{ steps.request.outputs.candidate_cove_blob }}
+          CANDIDATE_PEMS_SHA256: ${{ steps.request.outputs.candidate_pems_sha256 }}
+          CANDIDATE_COVE_SHA256: ${{ steps.request.outputs.candidate_cove_sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object docs/project-chat-handoff.json)" = "$EXPECTED_BASE_PEMS_BLOB"
+          test "$(git hash-object docs/project-chat-handoff.cove.json)" = "$EXPECTED_BASE_COVE_BLOB"
+          test "$(git hash-object "$EVIDENCE_DIR/candidate.pems2.jcs.json")" = "$CANDIDATE_PEMS_BLOB"
+          test "$(git hash-object "$EVIDENCE_DIR/candidate.cove.json")" = "$CANDIDATE_COVE_BLOB"
+          test "$(sha256sum "$EVIDENCE_DIR/candidate.pems2.jcs.json" | awk '{print $1}')" = "$CANDIDATE_PEMS_SHA256"
+          test "$(sha256sum "$EVIDENCE_DIR/candidate.cove.json" | awk '{print $1}')" = "$CANDIDATE_COVE_SHA256"
+
+      - name: Validate exact candidate PEMS2
+        run: python3 docs/handoff/pems/v2/validate_pems2_contract.py --candidate "${{ steps.request.outputs.evidence_dir }}/candidate.pems2.jcs.json"
+
+      - name: Install exact candidate bytes atomically in one commit
+        env:
+          EVIDENCE_DIR: ${{ steps.request.outputs.evidence_dir }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp "$EVIDENCE_DIR/candidate.pems2.jcs.json" docs/project-chat-handoff.json
+          cp "$EVIDENCE_DIR/candidate.cove.json" docs/project-chat-handoff.cove.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/project-chat-handoff.json docs/project-chat-handoff.cove.json
+          git diff --cached --quiet && { echo "no canonical bytes changed" >&2; exit 1; }
+          git commit -m "Install admitted Trial 4 RGP candidate"
+          git push origin HEAD:project-chat-handoff
