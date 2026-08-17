@@ -17,7 +17,7 @@ on:
         default: docs/project-chat-handoff.json
         type: string
       evidence_key:
-        description: Safe artifact key, for example RGP-20260816T152100-0700-001.admission-004
+        description: Safe artifact key
         required: true
         type: string
   workflow_call:
@@ -41,6 +41,8 @@ on:
       - '.github/workflows/rgp-admission-proof.yml'
       - 'docs/handoff/rgp/validator/**'
       - 'docs/handoff/rgp/admission/apply_admission_transaction.py'
+      - 'docs/handoff/rgp/admission/apply_admission_transaction_v2.py'
+      - 'docs/handoff/rgp/admission/test_admission_transaction_v2.py'
       - 'docs/handoff/pems/v2/validate_pems2_contract.py'
 
 permissions:
@@ -72,7 +74,10 @@ jobs:
           python3 docs/handoff/pems/v2/validate_pems2_contract.py
           --candidate docs/project-chat-handoff.json
 
-      - name: Prove a deterministic no-op admission transaction
+      - name: Run guarded-update v2 pressure tests
+        run: python3 docs/handoff/rgp/admission/test_admission_transaction_v2.py
+
+      - name: Prove a deterministic no-op v1 admission transaction
         shell: bash
         run: |
           set -euo pipefail
@@ -104,23 +109,6 @@ jobs:
             --out-dir /tmp/rgp-admission-proof
           python3 docs/handoff/pems/v2/validate_pems2_contract.py \
             --candidate /tmp/rgp-admission-proof/candidate.pems2.jcs.json
-          python3 - <<'PY'
-          import importlib.util
-          import json
-          from pathlib import Path
-          root = Path('.')
-          tool_path = root / 'docs/handoff/rgp/admission/apply_admission_transaction.py'
-          spec = importlib.util.spec_from_file_location('admission_tool', tool_path)
-          mod = importlib.util.module_from_spec(spec)
-          spec.loader.exec_module(mod)
-          base = json.loads((root / 'docs/project-chat-handoff.json').read_text(encoding='utf-8'))
-          candidate = json.loads(Path('/tmp/rgp-admission-proof/candidate.pems2.jcs.json').read_text(encoding='utf-8'))
-          assert mod.jcs(mod.normalize_pems(base)) == mod.jcs(mod.normalize_pems(candidate))
-          proof = json.loads(Path('/tmp/rgp-admission-proof/admission-proof.json').read_text(encoding='utf-8'))
-          assert proof['proofs']['pems_schema_valid'] is True
-          assert proof['proofs']['cove_structural_round_trip'] is True
-          print('PASS standing_runner_noop_transaction')
-          PY
 
   prove:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call'
@@ -136,6 +124,9 @@ jobs:
 
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check jsonschema==4.25.1
+
+      - name: Run guarded-update v2 pressure tests
+        run: python3 docs/handoff/rgp/admission/test_admission_transaction_v2.py
 
       - name: Validate runner inputs
         shell: bash
@@ -182,7 +173,25 @@ jobs:
           EVIDENCE_KEY: ${{ inputs.evidence_key }}
         run: |
           set -euo pipefail
-          python3 docs/handoff/rgp/admission/apply_admission_transaction.py \
+          CONTRACT="$(python3 - "$PLAN_PATH" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1], encoding='utf-8')).get('contract', ''))
+          PY
+          )"
+          case "$CONTRACT" in
+            rgp-pems2-admission-transaction/1)
+              TOOL=docs/handoff/rgp/admission/apply_admission_transaction.py
+              ;;
+            rgp-pems2-admission-transaction/2)
+              TOOL=docs/handoff/rgp/admission/apply_admission_transaction_v2.py
+              ;;
+            *)
+              echo "unsupported admission transaction contract: $CONTRACT" >&2
+              exit 1
+              ;;
+          esac
+          echo "contract=$CONTRACT tool=$TOOL"
+          python3 "$TOOL" \
             --base "$BASE_PATH" \
             --plan "$PLAN_PATH" \
             --schema docs/handoff/pems/v2/pems-v2.schema.json \
@@ -228,9 +237,11 @@ jobs:
           for name in names:
               data = (out / name).read_bytes()
               files[name] = {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
+          proof = json.loads((out / 'admission-proof.json').read_text(encoding='utf-8'))
           summary = {
               'status': 'passed',
               'runner': 'rgp-admission-proof/1',
+              'admission_transaction_contract': proof['contract'],
               'submission_path': os.environ['SUBMISSION_PATH'],
               'plan_path': os.environ['PLAN_PATH'],
               'base_path': os.environ['BASE_PATH'],
