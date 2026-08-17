@@ -1,0 +1,123 @@
+{
+  "evidence_id": "RGPE-20260816T170000-0700-001",
+  "submission_id": "RGP-20260816T152100-0700-001",
+  "created_at": "2026-08-16T17:00:00-07:00",
+  "submission_snapshot": {
+    "repository": "loteque/gdscript-voxel-engine",
+    "commit": "372f1a64f38f46a7a24d9602274ec7d1797d6bc5",
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T152100-0700-001.json",
+    "blob_sha": "c6aebafed624c8231696770b48efae285e44a0b6"
+  },
+  "canonical_snapshot": {
+    "repository": "loteque/gdscript-voxel-engine",
+    "branch": "project-chat-handoff",
+    "commit": "8b54c889e4f15fd1aa97c5e022ae645a40b74427",
+    "pems_path": "docs/project-chat-handoff.json",
+    "cove_path": "docs/project-chat-handoff.cove.json",
+    "note": "This is the canonical snapshot used by the producer-side first-admission dry run. The Steward must reconcile against a newer canonical commit if canonical state changed before reconsideration."
+  },
+  "contracts": [
+    {
+      "name": "RGP Submission Protocol",
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "da59ddaa352f09d6e64908c458d7e61e1fae61fd",
+      "path": "docs/handoff/rgp/SUBMISSION_PROTOCOL.md"
+    },
+    {
+      "name": "RGP Engineer Directive",
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "da59ddaa352f09d6e64908c458d7e61e1fae61fd",
+      "path": "docs/handoff/rgp/rgp_engineer_directive.md"
+    },
+    {
+      "name": "Steward RGP Admission Extension",
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "f874140e44771498d1e5bf1d664f846cf2e6b0fb",
+      "path": "docs/handoff/steward_distiller_admission_directive.md"
+    }
+  ],
+  "provenance_resolution_inputs": [
+    {
+      "rgp_source_id": "github:commit:da59ddaa352f09d6e64908c458d7e61e1fae61fd:docs/handoff/rgp/SUBMISSION_PROTOCOL.md",
+      "locator": {
+        "repository": "loteque/gdscript-voxel-engine",
+        "commit": "da59ddaa352f09d6e64908c458d7e61e1fae61fd",
+        "path": "docs/handoff/rgp/SUBMISSION_PROTOCOL.md"
+      },
+      "used_by": ["r1", "r2"],
+      "candidate_canonical_source_ids": [],
+      "note": "The Steward must independently determine whether canonical PEMS/2 already contains a source/source-observation for this immutable file state or whether policy permits creating one."
+    },
+    {
+      "rgp_source_id": "pems:source_observation:be6819991bf46e7cc226",
+      "canonical_reference": true,
+      "used_by": ["r4"],
+      "canonical_snapshot_required": true,
+      "note": "The candidate directly references a canonical PEMS source-observation ID. The Steward must verify its presence and semantics in the canonical snapshot selected for reconsideration."
+    }
+  ],
+  "identity_reconciliation_inputs": [
+    {
+      "temp_id": "r1",
+      "kind": "observation",
+      "statement": "The RGP Submission Protocol requires committed candidate submissions to remain immutable.",
+      "candidate_canonical_ids": [],
+      "search_basis": "Exact proposition statement plus primary immutable protocol provenance."
+    },
+    {
+      "temp_id": "r2",
+      "kind": "observation",
+      "statement": "The RGP Submission Protocol prohibits RGP producers from writing directly to the canonical PEMS/COVE handoff artifacts.",
+      "candidate_canonical_ids": [],
+      "search_basis": "Exact proposition statement plus primary immutable protocol provenance."
+    },
+    {
+      "temp_id": "r3",
+      "kind": "claim",
+      "statement": "Candidate RGP production and canonical PEMS persistence are separate operations.",
+      "candidate_canonical_ids": [],
+      "search_basis": "Exact proposition statement and premise r2; also supported by r1/r4 relations in the candidate graph."
+    },
+    {
+      "temp_id": "r4",
+      "kind": "decision",
+      "statement": "The Project Engineering Steward owns reconciliation of canonical PEMS meaning; accepted reconciliation regenerates docs/project-chat-handoff.cove.json canonically and docs/project-chat-handoff.json as its deterministic compatibility derivative.",
+      "candidate_canonical_ids": ["pems:decision:2197184a0ef4b2a120e4"],
+      "search_basis": "Producer dry-run found this exact/near-exact canonical decision. This is a non-authoritative reconciliation hint and must be independently verified."
+    }
+  ],
+  "graph_integrity_inputs": {
+    "premises": [
+      {"record": "r3", "premise": ["r2"]}
+    ],
+    "relations": [
+      {"from": "r1", "type": "supports", "to": "r3"},
+      {"from": "r4", "type": "supports", "to": "r3"}
+    ],
+    "required_transaction_set": ["r1", "r2", "r3", "r4"],
+    "note": "If r4 reuses an existing canonical decision, the new proposition subgraph r1/r2/r3 and both support edges must still be reconciled without dangling premise/relation endpoints."
+  },
+  "validation_surfaces": [
+    {
+      "name": "producer RGP validation result",
+      "status": "passed",
+      "validator": "rgp-validator/1",
+      "validated_at": "2026-08-16T15:21:01-07:00",
+      "authority": "evidence_only",
+      "note": "The Steward should independently validate or inspect the accepted validator contract before relying on this result."
+    },
+    {
+      "name": "first admission trial report",
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "8b54c889e4f15fd1aa97c5e022ae645a40b74427",
+      "path": "docs/handoff/rgp/trials/2026-08-16-first-admission-trial.md",
+      "authority": "producer_evidence_only"
+    }
+  ],
+  "known_missing_inputs": [
+    "Immutable PEMS/2 normative schema/semantic contract path and commit must be resolved from the current canonical handoff state by the Steward if not already available in its directive context.",
+    "Immutable COVE normative contract/validator paths and commits must be resolved from current canonical handoff state before canonical mutation.",
+    "A deterministic JSON Schema/validator for submission, evidence, and disposition envelopes has not yet been implemented."
+  ],
+  "requested_steward_action": "Use this bundle to reacquire immutable producer evidence, then select and record the current canonical PEMS/2 snapshot and normative PEMS/2/COVE validation surfaces. If the remaining contract locators can be independently resolved, reconsider the provisional disposition without trusting producer reconciliation conclusions."
+}
