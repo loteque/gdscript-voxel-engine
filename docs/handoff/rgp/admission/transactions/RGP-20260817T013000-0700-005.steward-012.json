@@ -1,0 +1,93 @@
+{
+  "contract": "rgp-pems2-admission-transaction/1",
+  "expected_base_sha256": "79b00395daaabd1ca567e9a528703a98a26f231b92cc43445d2fa99eac655ddb",
+  "reuse_record_ids": [
+    "pems:source_observation:8b224fe848a009ff335f"
+  ],
+  "new_records": [
+    {
+      "id": "pems:source:c2f40b7c4919ab5d5869",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_pull_request",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "pull_request": 57
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:378077183f2d06f9bc96",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:c2f40b7c4919ab5d5869",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-17T01:30:00-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "pull_request": 57,
+          "merge_commit": "0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4"
+        },
+        "captured_fingerprint": "github:pull/57@merge:0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4"
+      }
+    },
+    {
+      "id": "pems:proposition:3541ad3c34cc9e3477cc",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:378077183f2d06f9bc96"],
+        "corroborating": ["pems:source_observation:8b224fe848a009ff335f"]
+      },
+      "data": {
+        "statement": "NoClipCameraController ownership was moved into common/input as the reusable project-independent free-flight camera component.",
+        "proposition_kind": "decision",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:580c28b86197311c1ecd",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:378077183f2d06f9bc96"],
+        "corroborating": ["pems:source_observation:8b224fe848a009ff335f"]
+      },
+      "data": {
+        "statement": "The historical demo camera path remains as a thin compatibility adapter to the common implementation.",
+        "proposition_kind": "decision",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:0a325f84a3bef0254dbd",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:378077183f2d06f9bc96"]
+      },
+      "data": {
+        "statement": "MobileTouchControls was not promoted or generalized as part of the camera extraction.",
+        "proposition_kind": "decision",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:f841ba05a32f47218264",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:8b224fe848a009ff335f"]
+      },
+      "data": {
+        "statement": "Independent headless tests for the common no-clip camera were added and wired into the existing validation workflow.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    }
+  ],
+  "new_relations": []
+}
