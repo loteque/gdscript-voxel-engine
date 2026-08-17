@@ -1,0 +1,6 @@
+{
+  "records": [
+    {"temp_id":"r1","kind":"decision","statement":"PointFieldResource owns the authoritative scalar-field contract.","provenance":{"primary":["eval:phase1:field-authority:governed-architecture"]}},
+    {"temp_id":"r2","kind":"decision","statement":"Consumers must not duplicate PointFieldResource indexing or scalar-field state.","provenance":{"primary":["eval:phase1:field-authority:governed-architecture"]}}
+  ]
+}
