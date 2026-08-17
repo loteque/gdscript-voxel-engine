@@ -1,0 +1,11 @@
+{
+  "contract": "rgp-steward-admission-execution-request/3",
+  "execute": true,
+  "install": true,
+  "reconciliation_authority": "project-engineering-steward",
+  "reconciliation_digest": "sha256:89758d69bdf4e4d9af052de0b424a61376a6ae5e75818397c1e37ccf6a10e898",
+  "submission_path": "docs/handoff/rgp/submissions/RGP-20260817T101500-0700-009.json",
+  "plan_path": "docs/handoff/rgp/admission/transactions/RGP-20260817T101500-0700-009.steward-019-v2.json",
+  "base_path": "docs/project-chat-handoff.json",
+  "evidence_key": "RGP-20260817T101500-0700-009.admission-019-v2"
+}
