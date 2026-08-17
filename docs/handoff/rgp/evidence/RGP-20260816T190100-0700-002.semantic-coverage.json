@@ -1,0 +1,52 @@
+{
+  "evidence_id": "RGPE-20260816T190100-0700-004",
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "purpose": "Immutable evidence package for RGP Distillation Trial 2 semantic coverage and Steward reconciliation.",
+  "sources": [
+    {
+      "path": "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
+      "blob": "24dec513a43fc95c8fbda186260f61f27c3cfad2",
+      "supports": ["r1"]
+    },
+    {
+      "path": "docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md",
+      "blob": "d53b49792a645d5775a15fea980b671d74b922f3",
+      "supports": ["r2", "r6"],
+      "context_for": ["r3", "r4"]
+    },
+    {
+      "path": "docs/handoff/pems/v2/RGP_COMPATIBILITY_FIXTURES.json",
+      "blob": "5edd37470932d9fffaa7cde47039cf078af72607",
+      "note": "Defines unresolved_item to RGP uncertainty export but contains no explicit RGP uncertainty import case."
+    },
+    {
+      "path": "docs/distiller/evaluation/SCORING.md",
+      "blob": "017eaf8ab1fa8e4b9646616d924fc6a9aa7c2b05",
+      "note": "Used for the producer-side r1-r6 quality assessment; r7 is intentionally adversarial and excluded from ordinary production-quality scoring."
+    }
+  ],
+  "coverage": {
+    "record_kinds": ["observation", "assumption", "uncertainty", "claim"],
+    "structural_derivation": "premise",
+    "relations": ["contradicts", "supersedes", "depends_on"],
+    "adversarial_candidate": "r7"
+  },
+  "known_pressure_points": [
+    {
+      "candidate": "r4",
+      "issue": "No explicit reverse RGP uncertainty to PEMS/2 import mapping was found in the current compatibility fixture surface.",
+      "producer_rule": "Do not invent canonical representation."
+    },
+    {
+      "candidate": "r7",
+      "issue": "Structurally valid but unsupported universal generalization from a no-op self-test.",
+      "producer_expectation": "Reject or otherwise prevent canonical admission."
+    }
+  ],
+  "authority": {
+    "steward_disposition_created": false,
+    "canonical_memory_changed": false,
+    "producer_expectations_authoritative": false
+  },
+  "requested_steward_action": "Independently reconcile the complete submission, preserve assumption/uncertainty semantics, distinguish contradiction from supersession, import depends_on as conditional validity, reject the adversarial universal claim, and issue an immutable disposition without inventing an uncertainty mapping if no accepted contract exists."
+}
