@@ -1,0 +1,87 @@
+{
+  "contract": "rgp-pems2-admission-transaction/2",
+  "expected_base_sha256": "07818a18e982bd0dd58d0273dfac4715212ffbfcd8c5ce89cad129ebf195c7a2",
+  "reuse_record_ids": [],
+  "record_updates": [],
+  "new_records": [
+    {
+      "id": "pems:source:2b25a81dc021eea02fbe",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_pull_request",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "uri": "https://github.com/loteque/gdscript-voxel-engine/pull/51"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:db17afa3fa6bbe7321bb",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:2b25a81dc021eea02fbe",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-17T09:16:00-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "34d7023d35fd367ea35488265556a95eadbde696",
+          "uri": "https://github.com/loteque/gdscript-voxel-engine/pull/51"
+        },
+        "captured_fingerprint": "github:pull/51@merge:34d7023d35fd367ea35488265556a95eadbde696"
+      }
+    },
+    {
+      "id": "pems:decision:e242d65bb639d318b034",
+      "kind": "decision",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:db17afa3fa6bbe7321bb"]
+      },
+      "data": {
+        "summary": "Documentation-only pull requests do not require a product version bump or versioned Web release validation.",
+        "decision_state": "accepted"
+      }
+    },
+    {
+      "id": "pems:decision:baa77647517409ebe5a3",
+      "kind": "decision",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:db17afa3fa6bbe7321bb"]
+      },
+      "data": {
+        "summary": "Changes to code, workflows, configuration, assets, tests, or other non-documentation paths continue to require the existing versioned release contract.",
+        "decision_state": "accepted"
+      }
+    },
+    {
+      "id": "pems:decision:be004efd08d752b87ba7",
+      "kind": "decision",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:db17afa3fa6bbe7321bb"]
+      },
+      "data": {
+        "summary": "The Validate Versioned Release workflow still runs for documentation-only changes but skips release-metadata and versioned-Web stages when the deterministic classifier marks the change documentation-only.",
+        "decision_state": "accepted"
+      }
+    },
+    {
+      "id": "pems:proposition:0d3bcb602139037a8ee7",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:db17afa3fa6bbe7321bb"]
+      },
+      "data": {
+        "statement": "Regression coverage was added for Markdown-only changes, non-Markdown docs files, mixed documentation and production changes, and workflow changes.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    }
+  ],
+  "new_relations": []
+}
