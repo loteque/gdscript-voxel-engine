@@ -1,0 +1,96 @@
+{
+  "disposition_id": "RGPD-20260817T092000-0700-013",
+  "submission_id": "RGP-20260817T091500-0700-008",
+  "created_at": "2026-08-17T09:20:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "admitted",
+  "submission": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260817T091500-0700-008.json",
+    "blob": "e2b3810d99d0da573b7641dc41abd8ba99718741",
+    "rgp_version": "rgp/1",
+    "validator": "rgp-validator/1",
+    "producer_graph_edited": false
+  },
+  "automation_approval": {
+    "path": "docs/handoff/rgp/automation-requests/RGP-20260817T091500-0700-008.install.json",
+    "commit": "72347aa1286e7061f0e149aabf5f1b0225d89023",
+    "authority": "project-engineering-steward",
+    "approved_by_github_actor": "loteque",
+    "install_authorized": true,
+    "approval_commit_isolated": true
+  },
+  "reconciliation": {
+    "plan_path": "docs/handoff/rgp/admission/transactions/RGP-20260817T091500-0700-008.steward-018-v2.json",
+    "transaction_contract": "rgp-pems2-admission-transaction/2",
+    "record_map": {
+      "r1": "pems:decision:e242d65bb639d318b034",
+      "r2": "pems:decision:baa77647517409ebe5a3",
+      "r3": "pems:decision:be004efd08d752b87ba7",
+      "r4": "pems:proposition:0d3bcb602139037a8ee7"
+    },
+    "identity_reconciliation": {
+      "r1": "new_distinct_docs_only_release_exception_decision",
+      "r2": "new_distinct_non_documentation_release_contract_decision",
+      "r3": "new_distinct_docs_only_workflow_behavior_decision",
+      "r4": "new_distinct_release_classifier_regression_observation"
+    },
+    "semantic_authority_was_automated": false
+  },
+  "provenance_reconciliation": {
+    "pr51_source": "pems:source:2b25a81dc021eea02fbe",
+    "pr51_observation": "pems:source_observation:db17afa3fa6bbe7321bb",
+    "source_authority": "repository_state",
+    "owner_authority_promoted": false
+  },
+  "proof": {
+    "workflow_run": 32044753159,
+    "evidence_persistence_commit": "f512792f5e39f78fe437f6373ec93c3932f64a9d",
+    "evidence_directory": "docs/handoff/rgp/evidence/RGP-20260817T091500-0700-008.admission-018-v2.runner-automation",
+    "base_records": 218,
+    "base_relations": 14,
+    "base_normalized_pems_sha256": "07818a18e982bd0dd58d0273dfac4715212ffbfcd8c5ce89cad129ebf195c7a2",
+    "candidate_records": 224,
+    "candidate_relations": 14,
+    "new_record_count": 6,
+    "new_relation_count": 0,
+    "pems2_sha256": "e32dae550132582e2f1a9689b04b181989ccb97e978acdb7a47996d8ed347b79",
+    "cove_sha256": "1dbf7ee6261863dd92c10d1d51994d7f89fc71f1b6ecb7da7bec67a3f14bd9f1",
+    "base_exact_match": true,
+    "pems_schema_valid": true,
+    "graph_integrity_passed": true,
+    "repeated_pems_bytes_identical": true,
+    "repeated_cove_bytes_identical": true,
+    "canonical_written_during_proof": false
+  },
+  "canonical_installation": {
+    "commit": "6e908a125582f49a20def9dbc656b104d9651b06",
+    "canonical_pems2_blob": "ae436b9da10ec01e7eb96f80f0b8ef502827eaea",
+    "canonical_cove_blob": "fe895cbc47abb316079531407dd103c23fd100c3",
+    "exact_persisted_evidence_blobs_installed": true,
+    "proof_evidence_persisted_before_install": true,
+    "optimistic_branch_concurrency_guard_passed": true,
+    "production_main_changed": false
+  },
+  "semantic_findings": [
+    "All four candidate meanings were absent from the pre-trial canonical state and were admitted as new durable meaning rather than forced into unrelated identities.",
+    "The three policy statements remained decisions and the regression result remained an observation.",
+    "PR #51 was resolved to typed repository-state provenance without manufacturing owner-level authority.",
+    "The workflow automated validation, proof, evidence persistence, concurrency checks, and exact-byte installation only after a separately committed Steward semantic plan and isolated approval request.",
+    "The Distiller did not decide semantic identity and did not write canonical PEMS/COVE directly."
+  ],
+  "canonical_mutation": "performed_by_steward_approved_automation",
+  "reason_codes": [
+    "RGP_STRUCTURE_ACCEPTED",
+    "STEWARD_SEMANTIC_RECONCILIATION_SUPPLIED",
+    "APPROVAL_COMMIT_ISOLATION_PASSED",
+    "APPROVER_ACTOR_BOUNDARY_PASSED",
+    "EXACT_BASE_MATCH_PASSED",
+    "GRAPH_INTEGRITY_PASSED",
+    "PEMS2_COVE_JCS_DETERMINISM_PASSED",
+    "PROOF_EVIDENCE_PERSISTED_BEFORE_INSTALL",
+    "OPTIMISTIC_BRANCH_CONCURRENCY_PASSED",
+    "EXACT_PERSISTED_CANDIDATE_BYTES_INSTALLED",
+    "DISTILLER_SELF_ADMISSION_NOT_AUTHORIZED",
+    "PHASE5_AUTOMATED_ADMISSION_TRIAL_PASSED"
+  ]
+}
