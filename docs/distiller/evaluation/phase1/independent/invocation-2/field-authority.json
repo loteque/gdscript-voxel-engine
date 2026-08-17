@@ -3,7 +3,7 @@
     {
       "temp_id": "r1",
       "kind": "decision",
-      "statement": "PointFieldResource owns authoritative scalar-field geometry, indexing, sampling, densities, validation, and freshness semantics.",
+      "statement": "PointFieldResource is the authoritative scalar-field abstraction for geometry, indexing, sampling, densities, validation, and freshness semantics.",
       "provenance": {
         "primary": ["eval:phase1:field-authority:governed-architecture"]
       }
@@ -11,7 +11,7 @@
     {
       "temp_id": "r2",
       "kind": "decision",
-      "statement": "Consumers such as SurfaceNetsMesher consume the PointFieldResource contract rather than duplicate field state or indexing.",
+      "statement": "Consumers of PointFieldResource should not duplicate scalar-field indexing or state.",
       "provenance": {
         "primary": ["eval:phase1:field-authority:governed-architecture"]
       }
@@ -24,6 +24,5 @@
         "primary": ["eval:phase1:field-authority:governed-architecture"]
       }
     }
-  ],
-  "relations": []
+  ]
 }

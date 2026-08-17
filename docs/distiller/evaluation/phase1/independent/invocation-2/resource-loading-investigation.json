@@ -3,15 +3,15 @@
     {
       "temp_id": "r1",
       "kind": "observation",
-      "statement": "The resource-loading investigation measured only the supplied loading stages.",
+      "statement": "Measured loading stages are scoped only to the supplied measurements.",
       "provenance": {
         "primary": ["eval:phase1:resource-loading-investigation:investigation"]
       }
     },
     {
       "temp_id": "r2",
-      "kind": "observation",
-      "statement": "No measurements were supplied for other platforms or builds.",
+      "kind": "uncertainty",
+      "statement": "Unmeasured platforms or builds remain unverified.",
       "provenance": {
         "primary": ["eval:phase1:resource-loading-investigation:investigation"]
       }
@@ -19,9 +19,10 @@
     {
       "temp_id": "r3",
       "kind": "claim",
-      "statement": "The supplied evidence does not establish universal causality.",
-      "premise": ["r1", "r2"]
+      "statement": "The supplied evidence does not establish universal causality for resource-loading behavior.",
+      "provenance": {
+        "primary": ["eval:phase1:resource-loading-investigation:investigation"]
+      }
     }
-  ],
-  "relations": []
+  ]
 }

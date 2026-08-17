@@ -3,7 +3,7 @@
     {
       "temp_id": "r1",
       "kind": "observation",
-      "statement": "CI and deployment completed successfully for the deployed revision.",
+      "statement": "CI and deployment were green for the deployed revision.",
       "provenance": {
         "primary": ["eval:phase1:deployed-ui-failure:workflow"]
       }
@@ -11,35 +11,24 @@
     {
       "temp_id": "r2",
       "kind": "observation",
-      "statement": "On a phone, the deployed view showed the gray scene and global Hide UI button.",
+      "statement": "RuntimeWorkloadExperimentUI was missing in the deployed phone view.",
       "provenance": {
         "primary": ["eval:phase1:deployed-ui-failure:phone"]
       }
     },
     {
       "temp_id": "r3",
-      "kind": "observation",
-      "statement": "On that phone view, RuntimeWorkloadExperimentUI was missing.",
+      "kind": "uncertainty",
+      "statement": "The cause of the missing RuntimeWorkloadExperimentUI was unresolved.",
       "provenance": {
-        "primary": ["eval:phase1:deployed-ui-failure:phone"]
+        "primary": ["eval:phase1:deployed-ui-failure:investigation"]
       }
     },
     {
       "temp_id": "r4",
-      "kind": "observation",
-      "statement": "No fix had been committed for the missing RuntimeWorkloadExperimentUI.",
-      "provenance": {
-        "primary": ["eval:phase1:deployed-ui-failure:investigation"]
-      }
-    },
-    {
-      "temp_id": "r5",
-      "kind": "uncertainty",
-      "statement": "The cause of the missing RuntimeWorkloadExperimentUI remained unresolved.",
-      "provenance": {
-        "primary": ["eval:phase1:deployed-ui-failure:investigation"]
-      }
+      "kind": "claim",
+      "statement": "Successful CI and deployment do not establish runtime UI startup correctness.",
+      "premise": ["r1", "r2"]
     }
-  ],
-  "relations": []
+  ]
 }

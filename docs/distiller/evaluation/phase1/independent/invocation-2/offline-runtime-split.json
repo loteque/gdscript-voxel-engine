@@ -24,6 +24,5 @@
         "primary": ["eval:phase1:offline-runtime-split:governed-architecture"]
       }
     }
-  ],
-  "relations": []
+  ]
 }
