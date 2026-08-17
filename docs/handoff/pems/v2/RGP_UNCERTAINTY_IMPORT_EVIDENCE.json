@@ -1,0 +1,37 @@
+{
+  "contract": "pems/2-rgp/1-uncertainty-import-evidence/1",
+  "created_at": "2026-08-16T19:34:00-07:00",
+  "architect": "engineering-knowledge-systems-architect",
+  "trigger": {
+    "steward_disposition": "RGPD-20260816T192600-0700-005",
+    "disposition_blob": "0f893bb8e1918e653403bfaee22bfe41e9b3e6cd",
+    "base_branch_head": "8d89ad72df59e09c35ff2adcef3c9870fb77e3ba"
+  },
+  "design": {
+    "mapping": "rgp/1 uncertainty -> pems/2 unresolved_item",
+    "resolution_state_default": "open",
+    "generic_claim_coercion": false,
+    "identity_decision_authority": "Project Engineering Steward",
+    "canonical_mutation_authorized": false
+  },
+  "validation": {
+    "fixture_cases": 7,
+    "fixture_cases_passed": 7,
+    "deterministic_projection": true,
+    "semantic_distinctions_preserved": [
+      "uncertainty_not_claim",
+      "premise_to_derived_from",
+      "depends_on_conditional_validity",
+      "typed_provenance_roles",
+      "no_blocked_or_deferred_inference"
+    ],
+    "contract_sha256": "561de5adc90ac02341a65f915da660a2a700d9f51533870228ce4e0ef47d5acf",
+    "fixtures_sha256": "3f1e131995eb8d026865e82734412f8de08892991b5547bcfdbd12881471752b"
+  },
+  "scope": {
+    "schema_change_required": false,
+    "cove_change_required": false,
+    "jcs_change_required": false,
+    "canonical_memory_changed": false
+  }
+}
