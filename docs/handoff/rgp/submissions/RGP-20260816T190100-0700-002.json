@@ -59,7 +59,11 @@
       {
         "temp_id": "r5",
         "kind": "claim",
-        "statement": "The standing RGP Admission Proof workflow remains suitable for Steward-governed admission proofs."
+        "statement": "The standing RGP Admission Proof workflow remains suitable for Steward-governed admission proofs.",
+        "premise": [
+          "r2",
+          "r3"
+        ]
       },
       {
         "temp_id": "r6",
@@ -92,16 +96,6 @@
         "from": "r5",
         "type": "depends_on",
         "to": "r6"
-      },
-      {
-        "from": "r2",
-        "type": "supports",
-        "to": "r5"
-      },
-      {
-        "from": "r3",
-        "type": "supports",
-        "to": "r5"
       }
     ]
   },
