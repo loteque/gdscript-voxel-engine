@@ -14,6 +14,7 @@ REQUESTS = Path('docs/handoff/rgp/automation-requests')
 EVIDENCE = Path('docs/handoff/rgp/evidence')
 DISPOSITIONS = Path('docs/handoff/rgp/dispositions')
 CANONICAL = Path('docs/project-chat-handoff.json')
+SID_RE = re.compile(r'(RGP-\d{8}T\d{6}-\d{4}-\d{3})')
 
 
 def read_json(path: Path):
@@ -34,15 +35,19 @@ def request_submission_id(obj: dict) -> str | None:
     return Path(raw).stem
 
 
-def evidence_summaries() -> list[tuple[Path, dict]]:
-    rows = []
+def evidence_dirs() -> list[Path]:
     if not EVIDENCE.exists():
-        return rows
-    for path in EVIDENCE.glob('*/automation-summary.json'):
-        obj = read_json(path)
-        if isinstance(obj, dict):
-            rows.append((path, obj))
-    return rows
+        return []
+    return sorted({p.parent for p in EVIDENCE.glob('*/admission-proof.json')})
+
+
+def evidence_submission_id(evidence_dir: Path, summary: dict | None) -> str | None:
+    if isinstance(summary, dict):
+        sid = request_submission_id(summary)
+        if sid:
+            return sid
+    m = SID_RE.search(evidence_dir.name)
+    return m.group(1) if m else None
 
 
 def extract_proof_metrics(evidence_dir: Path) -> dict:
@@ -79,7 +84,7 @@ def disposition_index() -> dict[str, list[str]]:
         return out
     for path in DISPOSITIONS.glob('*.json'):
         text = path.read_text(encoding='utf-8', errors='replace')
-        for sid in re.findall(r'RGP-\d{8}T\d{6}-\d{4}-\d{3}', text):
+        for sid in sorted(set(SID_RE.findall(text))):
             out[sid].append(path.as_posix())
     return out
 
@@ -91,7 +96,7 @@ def build() -> dict:
 
     plans: dict[str, list[str]] = defaultdict(list)
     for path in transaction_paths:
-        m = re.match(r'(RGP-\d{8}T\d{6}-\d{4}-\d{3})\.', path.name)
+        m = SID_RE.match(path.name)
         if m:
             plans[m.group(1)].append(path.as_posix())
 
@@ -106,21 +111,22 @@ def build() -> dict:
     evidence: dict[str, list[dict]] = defaultdict(list)
     proof_totals = Counter()
     test_pass = test_fail = 0
-    for path, obj in evidence_summaries():
-        sid = request_submission_id(obj)
+    for evidence_dir in evidence_dirs():
+        summary = read_json(evidence_dir / 'automation-summary.json')
+        sid = evidence_submission_id(evidence_dir, summary)
         if not sid:
             continue
-        metrics = extract_proof_metrics(path.parent)
-        p, f = extract_test_counts(path.parent)
+        metrics = extract_proof_metrics(evidence_dir)
+        p, f = extract_test_counts(evidence_dir)
         test_pass += p
         test_fail += f
         proof_totals.update(metrics)
         evidence[sid].append({
-            'path': path.parent.as_posix(),
-            'status': obj.get('status'),
-            'install_requested': obj.get('install_requested'),
-            'reconciliation_authority': obj.get('reconciliation_authority'),
-            'workflow_performs_semantic_reconciliation': obj.get('workflow_performs_semantic_reconciliation'),
+            'path': evidence_dir.as_posix(),
+            'status': summary.get('status') if isinstance(summary, dict) else 'proof_persisted',
+            'install_requested': summary.get('install_requested') if isinstance(summary, dict) else None,
+            'reconciliation_authority': summary.get('reconciliation_authority') if isinstance(summary, dict) else None,
+            'workflow_performs_semantic_reconciliation': summary.get('workflow_performs_semantic_reconciliation') if isinstance(summary, dict) else None,
             'metrics': metrics,
         })
 
