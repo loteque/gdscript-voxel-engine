@@ -6,16 +6,16 @@
   },
   "branch": "project-chat-handoff",
   "contract": "distiller-operations-dashboard/1",
-  "generated_at": "2026-08-17T18:41:08.928260+00:00",
+  "generated_at": "2026-08-17T18:43:21.584898+00:00",
   "pipeline_state_counts": {
     "disposed": 8,
     "proof_persisted": 1
   },
   "proof_transaction_totals": {
-    "new_records": 9,
-    "new_relations": 0,
-    "reused_records": 0,
-    "updated_records": 0
+    "new_records": 59,
+    "new_relations": 14,
+    "reused_records": 21,
+    "updated_records": 4
   },
   "repository": "loteque/gdscript-voxel-engine",
   "submissions": [
@@ -60,12 +60,8 @@
       "submission_path": "docs/handoff/rgp/submissions/RGP-20260817T101500-0700-009.json"
     },
     {
-      "disposition_count": 5,
+      "disposition_count": 1,
       "dispositions": [
-        "docs/handoff/rgp/dispositions/RGPD-20260817T092000-0700-013.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260817T092000-0700-013.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260817T092000-0700-013.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260817T092000-0700-013.json",
         "docs/handoff/rgp/dispositions/RGPD-20260817T092000-0700-013.json"
       ],
       "evidence": [
@@ -101,10 +97,8 @@
       "submission_path": "docs/handoff/rgp/submissions/RGP-20260817T091500-0700-008.json"
     },
     {
-      "disposition_count": 3,
+      "disposition_count": 1,
       "dispositions": [
-        "docs/handoff/rgp/dispositions/RGPD-20260817T080300-0700-012.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260817T080300-0700-012.json",
         "docs/handoff/rgp/dispositions/RGPD-20260817T080300-0700-012.json"
       ],
       "evidence": [
@@ -120,9 +114,22 @@
           "reconciliation_authority": null,
           "status": "proof_passed",
           "workflow_performs_semantic_reconciliation": null
+        },
+        {
+          "install_requested": null,
+          "metrics": {
+            "new_records": 4,
+            "new_relations": 0,
+            "reused_records": 5,
+            "updated_records": 1
+          },
+          "path": "docs/handoff/rgp/evidence/RGP-20260817T073100-0700-007.admission-016-v2.runner-artifact",
+          "reconciliation_authority": null,
+          "status": "proof_persisted",
+          "workflow_performs_semantic_reconciliation": null
         }
       ],
-      "evidence_count": 1,
+      "evidence_count": 2,
       "plan_count": 1,
       "plans": [
         "docs/handoff/rgp/admission/transactions/RGP-20260817T073100-0700-007.steward-016-v2.json"
@@ -145,14 +152,26 @@
       "submission_path": "docs/handoff/rgp/submissions/RGP-20260817T073100-0700-007.json"
     },
     {
-      "disposition_count": 3,
+      "disposition_count": 1,
       "dispositions": [
-        "docs/handoff/rgp/dispositions/RGPD-20260817T054600-0700-011.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260817T054600-0700-011.json",
         "docs/handoff/rgp/dispositions/RGPD-20260817T054600-0700-011.json"
       ],
-      "evidence": [],
-      "evidence_count": 0,
+      "evidence": [
+        {
+          "install_requested": null,
+          "metrics": {
+            "new_records": 6,
+            "new_relations": 0,
+            "reused_records": 2,
+            "updated_records": 2
+          },
+          "path": "docs/handoff/rgp/evidence/RGP-20260817T054500-0700-006.admission-015-v2.runner-artifact",
+          "reconciliation_authority": null,
+          "status": "proof_persisted",
+          "workflow_performs_semantic_reconciliation": null
+        }
+      ],
+      "evidence_count": 1,
       "plan_count": 1,
       "plans": [
         "docs/handoff/rgp/admission/transactions/RGP-20260817T054500-0700-006.steward-015-v2.json"
@@ -164,14 +183,39 @@
       "submission_path": "docs/handoff/rgp/submissions/RGP-20260817T054500-0700-006.json"
     },
     {
-      "disposition_count": 3,
+      "disposition_count": 1,
       "dispositions": [
-        "docs/handoff/rgp/dispositions/RGPD-20260817T014700-0700-010.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260817T014700-0700-010.json",
         "docs/handoff/rgp/dispositions/RGPD-20260817T014700-0700-010.json"
       ],
-      "evidence": [],
-      "evidence_count": 0,
+      "evidence": [
+        {
+          "install_requested": null,
+          "metrics": {
+            "new_records": 6,
+            "new_relations": 0,
+            "reused_records": 1,
+            "updated_records": 0
+          },
+          "path": "docs/handoff/rgp/evidence/RGP-20260817T013000-0700-005.admission-013.runner-artifact",
+          "reconciliation_authority": null,
+          "status": "proof_persisted",
+          "workflow_performs_semantic_reconciliation": null
+        },
+        {
+          "install_requested": null,
+          "metrics": {
+            "new_records": 4,
+            "new_relations": 0,
+            "reused_records": 4,
+            "updated_records": 0
+          },
+          "path": "docs/handoff/rgp/evidence/RGP-20260817T013000-0700-005.admission-014.runner-artifact",
+          "reconciliation_authority": null,
+          "status": "proof_persisted",
+          "workflow_performs_semantic_reconciliation": null
+        }
+      ],
+      "evidence_count": 2,
       "plan_count": 3,
       "plans": [
         "docs/handoff/rgp/admission/transactions/RGP-20260817T013000-0700-005.steward-012.json",
@@ -185,17 +229,28 @@
       "submission_path": "docs/handoff/rgp/submissions/RGP-20260817T013000-0700-005.json"
     },
     {
-      "disposition_count": 6,
+      "disposition_count": 3,
       "dispositions": [
         "docs/handoff/rgp/dispositions/RGPD-20260816T225400-0700-011.json",
         "docs/handoff/rgp/dispositions/RGPD-20260816T230000-0700-012.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T230000-0700-012.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T230000-0700-012.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T223500-0700-010.json",
         "docs/handoff/rgp/dispositions/RGPD-20260816T223500-0700-010.json"
       ],
-      "evidence": [],
-      "evidence_count": 0,
+      "evidence": [
+        {
+          "install_requested": null,
+          "metrics": {
+            "new_records": 8,
+            "new_relations": 3,
+            "reused_records": 2,
+            "updated_records": 0
+          },
+          "path": "docs/handoff/rgp/evidence/RGP-20260816T222500-0700-004.admission-011-v2.runner-artifact",
+          "reconciliation_authority": null,
+          "status": "proof_persisted",
+          "workflow_performs_semantic_reconciliation": null
+        }
+      ],
+      "evidence_count": 1,
       "plan_count": 1,
       "plans": [
         "docs/handoff/rgp/admission/transactions/RGP-20260816T222500-0700-004.steward-011-v2.json"
@@ -207,16 +262,27 @@
       "submission_path": "docs/handoff/rgp/submissions/RGP-20260816T222500-0700-004.json"
     },
     {
-      "disposition_count": 5,
+      "disposition_count": 2,
       "dispositions": [
         "docs/handoff/rgp/dispositions/RGPD-20260816T221000-0700-008.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T221000-0700-008.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T221030-0700-009.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T221030-0700-009.json",
         "docs/handoff/rgp/dispositions/RGPD-20260816T221030-0700-009.json"
       ],
-      "evidence": [],
-      "evidence_count": 0,
+      "evidence": [
+        {
+          "install_requested": null,
+          "metrics": {
+            "new_records": 7,
+            "new_relations": 3,
+            "reused_records": 4,
+            "updated_records": 1
+          },
+          "path": "docs/handoff/rgp/evidence/RGP-20260816T215500-0700-003.admission-008-v2.runner-artifact",
+          "reconciliation_authority": null,
+          "status": "proof_persisted",
+          "workflow_performs_semantic_reconciliation": null
+        }
+      ],
+      "evidence_count": 1,
       "plan_count": 1,
       "plans": [
         "docs/handoff/rgp/admission/transactions/RGP-20260816T215500-0700-003.steward-008-v2.json"
@@ -228,22 +294,31 @@
       "submission_path": "docs/handoff/rgp/submissions/RGP-20260816T215500-0700-003.json"
     },
     {
-      "disposition_count": 11,
+      "disposition_count": 6,
       "dispositions": [
         "docs/handoff/rgp/dispositions/RGPD-20260816T191200-0700-004.json",
         "docs/handoff/rgp/dispositions/RGPD-20260816T194400-0700-006.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T194400-0700-006.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T194400-0700-006.json",
         "docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T192600-0700-005.json",
         "docs/handoff/rgp/dispositions/RGPD-20260816T192600-0700-005.json",
         "docs/handoff/rgp/dispositions/RGP-20260816T190100-0700-002.steward.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T191000-0700-004.json",
         "docs/handoff/rgp/dispositions/RGPD-20260816T191000-0700-004.json"
       ],
-      "evidence": [],
-      "evidence_count": 0,
+      "evidence": [
+        {
+          "install_requested": null,
+          "metrics": {
+            "new_records": 10,
+            "new_relations": 5,
+            "reused_records": 0,
+            "updated_records": 0
+          },
+          "path": "docs/handoff/rgp/evidence/RGP-20260816T190100-0700-002.admission-006.runner-artifact",
+          "reconciliation_authority": null,
+          "status": "proof_persisted",
+          "workflow_performs_semantic_reconciliation": null
+        }
+      ],
+      "evidence_count": 1,
       "plan_count": 1,
       "plans": [
         "docs/handoff/rgp/admission/transactions/RGP-20260816T190100-0700-002.steward-006.json"
@@ -255,24 +330,28 @@
       "submission_path": "docs/handoff/rgp/submissions/RGP-20260816T190100-0700-002.json"
     },
     {
-      "disposition_count": 13,
+      "disposition_count": 3,
       "dispositions": [
         "docs/handoff/rgp/dispositions/RGPD-20260816T171759-0700-002.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T171759-0700-002.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T171759-0700-002.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T171759-0700-002.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
-        "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
         "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
         "docs/handoff/rgp/dispositions/RGP-20260816T152100-0700-001.steward.json"
       ],
-      "evidence": [],
-      "evidence_count": 0,
+      "evidence": [
+        {
+          "install_requested": null,
+          "metrics": {
+            "new_records": 5,
+            "new_relations": 3,
+            "reused_records": 3,
+            "updated_records": 0
+          },
+          "path": "docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003",
+          "reconciliation_authority": null,
+          "status": "proof_persisted",
+          "workflow_performs_semantic_reconciliation": null
+        }
+      ],
+      "evidence_count": 1,
       "plan_count": 1,
       "plans": [
         "docs/handoff/rgp/admission/transactions/RGP-20260816T152100-0700-001.steward-003.json"
@@ -290,10 +369,10 @@
     "correction_retry_pressure": 4,
     "dispositions": 18,
     "execution_requests": 5,
-    "proof_bundles": 3,
+    "proof_bundles": 11,
     "submissions": 9,
     "test_fail_lines": 0,
-    "test_pass_lines": 30,
+    "test_pass_lines": 100,
     "transactions": 12
   }
 }
