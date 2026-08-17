@@ -1,0 +1,69 @@
+{
+  "disposition_id": "RGPD-20260816T191000-0700-004",
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "steward_role": "Project Engineering Steward",
+  "disposition": "provisional",
+  "canonical_mutation": "withheld",
+  "authoritative_effect": "none",
+  "candidate_dispositions": {
+    "r1": {
+      "status": "admissible_only_as_historical_superseded",
+      "reason": "The proposition is grounded in the immutable Trial-1 disposition but is no longer a valid current-state assertion after standing admission-proof tooling was added. Any future admission must preserve historical lifecycle/supersession semantics rather than reassert it as current."
+    },
+    "r2": {
+      "status": "admissible_subject_to_canonical_reconciliation",
+      "reason": "Grounded current-state observation of the standing proof workflow."
+    },
+    "r3": {
+      "status": "provisional_assumption",
+      "reason": "Must remain epistemically an assumption; structural validity and current use do not promote it to established fact."
+    },
+    "r4": {
+      "status": "provisional_representation_blocked",
+      "reason": "Current accepted PEMS/2-RGP compatibility surface does not establish a normative reverse import from RGP uncertainty to a PEMS/2 record kind/lifecycle representation. Steward will not invent or coerce this uncertainty into generic claim semantics."
+    },
+    "r5": {
+      "status": "provisional_connected_graph_blocked",
+      "reason": "Derived claim requires r2 and r3 as derived_from premises and retains a distinct conditional-validity depends_on relation to r6. It cannot be transactionally admitted while the required connected semantic subset remains provisional."
+    },
+    "r6": {
+      "status": "admissible_subject_to_canonical_reconciliation",
+      "reason": "Grounded observation of the workflow authority boundary."
+    },
+    "r7": {
+      "status": "rejected",
+      "reason": "Unsupported universal generalization. A successful no-op self-test does not establish correctness for every future non-no-op admission transaction. Structural RGP validity is not epistemic authority."
+    }
+  },
+  "relation_integrity": {
+    "r2_contradicts_r1": "semantically valid when r1 is preserved historically rather than asserted as current",
+    "r2_supersedes_r1": "distinct from contradiction and semantically valid as historical replacement",
+    "r5_premise_r2_r3": "must project to derived_from only",
+    "r5_depends_on_r6": "must remain conditional validity and must not be collapsed into derivation",
+    "partial_persistence": "forbidden"
+  },
+  "reason_codes": [
+    "RGP_UNCERTAINTY_REVERSE_IMPORT_NOT_NORMATIVELY_DEFINED",
+    "CONNECTED_GRAPH_CONTAINS_PROVISIONAL_MATERIAL"
+  ],
+  "required_resolution": [
+    "PEMS/COVE Architect must define and validate the normative pems/2-rgp reverse-import rule for RGP uncertainty, including identity, lifecycle/state, provenance, round-trip, and compatibility behavior, or establish that an already accepted PEMS/2 representation applies without semantic loss.",
+    "After that rule is governed, Steward must independently reconcile r1-r6 against the then-current canonical PEMS/2 snapshot and admit only a transactionally complete graph. r7 remains rejected unless materially new authoritative evidence changes its semantics."
+  ],
+  "steward_findings": [
+    "Assumption semantics were preserved and not promoted to fact.",
+    "Uncertainty semantics were preserved by withholding coercive admission.",
+    "Contradicts and supersedes remain distinct semantic operations.",
+    "Premise/derived_from and conditional depends_on remain distinct.",
+    "The structurally valid adversarial r7 proposition was rejected on epistemic grounds.",
+    "No canonical mutation was performed because the uncertainty import contract is insufficient for lossless transactional admission of the submitted semantic graph."
+  ],
+  "immutable_submission": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T190100-0700-002.json",
+    "blob": "4045b4577613cb3532742b79b80ff6196f207f0e"
+  },
+  "trial_report": {
+    "path": "docs/handoff/rgp/trials/2026-08-16-semantic-coverage-trial-2.md",
+    "blob": "d160687805e0959323eb7b5efbc912014ea29c9b"
+  }
+}
