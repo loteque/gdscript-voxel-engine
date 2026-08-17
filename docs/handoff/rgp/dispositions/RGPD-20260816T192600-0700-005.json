@@ -1,0 +1,68 @@
+{
+  "disposition_id": "RGPD-20260816T192600-0700-005",
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "created_at": "2026-08-16T19:26:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "provisional",
+  "supersedes_disposition": "RGPD-20260816T191200-0700-004",
+  "prior_dispositions_observed": [
+    "RGPD-20260816T191000-0700-004",
+    "RGPD-20260816T191200-0700-004"
+  ],
+  "canonical_snapshot": {
+    "branch_head": "818d7df7d3136dc7db998b17f6e02a6b289bea50",
+    "canonical_cove_blob": "f4afac03f16517b2d977e143836821521527faf1",
+    "canonical_pems2_derivative_blob": "303e6219bdde775481c1093dec6d6382213e6dde",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "submission": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T190100-0700-002.json",
+    "blob": "4045b4577613cb3532742b79b80ff6196f207f0e",
+    "validator": "rgp-validator/1",
+    "validator_blob": "5675c652b6ad894fe3e1388a4290d2965b2540a0",
+    "replay_result": "passed"
+  },
+  "candidate_results": {
+    "r1": "provisional_historical_superseded_candidate",
+    "r2": "provisional_grounded_observation_pending_connected_transaction",
+    "r3": "provisional_assumption_preserved_as_assumption",
+    "r4": "provisional_representation_blocker",
+    "r5": "provisional_derived_claim_pending_premises_and_conditional_dependency",
+    "r6": "provisional_grounded_observation_pending_connected_transaction",
+    "r7": "rejected_unsupported_universal_generalization"
+  },
+  "provenance_resolution": {
+    "r1": "immutable repository blob 24dec513a43fc95c8fbda186260f61f27c3cfad2; no Trial-2 canonical source/source-observation identity allocated while provisional",
+    "r2_r3_r4_r6": "immutable repository blob d53b49792a645d5775a15fea980b671d74b922f3; no Trial-2 canonical source/source-observation identity allocated while provisional",
+    "canonical_provenance_created": [],
+    "canonical_provenance_reused": []
+  },
+  "semantic_findings": [
+    "r3 remains an assumption and is not promoted to established fact.",
+    "r4 remains uncertainty. Current accepted PEMS/2 compatibility defines unresolved_item to RGP uncertainty export but no normative lossless RGP uncertainty to PEMS/2 import rule.",
+    "r5 premises r2 and r3 would project to derived_from; r5 depends_on r6 remains a distinct conditional_validity dependency.",
+    "r2 contradicts r1 and r2 supersedes r1 are distinct and may coexist: contradiction expresses incompatible propositions, while supersession expresses historical replacement without erasing prior evidence.",
+    "r7 is rejected because a successful no-op self-test does not prove correctness for every future non-no-op admission transaction.",
+    "The r1-r6 semantic slice is not partially persisted because doing so would lose the submitted uncertainty semantics and violate connected-graph transactional integrity."
+  ],
+  "record_map": {},
+  "relation_map": {},
+  "canonical_mutation": "withheld",
+  "graph_integrity": "preserved_by_non_admission",
+  "validation": {
+    "pems2_candidate_validation": "not_applicable_no_candidate_generated",
+    "cove_round_trip": "not_applicable_no_canonical_mutation",
+    "jcs_generation": "not_applicable_no_canonical_mutation"
+  },
+  "reason_codes": [
+    "RGP_VALIDATOR_REPLAY_PASSED",
+    "RGP_UNCERTAINTY_REVERSE_IMPORT_NOT_NORMATIVELY_DEFINED",
+    "CONNECTED_GRAPH_SEMANTIC_LOSS_PREVENTED",
+    "R7_UNSUPPORTED_UNIVERSAL_GENERALIZATION_REJECTED",
+    "CANONICAL_MUTATION_WITHHELD"
+  ],
+  "remaining_defects": [
+    "PEMS/COVE requires an Architect-governed normative lossless RGP uncertainty to PEMS/2 import rule before r1-r6 can be reconsidered for transactional admission.",
+    "The prior RGPD-20260816T191200-0700-004 disposition does not declare supersedes_disposition despite following another disposition for the same submission; this reconsideration restores an explicit forward chain but does not rewrite immutable history."
+  ]
+}
