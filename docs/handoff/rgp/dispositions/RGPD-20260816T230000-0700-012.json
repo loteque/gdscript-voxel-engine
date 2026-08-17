@@ -1,0 +1,83 @@
+{
+  "disposition_id": "RGPD-20260816T230000-0700-012",
+  "submission_id": "RGP-20260816T222500-0700-004",
+  "created_at": "2026-08-16T23:00:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "admitted",
+  "supersedes_dispositions": [
+    "RGPD-20260816T223500-0700-010",
+    "RGPD-20260816T225400-0700-011"
+  ],
+  "semantic_authority": "RGPD-20260816T223500-0700-010",
+  "identity_authority": "RGPD-20260816T225400-0700-011",
+  "proof_evidence": {
+    "directory": "docs/handoff/rgp/evidence/RGP-20260816T222500-0700-004.admission-011-v2.runner-artifact",
+    "proof_run_id": 31999716938,
+    "persistence_run_id": 31999766132,
+    "persistence_commit": "9d6b48c79134e7305815294ae0f0a9532050adf0",
+    "candidate_pems_blob": "d0fb3ea3db7a923ccd5749582397a31ec5fcf07e",
+    "candidate_cove_blob": "1694d2df95dcd4012c216278b7df59b6f25ef09e",
+    "candidate_pems_sha256": "79b00395daaabd1ca567e9a528703a98a26f231b92cc43445d2fa99eac655ddb",
+    "candidate_cove_sha256": "d0dc399ed810c3b0eff46e3a3c4958856655bc5058e4b29b1148532f8b6565e9",
+    "record_count": 204,
+    "relation_count": 14,
+    "transaction_contract": "rgp-pems2-admission-transaction/2"
+  },
+  "installation": {
+    "request": "docs/handoff/rgp/install-requests/RGP-20260816T222500-0700-004.install-001.json",
+    "request_commit": "4815edbc0f0b00a56dd26352cf9a5ad949b424d8",
+    "workflow_run_id": 31999991868,
+    "workflow_conclusion": "success",
+    "install_commit": "e72c7250f2ddaa8bf536026e26e6936c7a3fcfe4",
+    "base_pems_blob_verified": "bacb825f1ea6bb8f7aa92dc086444d7c68850f05",
+    "base_cove_blob_verified": "090e77317e1f50ab020ac5f0291be2cbb2ca8946",
+    "installed_pems_blob": "d0fb3ea3db7a923ccd5749582397a31ec5fcf07e",
+    "installed_cove_blob": "1694d2df95dcd4012c216278b7df59b6f25ef09e",
+    "exact_candidate_bytes_installed": true,
+    "candidate_validation_passed": true,
+    "atomic_canonical_commit": true
+  },
+  "record_map": {
+    "r1": "pems:proposition:297653e183984377a669",
+    "r2": "pems:proposition:a0f06b966ae693845071",
+    "r3": "pems:proposition:c20a6da4818c6b583952",
+    "r4": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+    "r5": "pems:unresolved_item:45dfe8cbb234a3f99b00",
+    "r6": "pems:proposition:babcd53c975cdc327216"
+  },
+  "rejected_records": {
+    "r7": "unsupported_universal_generalization"
+  },
+  "relation_map": {
+    "r1_contradicts_r4": "pems:relation:2f0fc7bc1228246f28ee",
+    "r1_supersedes_r4": "pems:relation:8c2e4ee3e1b8006bb746",
+    "r6_derived_from_r1": "pems:relation:1a78acc7e397c10aefc9",
+    "r6_derived_from_r2": "pems:relation:8b8753b59b6324e685c2",
+    "r6_derived_from_r3": "pems:relation:7c23c2757b985254cfb1"
+  },
+  "excluded": [
+    "r7",
+    "r7 contradicts r5"
+  ],
+  "canonical_snapshot_after_install": {
+    "canonical_pems2_blob": "d0fb3ea3db7a923ccd5749582397a31ec5fcf07e",
+    "canonical_cove_blob": "1694d2df95dcd4012c216278b7df59b6f25ef09e",
+    "normalized_pems_sha256": "79b00395daaabd1ca567e9a528703a98a26f231b92cc43445d2fa99eac655ddb",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "canonical_mutation": "installed_exact_proven_candidate",
+  "reason_codes": [
+    "RGP_STRUCTURE_ACCEPTED",
+    "STEWARD_SEMANTIC_RECONCILIATION_CONFIRMED",
+    "STEWARD_CANONICAL_IDENTITIES_CONFIRMED",
+    "EXACT_BASE_TRANSACTION_V2_PROOF_PASSED",
+    "PERSISTED_CANDIDATE_HASHES_VERIFIED",
+    "UNCHANGED_CANONICAL_BASE_VERIFIED_AT_INSTALL",
+    "EXACT_CANDIDATE_BYTES_INSTALLED",
+    "PEMS2_CANDIDATE_VALIDATION_PASSED",
+    "R7_REJECTED_AND_EXCLUDED",
+    "REJECTED_ENDPOINT_RELATION_EXCLUDED",
+    "TRIAL4_ADMITTED"
+  ],
+  "next_gate": "Trial 4 is complete. Future RGP submissions reconcile against the installed canonical PEMS/COVE snapshot from this disposition."
+}
