@@ -1,0 +1,10 @@
+{
+  "contract": "rgp-canonical-install-request/1",
+  "evidence_dir": "docs/handoff/rgp/evidence/RGP-20260816T222500-0700-004.admission-011-v2.runner-artifact",
+  "expected_base_pems_blob": "bacb825f1ea6bb8f7aa92dc086444d7c68850f05",
+  "expected_base_cove_blob": "090e77317e1f50ab020ac5f0291be2cbb2ca8946",
+  "candidate_pems_blob": "d0fb3ea3db7a923ccd5749582397a31ec5fcf07e",
+  "candidate_cove_blob": "1694d2df95dcd4012c216278b7df59b6f25ef09e",
+  "candidate_pems_sha256": "79b00395daaabd1ca567e9a528703a98a26f231b92cc43445d2fa99eac655ddb",
+  "candidate_cove_sha256": "d0dc399ed810c3b0eff46e3a3c4958856655bc5058e4b29b1148532f8b6565e9"
+}
