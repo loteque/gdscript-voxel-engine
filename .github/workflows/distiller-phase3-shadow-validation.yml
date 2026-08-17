@@ -1,0 +1,30 @@
+name: Distiller Phase 3 Shadow Validation
+
+on:
+  push:
+    branches:
+      - project-chat-handoff
+    paths:
+      - 'docs/distiller/evaluation/phase3/shadow/**/*.rgp.json'
+      - 'docs/distiller/validation/**'
+      - '.github/workflows/distiller-phase3-shadow-validation.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validator fixture suite
+        run: python3 docs/distiller/validation/run_fixture_tests.py
+      - name: Validate Phase 3 shadow candidates
+        shell: bash
+        run: |
+          mapfile -d '' candidates < <(find docs/distiller/evaluation/phase3/shadow -type f -name '*.rgp.json' -print0 | sort -z)
+          if [ "${#candidates[@]}" -eq 0 ]; then
+            echo "No shadow candidates found." >&2
+            exit 1
+          fi
+          python3 docs/distiller/validation/validate_distillation.py "${candidates[@]}"
