@@ -1,0 +1,12 @@
+PASS schema_draft_2020_12
+PASS structural_smoke_positive=1 negative=3
+PASS compatibility_cases=28
+PASS admission_cases=6
+PASS deterministic_v1_to_v2_migration
+PASS repeated_policy_result_determinism
+MIGRATION_FIXTURE_SHA256=df5ea0412072ff4f1926e09b5eee918e4f56ea49161a644bdc56a99d486f184b
+POLICY_RESULTS_SHA256=6470553ec0202898097ae3037394c187a05b094d1a66fa67e041b1fc19f8e675
+PASS candidate=runner-output/RGP-20260817T101500-0700-009.admission-019-v2/candidate.pems2.jcs.json
+PASS candidate_records=227 candidate_relations=14
+PASS candidate_graph_reference_integrity
+CANDIDATE_SHA256=c5ca841e623fb53b84a95ce2b3b687b9e99e3955e37a04398a97d209bf2c4784
