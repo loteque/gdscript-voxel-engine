@@ -2,202 +2,294 @@
 
 ## Goal
 
-Develop a small, testable producer that distills observable engineering work into provenance-backed `rgp/1` candidate graphs while allowing working agents to communicate concisely.
-
-The Reasoning Distiller produces candidates only. It does not reconstruct hidden chain-of-thought, decide canonical truth, reconcile canonical identity, or grant admission.
-
-The current experimental semantic contract is `rgp/1` and is change-controlled during producer evaluation. Do not add vocabulary because a prompt is inconvenient; semantic changes require a demonstrated pressure case and evaluation.
-
-## Current RGP/1 semantic core
-
-Record kinds:
-
-- `observation`
-- `decision`
-- `assumption`
-- `uncertainty`
-- `claim`
-
-Derivation:
-
-- `premise` stored on the derived proposition
-
-General non-derivational relations:
-
-- `supports`
-- `contradicts`
-- `depends_on`
-- `supersedes`
-
-Provenance roles:
-
-- `primary`
-- `corroborating`
-- `context`
-
-Validation evidence that is external evidence belongs in provenance. `validated_by` is not an `rgp/1` relation.
-
-Normative authority is resolved from external source chains. RGP does not carry an `authority` field and the Distiller must not manufacture normative standing.
-
-## Phase 0 — Corpus and Evaluation Baseline
-
-Status: **baseline established; current-RGP reconciliation required as corpus evolves.**
-
-Use completed voxel-engine work as fixed evaluation material.
-
-The baseline corpus must cover at least:
-
-- an architectural ownership decision;
-- an offline/runtime separation decision;
-- a validation-driven governed requirement;
-- an evidence-driven investigation whose conclusion is narrower than the motivating hypothesis;
-- an unresolved failure where uncertainty must remain unresolved;
-- adversarial pressure for invented causality, invented alternatives, duplicate propositions, provenance loss, authority promotion, unsupported universal generalization, premise cycles, and derivation/dependency confusion.
-
-Human-reviewed expectations must state the durable propositions, allowed/required semantic structure, provenance expectations, and material inventions to reject. Evaluation expectations are test oracles, not canonical PEMS records.
-
-Exit criterion: a repeatable corpus and scoring rubric exist, aligned with current `rgp/1`, against which fresh Distiller runs can be compared.
-
-## Phase 1 — Distiller Agent Prototype
-
-Status: **next implementation phase.**
-
-Implement the Distiller as a specialized agent instruction using the strict `rgp/1` structured-output contract in `docs/distiller/DIRECTIVE.md`.
-
-Requirements:
-
-- consume only observable supplied evidence and explicit outcomes;
-- never claim or reconstruct hidden chain-of-thought;
-- emit atomic propositions rather than essays;
-- distinguish observation, decision, assumption, uncertainty, and claim;
-- use `premise` only for constitutive derivation;
-- use only `supports`, `contradicts`, `depends_on`, and `supersedes` for general relations;
-- attach minimal sufficient provenance where available;
-- require primary provenance for non-derived observations;
-- keep source identity and normative authority external;
-- omit low-value activity records;
-- omit unsupported relations instead of guessing them.
-
-Run each corpus case multiple times from fresh invocations. Capture output without editing before scoring.
-
-Exit criterion: repeated runs over the corpus meet the Phase-1 acceptance threshold with no hard failures and show acceptably low invention, omission, duplication, relation, and provenance error rates.
-
-## Phase 2 — Producer/Validator Integration
-
-Status: RGP structural validation exists; Distiller producer integration remains to be exercised.
-
-Feed Distiller output directly into the authoritative RGP validator. Keep deterministic structural checks outside the semantic agent.
-
-Required checks include:
-
-- schema/shape validity;
-- record and relation vocabulary;
-- reference integrity;
-- non-empty and acyclic premise structure;
-- non-derived observation grounding requirements;
-- malformed or self-referential graph structure;
-- omission of forbidden empty/null fields.
-
-Structural validation is evidence of protocol validity only. It does not prove truth, authority, semantic identity, provenance resolution, or admission.
-
-Exit criterion: malformed Distiller output fails mechanically before any reconciliation surface, and valid output passes without producer-specific exceptions.
-
-## Phase 3 — Shadow Operation
-
-Run the Distiller after real project tasks while prohibiting automatic canonical mutation.
-
-For each run:
-
-- preserve the immutable candidate output;
-- preserve the observable evidence bundle or immutable source references;
-- compare the candidate against human review;
-- track invented propositions, omissions, false relations, duplicate semantics, provenance quality, authority errors, unnecessary retention, and review burden;
-- submit candidates to Steward reconciliation only when shadow evaluation explicitly calls for an admission exercise;
-- change vocabulary only when repeated evidence demonstrates irreducible semantic loss or ambiguity.
-
-Exit criterion: the Distiller routinely captures useful durable structure with low review burden and stable results across multiple roles/tasks.
-
-## Phase 4 — Routine Steward-Governed Admission
-
-The admission boundary is defined by the RGP submission/evidence protocols and the Steward admission directive. Candidate validity remains distinct from semantic admission.
-
-Operationalize the proven path:
+Deliver a production-ready semantic producer that distills observable engineering work into provenance-backed `rgp/1` candidate graphs while preserving a strict authority boundary:
 
 ```text
 observable evidence
-    -> Distiller candidate RGP
-    -> RGP validator
+    -> Distiller candidate
+    -> deterministic RGP validation
     -> immutable submission
-    -> Steward reconciliation
-    -> deterministic exact-base PEMS/2 transaction proof
-    -> exact candidate PEMS/COVE installation
+    -> Project Engineering Steward reconciliation
+    -> deterministic exact-base proof
+    -> exact PEMS/COVE installation
     -> immutable disposition
 ```
 
-Preserve:
+The Distiller produces candidates only. It does not reconstruct hidden chain-of-thought, decide canonical truth, reconcile semantic identity, authorize admission, or write canonical PEMS/COVE.
 
-- Steward-only semantic identity reconciliation;
-- Steward-only canonical provenance resolution;
-- rejected/provisional/admitted disposition;
-- connected-graph integrity;
-- exact-base optimistic concurrency;
-- guarded reused-record updates when authorized;
-- deterministic `cove/1 + pems/2 + jcs/1` generation;
-- exact-byte installation and post-write verification.
+## Current semantic contract
 
-Exit criterion: routine candidates can traverse the governed pipeline without trial-specific choreography or authority leakage into tooling.
+`rgp/1` is the production candidate protocol unless changed through an explicit compatibility/evaluation process.
 
-## Phase 5 — Bounded Automation Research
+Record kinds: `observation`, `decision`, `assumption`, `uncertainty`, `claim`.
 
-Only after shadow operation demonstrates low error and low review burden, evaluate whether any narrow classes are suitable for bounded automated handling.
+Relations: `supports`, `contradicts`, `depends_on`, `supersedes`.
 
-No automation may silently determine canonical truth, owner requirements, project policy, architectural decisions, or semantic identity equivalence.
+Provenance roles: `primary`, `corroborating`, `context`.
 
-The default remains human Steward reconciliation.
+Normative authority remains external to RGP. `validated_by` is not an RGP relation.
 
-Exit criterion: any proposed automation class has explicit provenance preconditions, failure behavior, pressure tests, and a governance authorization. Absence of such evidence means no automation.
+## Completed evaluation and integration phases
 
-## Phase 6 — Orchestration and Productization
+### Phase 0 — Corpus and Evaluation Baseline
 
-Only after producer and governed admission behavior are stable, decide whether orchestration should become a dedicated application/service.
+**Status: complete.**
 
-Possible responsibilities:
+A fixed corpus, expected outcomes, adversarial pressure cases, and scoring rubric establish repeatable evaluation of durable recall, precision, relation integrity, provenance, authority/epistemic safety, and compression.
 
-- collect immutable evidence bundles from agent/tool executions;
-- invoke semantic distillation;
-- run deterministic RGP validation;
-- package immutable Steward submissions;
-- invoke proof-only admission tooling after Steward authorization;
-- expose inspection/query interfaces;
-- generate evaluation metrics and diagnostics.
+### Phase 1 — Distiller Agent Prototype
 
-Storage topology and conversational product integration remain deployment concerns, not RGP semantics.
+**Status: complete; repeated-run stability passed.**
 
-Exit criterion: productization removes operational friction without changing the proven semantic or authority contracts.
+Fresh independent runs demonstrated stable candidate production across the core corpus without hard failures or authority leakage.
 
-## Deferred
+### Phase 2 — Producer/Validator Integration
 
-Do not implement without demonstrated need:
+**Status: complete.**
 
-- generalized cognition or chain-of-thought storage;
-- large reasoning ontologies;
+Raw Distiller output passes the authoritative deterministic RGP validator unchanged, while malformed fixtures fail mechanically without producer-specific exceptions.
+
+### Phase 3 — Shadow Operation
+
+**Status: complete.**
+
+Real project work demonstrated low-review-burden candidate production across architecture, performance, policy, unresolved investigation, and scoped-feature reasoning shapes without automatic canonical mutation.
+
+### Phase 4 — Routine Steward-Governed Admission
+
+**Status: complete.**
+
+Multiple routine candidates traversed immutable submission, Steward semantic reconciliation, exact-base PEMS/2 proof, exact candidate persistence, guarded installation, and immutable disposition.
+
+### Phase 5 — Guarded Admission Automation
+
+**Status: complete for the proven mechanical class.**
+
+The repository automates validation, deterministic proof, evidence persistence, concurrency checks, and exact-byte installation after a separately authored Steward reconciliation transaction.
+
+Authority invariant:
+
+- Distiller: candidate production only.
+- Project Engineering Steward: semantic reconciliation and admission authority.
+- Executor: deterministic execution only; no semantic reconciliation.
+
+## Phase 6 — Production Orchestration and Hardening
+
+**Status: next production gate.**
+
+Phase 6 turns the proven evaluation/admission machinery into a routine production subsystem without changing its semantic or authority contracts.
+
+### 6.1 Stable producer interface
+
+- Define one versioned Distiller invocation contract.
+- Accept a standardized observable-evidence envelope.
+- Emit immutable `rgp/1` candidates only.
+- Remove evaluation-specific/manual candidate packaging from the normal path.
+- Ensure the Distiller has no canonical-memory write capability.
+
+**Acceptance:** the same producer interface handles representative repository tasks without task-specific choreography.
+
+### 6.2 Standard evidence capture
+
+- Define a versioned evidence-envelope schema.
+- Support immutable references to owner instructions, PRs, commits, repository observations, tool output, tests, validation results, artifacts, and unresolved outcomes.
+- Bind evidence identity/digests where practical.
+- Reject missing or malformed required evidence before semantic production.
+
+**Acceptance:** production candidates can be traced back to immutable or auditable observable evidence without reconstructing chat history.
+
+### 6.3 Automatic validation and submission packaging
+
+- Invoke the authoritative RGP validator automatically after production.
+- Fail malformed candidates before Steward surfaces.
+- Package passing candidates as immutable submissions automatically.
+- Preserve raw candidate bytes unchanged.
+- Make retries idempotent for the same candidate identity.
+
+**Acceptance:** candidate -> validator -> immutable submission requires no manual file choreography and grants no admission authority.
+
+### 6.4 Steward reconciliation surface
+
+- Keep the Project Engineering Steward as the sole semantic reconciliation/admission authority.
+- Provide the Steward with candidate, evidence, relevant canonical context, and deterministic diagnostics.
+- Support explicit reuse, creation, guarded update, rejection, provisional treatment, uncertainty preservation, provenance resolution, and relation decisions.
+- Produce a separate immutable Steward-authored admission transaction.
+
+**Acceptance:** no Distiller or executor component can silently decide semantic identity or canonical truth.
+
+### 6.5 Deterministic canonical execution
+
+- Use the existing guarded executor as the only normal canonical write path.
+- Require exact canonical base matching.
+- Require the exact Steward transaction/digest.
+- Persist proof artifacts before canonical mutation.
+- Install exact proved PEMS/COVE bytes only.
+- Verify exact installed bytes after write.
+- Preserve immutable disposition evidence.
+
+**Acceptance:** every production canonical change is reproducible from a Steward-authorized transaction and persisted proof evidence.
+
+### 6.6 Failure-path pressure suite
+
+Deliberately test and preserve evidence for:
+
+- stale canonical base;
+- branch movement between proof and installation;
+- wrong reconciliation digest;
+- conflicting or superseded Steward plans;
+- reused-record before-state mismatch;
+- duplicate record IDs or malformed references;
+- malformed/missing evidence;
+- duplicate submission/retry;
+- no-op installation;
+- executor interruption before proof persistence;
+- interruption after proof persistence but before installation;
+- interruption after installation but before disposition.
+
+**Acceptance:** every pressure case fails closed or recovers deterministically with no unauthorized semantic decision and no partial canonical corruption.
+
+### 6.7 Idempotency and recovery
+
+- Define stable submission and transaction identities.
+- Define safe retry behavior for each lifecycle stage.
+- Detect already-persisted proof artifacts and already-installed exact candidates.
+- Define recovery when disposition lags installation.
+- Define how a Steward replaces/supersedes an unexecuted transaction.
+- Never repair immutable producer or Steward artifacts in place.
+
+**Acceptance:** retrying or recovering any production stage cannot duplicate canonical meaning or apply a transaction twice.
+
+### 6.8 Authoritative lifecycle state machine
+
+Define machine-readable states for at least:
+
+- candidate produced;
+- validation failed;
+- awaiting Steward;
+- reconciliation active;
+- rejected/provisional;
+- awaiting execution;
+- execution requested;
+- proof failed;
+- proof persisted;
+- installation failed;
+- installed;
+- disposed.
+
+State must be derived from authoritative immutable artifacts/workflow evidence rather than manually maintained dashboard state.
+
+**Acceptance:** an orchestrator can determine exactly what is waiting, active, failed, installed, or complete and identify the responsible boundary.
+
+### 6.9 Permission and branch protection
+
+- Give the Distiller read/evidence/submission capability only.
+- Restrict Steward reconciliation surfaces to the Steward authority.
+- Restrict canonical write capability to the deterministic executor.
+- Protect canonical files/branches against bypass of the governed path.
+- Keep execution authorization distinct from semantic reconciliation authority.
+
+**Acceptance:** credentials and repository protections enforce the documented authority model rather than merely relying on convention.
+
+### 6.10 Versioning and compatibility
+
+- Freeze production versions for RGP, evidence envelopes, submissions, Steward transactions, PEMS/2, and COVE generation.
+- Define upgrade and deprecation rules.
+- Preserve replayability of old submissions and proof evidence.
+- Require evaluation pressure before semantic vocabulary changes.
+
+**Acceptance:** a protocol upgrade cannot silently reinterpret previously admitted knowledge.
+
+### 6.11 Operational metrics and alerts
+
+Track at minimum:
+
+- candidate/validation volume;
+- validation rejection rate;
+- Steward queue age;
+- Steward rejection/provisional/admission rates;
+- new/reused/updated canonical record counts;
+- reconciliation-plan correction count;
+- stale-base and concurrency failures;
+- executor/proof/install failures;
+- retry/recovery frequency;
+- review burden.
+
+Alert on stuck Steward queues, repeated validation/proof failures, installation failures, and recovery-required states.
+
+The dashboard is an optional projection of these metrics, not an authority source.
+
+**Acceptance:** production failures and stalled work are observable without inspecting raw repository history manually.
+
+### 6.12 Production runbook
+
+Document:
+
+- normal candidate-to-admission operation;
+- Steward rejection/provisional handling;
+- retry and recovery procedures;
+- stale-base reconciliation;
+- transaction replacement/supersession;
+- contract upgrades;
+- emergency disable/kill switch;
+- canonical rollback/recovery boundaries;
+- ownership of each authority and execution stage.
+
+**Acceptance:** a maintainer can operate and recover the system without relying on undocumented evaluation-session knowledge.
+
+### 6.13 Final production acceptance batch
+
+Run a fresh production-shaped batch covering multiple real reasoning shapes plus deliberate failures.
+
+The batch must include:
+
+- several successful admissions;
+- canonical semantic reuse;
+- a guarded existing-record update;
+- an unresolved uncertainty preserved through admission;
+- at least one Steward rejection;
+- at least one duplicate/no-op case;
+- stale-base/concurrency failure;
+- invalid-plan/digest failure;
+- interrupted/retried execution or an equivalent deterministic recovery test.
+
+**Production exit criterion:** all production acceptance cases demonstrate zero Distiller reconciliation/admission authority, zero executor semantic reconciliation, zero partial canonical corruption, deterministic/auditable recovery, and acceptable Steward review burden.
+
+## Production Definition of Done
+
+The Distiller system is production-ready when:
+
+1. observable work enters through a stable evidence contract;
+2. Distiller production, validation, and immutable submission are routine and idempotent;
+3. Steward semantic reconciliation is the only canonical semantic authority path;
+4. deterministic proof/install is the only normal canonical write path;
+5. lifecycle, retries, failures, and recovery are explicit and machine-readable;
+6. permissions enforce the authority boundary;
+7. contracts are versioned and replayable;
+8. operations are measurable and alertable;
+9. the runbook is complete;
+10. the final production acceptance batch passes.
+
+## Deferred unless demonstrated necessary
+
+- hidden chain-of-thought storage;
 - automatic causal inference;
-- fully autonomous architectural-decision admission;
-- automated semantic identity reconciliation;
-- a dedicated database solely for the Distiller;
-- a long-running service;
-- domain-specific voxel-engine reasoning kinds in generic RGP.
+- automatic semantic identity reconciliation;
+- Distiller self-admission;
+- autonomous architectural/policy admission;
+- large generic reasoning ontologies;
+- a dedicated Distiller database;
+- a long-running service when repository/workflow orchestration is sufficient;
+- domain-specific voxel-engine record kinds in generic RGP.
 
-## Evaluation Questions
+## Continuing Evaluation Questions
 
-At each phase ask:
-
-1. Can another agent reconstruct the durable argument without reading the original chat?
-2. Are retained empirical propositions traceable to supplied evidence?
-3. Does the graph preserve fact, decision, interpretation, assumption, and uncertainty without promotion?
-4. Are `premise`, `supports`, `depends_on`, `contradicts`, and `supersedes` used for their distinct meanings?
-5. Is the Distiller inventing relationships, causality, identity equivalence, or authority?
+1. Can another agent reconstruct the durable argument without the original chat?
+2. Are empirical propositions traceable to supplied evidence?
+3. Are observation, decision, interpretation, assumption, and uncertainty preserved without promotion?
+4. Are premise and general relation types used distinctly?
+5. Is the Distiller inventing causality, identity equivalence, or authority?
 6. Is provenance minimal, sufficient, and non-fabricated?
 7. Is low-value activity excluded?
-8. Are repeated fresh runs stable enough for practical review?
-9. Would the representation remain useful outside this voxel-engine project?
+8. Are fresh runs stable enough for practical Steward review?
+9. Does automation preserve the Distiller -> Steward -> executor authority separation?
+10. Can every canonical mutation be reproduced and audited from immutable evidence?
