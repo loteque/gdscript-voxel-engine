@@ -4,74 +4,136 @@
 
 Engineering agents can perform substantial analysis while producing concise responses. The project should preserve the durable structure of important reasoning without requiring verbose chat transcripts to serve as the historical record.
 
-A raw reasoning narrative is a poor project-memory format. It mixes durable conclusions with exploratory branches, repeated context, abandoned hypotheses, and conversational explanation. Conversely, storing only final decisions can erase useful information about evidence, assumptions, alternatives, uncertainty, and consequences.
-
-The distiller exists to preserve the useful symbolic structure between those extremes.
+The Distiller preserves useful symbolic structure between raw reasoning narratives and final decisions.
 
 ## Intent
 
-The distiller converts observable engineering work into candidate semantic records and relationships suitable for project memory.
-
-It does not record, reconstruct, or claim access to an agent's hidden chain of thought. Its inputs are externally available task material such as owner instructions, repository observations, tool results, test and validation results, explicit alternatives, conclusions, decisions, artifacts, and unresolved questions.
-
-The intended flow is:
+The Distiller converts observable engineering work into candidate semantic records and relationships suitable for project memory. It does not record, reconstruct, or claim access to hidden chain-of-thought.
 
 ```text
 engineering work
       ↓
 observable evidence and outcomes
       ↓
-reasoning distillation
+Distiller
       ↓
-candidate symbolic records and relations
+candidate RGP
       ↓
-validation / reconciliation / admission
+validator
       ↓
-project engineering memory
+immutable submission
+      ↓
+Project Engineering Steward reconciliation
+      ↓
+deterministic proof / exact installation
+      ↓
+canonical PEMS/COVE
 ```
 
-The conversational response is a separate projection. It should be optimized for the project owner and may remain concise even when the underlying work produces a richer durable record.
+The Distiller is a candidate producer only. It has no reconciliation or admission authority and cannot write canonical project memory directly.
+
+## Important Terms
+
+**Distiller** — Semantic producer that converts observable evidence into an immutable candidate reasoning graph.
+
+**Observable evidence** — Externally available task material such as instructions, repository state, tool output, tests, artifacts, explicit decisions, and unresolved questions.
+
+**RGP (`rgp/1`)** — Reasoning Graph Protocol used for Distiller candidate records, provenance, premises, and relations.
+
+**Candidate** — Proposed semantic graph with no canonical authority merely because the Distiller produced it.
+
+**Record** — Atomic semantic proposition classified as an observation, decision, assumption, uncertainty, or claim.
+
+**Observation** — Proposition reporting supplied or measured evidence.
+
+**Decision** — Normative choice or requirement supported by an appropriate authority source.
+
+**Assumption** — Proposition provisionally treated as true without sufficient evidence to classify it as an observation.
+
+**Uncertainty** — Explicit unresolved question, unknown, or insufficiently established proposition.
+
+**Claim** — Derived or interpretive proposition supported by premises or evidence.
+
+**Premise** — Record reference that is constitutive of a derived claim.
+
+**Relation** — Non-derivational semantic link: `supports`, `contradicts`, `depends_on`, or `supersedes`.
+
+**Provenance** — References identifying the evidence supporting a record.
+
+**Validator** — Deterministic checker for RGP structure and protocol invariants; it does not determine semantic truth or admission.
+
+**Submission** — Immutable validated candidate packaged for Steward review.
+
+**Project Engineering Steward** — Authority responsible for semantic reconciliation and canonical admission decisions.
+
+**Semantic reconciliation** — Steward-authorized mapping of candidate meaning onto canonical knowledge by resolving identity, reuse versus creation, provenance, authority, uncertainty, conflict, and disposition.
+
+**Canonical reuse** — Mapping candidate meaning to an existing canonical record rather than creating a duplicate.
+
+**Admission** — Authorized decision to incorporate reconciled meaning into canonical project memory.
+
+**Disposition** — Immutable record of the Steward's admitted, rejected, or provisional outcome.
+
+**PEMS/2** — Canonical semantic project-memory representation.
+
+**COVE** — Deterministic companion encoding/index representation generated from canonical memory.
+
+**Admission transaction** — Steward-authored exact reconciliation plan describing canonical creations, reuse, updates, and relations.
+
+**Proof** — Deterministic, read-only application of an admission transaction against an exact canonical base.
+
+**Exact-base concurrency** — Requirement that admission applies only to the canonical state against which it was proved.
+
+**Exact-byte installation** — Canonical write that installs the exact PEMS/COVE artifacts produced and validated by the proof stage.
+
+**Executor** — Mechanical workflow that validates, proves, persists evidence, and installs a Steward-authorized transaction without performing semantic reconciliation.
+
+**Authority boundary** — Distiller proposes; Steward reconciles and authorizes; executor applies deterministically.
+
+## RGP/1 Semantic Vocabulary
+
+Record kinds:
+
+- `observation`
+- `decision`
+- `assumption`
+- `uncertainty`
+- `claim`
+
+Relations:
+
+- `supports`
+- `contradicts`
+- `depends_on`
+- `supersedes`
+
+Provenance roles:
+
+- `primary`
+- `corroborating`
+- `context`
+
+Validation evidence belongs in provenance when it is evidence. `validated_by` is not an RGP/1 relation. RGP does not contain an authority field.
 
 ## Design Principles
 
 1. Preserve the argument, not the monologue.
-2. Distill only observable evidence and explicit outcomes; never reconstruct hidden reasoning.
-3. Prefer atomic semantic records over prose reasoning blobs.
-4. Represent reasoning primarily through typed relationships between records.
-5. Preserve provenance for durable claims.
-6. Distillation proposes memory; it does not automatically grant project authority.
-7. Use language models where semantic interpretation is necessary and deterministic software for validation, identity, provenance integrity, reconciliation, and persistence.
-8. Discard low-value activity. Opening a file is not memory; discovering a durable constraint may be.
-9. Begin with a deliberately small vocabulary and expand from demonstrated need.
-10. Keep the distiller independent of any single chat role, engineering domain, storage encoding, or conversational interface.
-
-## Initial Symbolic Vocabulary
-
-The first experiment should support only a small set of candidate record types:
-
-- observation
-- decision
-- assumption
-- uncertainty
-
-Initial relations:
-
-- supports
-- contradicts
-- depends_on
-- supersedes
-- validated_by
-
-This vocabulary is intentionally incomplete. Alternatives, hypotheses, experiments, constraints, consequences, and other concepts should be added only when real project use demonstrates that the existing representation is insufficient.
+2. Use only observable evidence and explicit outcomes.
+3. Prefer atomic semantic records over prose blobs.
+4. Preserve uncertainty rather than inventing resolution.
+5. Preserve minimal sufficient provenance.
+6. Distillation proposes memory; it does not grant authority.
+7. Keep semantic interpretation separate from deterministic validation and persistence.
+8. Discard low-value activity.
+9. Keep the vocabulary small and change-controlled.
+10. Keep the Distiller independent of a particular chat role, engineering domain, or storage implementation.
 
 ## Relationship to PEMS and COVE
 
-The distiller is upstream of project-memory admission. PEMS remains the semantic memory model, while COVE remains an encoding/storage concern. The distiller should not make either representation responsible for agent cognition.
+The Distiller is upstream of project-memory admission. PEMS remains canonical semantic memory. COVE remains a deterministic companion representation. Neither representation is a store for hidden agent cognition.
 
-A distillation result is best understood as a set of candidate semantic records with provenance. Existing or future reconciliation and admission policy determines whether those candidates become current project knowledge, remain provisional, conflict with existing knowledge, or are rejected.
+Raw Distiller candidates remain immutable. Steward reconciliation produces a separate authorized transaction describing how candidate meaning maps to canonical memory.
 
 ## Success Criterion
 
-A fresh agent should be able to answer a question such as "Why is this architecture this way?" by traversing durable project records and their evidence relationships, without needing to read the original chat transcript.
-
-At the same time, ordinary project conversations should become shorter because the chat no longer has to double as the complete historical archive.
+A fresh agent should be able to reconstruct durable engineering decisions, evidence, interpretation, and unresolved uncertainty from project memory without requiring the original chat transcript, while ordinary project conversations remain concise.
