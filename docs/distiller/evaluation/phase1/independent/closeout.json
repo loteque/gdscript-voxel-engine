@@ -1,0 +1,45 @@
+{
+  "contract": "distiller-phase1-independent-closeout/1",
+  "date": "2026-08-17",
+  "branch": "project-chat-handoff",
+  "input_revision": "7ae3fefe1b3f2f9cb19020977874de55346bb24b",
+  "candidate_outputs_edited": false,
+  "canonical_pems_cove_modified": false,
+  "runs": [
+    {"invocation":1,"case":"field-authority","validator":"pass","record_count":2,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":1,"case":"offline-runtime-split","validator":"pass","record_count":2,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":1,"case":"validation-demo-contract","validator":"pass","record_count":2,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":1,"case":"resource-loading-investigation","validator":"pass","record_count":2,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":1,"case":"deployed-ui-failure","validator":"pass","record_count":3,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+
+    {"invocation":2,"case":"field-authority","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":3,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":2,"case":"offline-runtime-split","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":3,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":2,"case":"validation-demo-contract","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":4,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":2,"case":"resource-loading-investigation","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":3,"relation_count":0,"scores":{"durable_recall":2,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":2,"compression":3,"total":16},"hard_failures":[],"missing_required_propositions":["uncertainty: unmeasured platforms or builds remain unverified"],"authority_certainty_notes":["The run preserved lack of measurements as an observation and derived a scoped claim, but did not retain the oracle-required uncertainty kind."]},
+    {"invocation":2,"case":"deployed-ui-failure","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":5,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+
+    {"invocation":3,"case":"field-authority","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":3,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":3,"case":"offline-runtime-split","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":3,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":3,"case":"validation-demo-contract","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":4,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]},
+    {"invocation":3,"case":"resource-loading-investigation","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":3,"relation_count":0,"scores":{"durable_recall":2,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":2,"compression":3,"total":16},"hard_failures":[],"missing_required_propositions":["uncertainty: unmeasured platforms or builds remain unverified"],"authority_certainty_notes":["The run preserved lack of measurements as an observation and derived a scoped claim, but did not retain the oracle-required uncertainty kind."]},
+    {"invocation":3,"case":"deployed-ui-failure","validator":"fail","validator_errors":["$.relations: must be omitted or be a non-empty array"],"record_count":5,"relation_count":0,"scores":{"durable_recall":3,"precision":3,"relation_integrity":3,"provenance":3,"authority_epistemic_safety":3,"compression":3,"total":18},"hard_failures":[]}
+  ],
+  "stability": {
+    "field-authority":{"required_propositions_present":"3/3","kind_relation_review_required":false,"stable_semantics":true},
+    "offline-runtime-split":{"required_propositions_present":"3/3","kind_relation_review_required":false,"stable_semantics":true},
+    "validation-demo-contract":{"required_propositions_present":"3/3","kind_relation_review_required":false,"stable_semantics":true,"note":"Factoring varies between one bundled decision and three atomic decisions, without changing normative meaning."},
+    "resource-loading-investigation":{"required_uncertainty_present":"1/3","kind_relation_review_required":true,"stable_semantics":false,"note":"Invocations 2 and 3 replace the explicit uncertainty with an observation about absent measurements plus a derived claim."},
+    "deployed-ui-failure":{"required_propositions_present":"3/3","kind_relation_review_required":false,"stable_semantics":true}
+  },
+  "phase1_stable": false,
+  "blocking_reasons": [
+    "Ten of fifteen fresh candidates fail deterministic validation because they emit an empty relations array instead of omitting it.",
+    "The resource-loading-investigation required uncertainty appears in only one of three independent runs, and the run-to-run kind disagreement requires review.",
+    "Invocations 2 and 3 resource-loading cases do not satisfy the acceptance requirement Authority / Epistemic Safety = 3."
+  ],
+  "next_gate": [
+    "Clarify or reinforce the producer instruction that optional empty collections must be omitted.",
+    "Clarify or reinforce that unmeasured platforms or builds remain an explicit uncertainty rather than being replaced by a measurement-absence observation.",
+    "Run at least three new fresh invocations after the producer correction; preserve the current raw candidates unchanged as failed evaluation evidence."
+  ]
+}
