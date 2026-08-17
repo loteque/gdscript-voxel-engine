@@ -1,0 +1,7 @@
+{
+  "contract": "rgp-admission-proof-request/1",
+  "submission_path": "docs/handoff/rgp/submissions/RGP-20260816T215500-0700-003.json",
+  "plan_path": "docs/handoff/rgp/admission/transactions/RGP-20260816T215500-0700-003.steward-008-v2.json",
+  "base_path": "docs/project-chat-handoff.json",
+  "evidence_key": "RGP-20260816T215500-0700-003.admission-008-v2"
+}
