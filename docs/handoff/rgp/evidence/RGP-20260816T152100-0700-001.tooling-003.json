@@ -1,0 +1,68 @@
+{
+  "evidence_id": "RGPE-20260816T174000-0700-003",
+  "submission_id": "RGP-20260816T152100-0700-001",
+  "responds_to_disposition": "RGPD-20260816T171759-0700-002",
+  "purpose": "Supply immutable replayable tooling for the two remaining provisional blockers without altering the candidate or prior dispositions.",
+  "validator_resolution": {
+    "declared_validator": "rgp-validator/1",
+    "contract": {
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "e667c9b7b96a617f4d188ca2aede1c032db0f368",
+      "path": "docs/handoff/rgp/validator/rgp_validator.py"
+    },
+    "documentation": {
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "7f3b3e82271a70457244c69426ec900d38b6766d",
+      "path": "docs/handoff/rgp/validator/README.md"
+    },
+    "replay_command": "python3 docs/handoff/rgp/validator/rgp_validator.py docs/handoff/rgp/submissions/RGP-20260816T152100-0700-001.json",
+    "semantics": "Deterministic structural validation only; no authority or admission effect."
+  },
+  "canonical_transaction_resolution": {
+    "contract": "rgp-pems2-admission-transaction/1",
+    "implementation": {
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "b100cc9ed91b9979f4d89fa761d8fc9409ee033d",
+      "path": "docs/handoff/rgp/admission/apply_admission_transaction.py"
+    },
+    "documentation": {
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "30fd7624f0f4bf7ae9b98818d598ae83b6ef21d9",
+      "path": "docs/handoff/rgp/admission/README.md"
+    },
+    "accepted_contract_inputs": {
+      "pems2_schema": {
+        "path": "docs/handoff/pems/v2/pems-v2.schema.json",
+        "blob": "0c3a2a0bc83869553171f063203fbbf16f7d7253"
+      },
+      "cove_jcs_encoding_precedent": {
+        "path": "docs/handoff/pems/v2/generate_cutover_candidate.py",
+        "blob": "64cda0479a4808fdd9ba125246c2b4514900a8a8"
+      }
+    },
+    "safety_properties": [
+      "Binds execution to an exact normalized PEMS/2 base SHA-256.",
+      "Requires Steward-supplied canonical IDs; the tool does not perform identity admission.",
+      "Fails on new record or relation ID collisions.",
+      "Fails on missing reused canonical records or dangling relation endpoints.",
+      "Requires derived propositions to have derived_from premise relations.",
+      "Enforces canonical contradiction endpoint order and rejects native legacy_untyped dependencies.",
+      "Validates the complete candidate against the normative PEMS/2 JSON Schema.",
+      "Emits complete PEMS/2 JCS and COVE/1|PEMS/2|JCS/1 candidate artifacts rather than patching canonical memory.",
+      "Proves COVE structural round trip and repeated deterministic PEMS/COVE bytes before emitting an admission proof.",
+      "Never writes canonical repository paths; Steward installation remains a separate authority step."
+    ],
+    "required_steward_input": "A complete rgp-pems2-admission-transaction/1 plan containing the exact current base hash, reused canonical record IDs, and complete new PEMS/2 record/relation envelopes chosen by authoritative reconciliation."
+  },
+  "prior_blockers_addressed": {
+    "RGP_VALIDATOR_SURFACE_NOT_REPLAYABLE": "tooling_supplied_for_independent_replay",
+    "CANONICAL_TRANSACTION_NOT_SAFELY_EXECUTABLE_ON_CURRENT_WRITE_SURFACE": "deterministic_complete-artifact_execution_surface_supplied"
+  },
+  "authority": {
+    "candidate_changed": false,
+    "prior_disposition_changed": false,
+    "canonical_memory_changed": false,
+    "admission_claimed": false
+  },
+  "requested_steward_action": "Independently replay rgp-validator/1, create the authoritative transaction plan from the already reconciled identities/provenance plus any required new canonical source chain, execute the deterministic admission tool against the exact current PEMS/2 base, inspect its proof and complete outputs, and issue a new superseding disposition."
+}
