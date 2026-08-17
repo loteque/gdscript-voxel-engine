@@ -1,0 +1,239 @@
+name: RGP Steward Admission Automation
+
+on:
+  push:
+    branches: [project-chat-handoff]
+    paths:
+      - 'docs/handoff/rgp/automation-requests/*.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rgp-steward-admission-project-chat-handoff
+  cancel-in-progress: false
+
+jobs:
+  automate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact approval commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependency
+        run: python -m pip install --disable-pip-version-check jsonschema==4.25.1
+
+      - name: Resolve isolated Steward approval request
+        id: request
+        shell: bash
+        env:
+          EXPECTED_APPROVER: loteque
+        run: |
+          set -euo pipefail
+          mapfile -t CHANGES < <(git diff-tree --no-commit-id --name-status -r "$GITHUB_SHA")
+          if [ "${#CHANGES[@]}" -ne 1 ]; then
+            echo "approval commit must contain exactly one changed path; found ${#CHANGES[@]}" >&2
+            printf '%s\n' "${CHANGES[@]}" >&2
+            exit 1
+          fi
+          STATUS="$(printf '%s\n' "${CHANGES[0]}" | awk '{print $1}')"
+          REQUEST="$(printf '%s\n' "${CHANGES[0]}" | awk '{print $2}')"
+          if [ "$STATUS" != "A" ] || [[ ! "$REQUEST" =~ ^docs/handoff/rgp/automation-requests/[^/]+\.json$ ]]; then
+            echo "approval commit must add exactly one automation request JSON" >&2
+            exit 1
+          fi
+          python3 - "$REQUEST" "$GITHUB_OUTPUT" "$GITHUB_ACTOR" "$EXPECTED_APPROVER" <<'PY'
+          import json, re, sys
+          from pathlib import Path, PurePosixPath
+
+          path = Path(sys.argv[1])
+          out = Path(sys.argv[2])
+          actor = sys.argv[3]
+          expected_approver = sys.argv[4]
+          req = json.loads(path.read_text(encoding='utf-8'))
+          if req.get('contract') != 'rgp-steward-admission-automation-request/1':
+              raise SystemExit('unsupported automation request contract')
+          if req.get('authority') != 'project-engineering-steward':
+              raise SystemExit('semantic authority must be project-engineering-steward')
+          if req.get('approved_by_github_actor') != expected_approver or actor != expected_approver:
+              raise SystemExit(f'approval actor mismatch: request={req.get("approved_by_github_actor")} event={actor}')
+          if req.get('approved') is not True:
+              raise SystemExit('request must explicitly set approved=true')
+          if not isinstance(req.get('install'), bool):
+              raise SystemExit('install must be boolean')
+
+          required = ['submission_path','plan_path','base_path','evidence_key']
+          for key in required:
+              if not isinstance(req.get(key), str) or not req[key]:
+                  raise SystemExit(f'missing/invalid {key}')
+
+          def safe(value, prefix):
+              p = PurePosixPath(value)
+              if p.is_absolute() or '..' in p.parts or not value.startswith(prefix):
+                  raise SystemExit(f'unsafe path: {value}')
+
+          safe(req['submission_path'], 'docs/handoff/rgp/submissions/')
+          safe(req['plan_path'], 'docs/handoff/rgp/admission/transactions/')
+          safe(req['base_path'], 'docs/')
+          if not re.fullmatch(r'[A-Za-z0-9._-]+', req['evidence_key']):
+              raise SystemExit('invalid evidence_key')
+
+          for key in required:
+              if not Path(req[key]).is_file():
+                  raise SystemExit(f'referenced file does not exist: {req[key]}')
+
+          values = {
+              'request_path': path.as_posix(),
+              'submission_path': req['submission_path'],
+              'plan_path': req['plan_path'],
+              'base_path': req['base_path'],
+              'evidence_key': req['evidence_key'],
+              'install': 'true' if req['install'] else 'false',
+          }
+          with out.open('a', encoding='utf-8') as f:
+              for key, value in values.items():
+                  f.write(f'{key}={value}\n')
+          print(json.dumps(req, indent=2, sort_keys=True))
+          PY
+
+      - name: Replay authoritative RGP validator
+        env:
+          SUBMISSION_PATH: ${{ steps.request.outputs.submission_path }}
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "runner-output/$EVIDENCE_KEY"
+          python3 docs/handoff/rgp/validator/rgp_validator.py "$SUBMISSION_PATH" \
+            | tee "runner-output/$EVIDENCE_KEY/rgp-validator.txt"
+
+      - name: Run guarded-update pressure tests
+        run: python3 docs/handoff/rgp/admission/test_admission_transaction_v2.py
+
+      - name: Execute deterministic Steward reconciliation proof
+        env:
+          PLAN_PATH: ${{ steps.request.outputs.plan_path }}
+          BASE_PATH: ${{ steps.request.outputs.base_path }}
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONTRACT="$(python3 - "$PLAN_PATH" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1], encoding='utf-8')).get('contract',''))
+          PY
+          )"
+          case "$CONTRACT" in
+            rgp-pems2-admission-transaction/1) TOOL=docs/handoff/rgp/admission/apply_admission_transaction.py ;;
+            rgp-pems2-admission-transaction/2) TOOL=docs/handoff/rgp/admission/apply_admission_transaction_v2.py ;;
+            *) echo "unsupported admission transaction contract: $CONTRACT" >&2; exit 1 ;;
+          esac
+          python3 "$TOOL" \
+            --base "$BASE_PATH" \
+            --plan "$PLAN_PATH" \
+            --schema docs/handoff/pems/v2/pems-v2.schema.json \
+            --out-dir "runner-output/$EVIDENCE_KEY" \
+            | tee "runner-output/$EVIDENCE_KEY/transaction.txt"
+
+      - name: Validate exact proof candidate
+        env:
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 docs/handoff/pems/v2/validate_pems2_contract.py \
+            --candidate "runner-output/$EVIDENCE_KEY/candidate.pems2.jcs.json" \
+            | tee "runner-output/$EVIDENCE_KEY/pems2-candidate-validation.txt"
+
+      - name: Record deterministic automation summary
+        env:
+          REQUEST_PATH: ${{ steps.request.outputs.request_path }}
+          SUBMISSION_PATH: ${{ steps.request.outputs.submission_path }}
+          PLAN_PATH: ${{ steps.request.outputs.plan_path }}
+          BASE_PATH: ${{ steps.request.outputs.base_path }}
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+          INSTALL: ${{ steps.request.outputs.install }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          key = os.environ['EVIDENCE_KEY']
+          out = Path('runner-output') / key
+          files = {}
+          for name in ['candidate.pems2.jcs.json','candidate.cove.json','admission-proof.json','rgp-validator.txt','transaction.txt','pems2-candidate-validation.txt']:
+              data = (out / name).read_bytes()
+              files[name] = {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
+          summary = {
+              'contract':'rgp-steward-admission-automation-evidence/1',
+              'status':'proof_passed',
+              'approval_commit':os.environ['GITHUB_SHA'],
+              'request_path':os.environ['REQUEST_PATH'],
+              'submission_path':os.environ['SUBMISSION_PATH'],
+              'plan_path':os.environ['PLAN_PATH'],
+              'base_path':os.environ['BASE_PATH'],
+              'evidence_key':key,
+              'install_authorized':os.environ['INSTALL'] == 'true',
+              'semantic_authority':'project-engineering-steward',
+              'canonical_written_during_proof':False,
+              'files':files,
+          }
+          (out / 'automation-summary.json').write_text(json.dumps(summary, sort_keys=True, separators=(',',':')), encoding='utf-8')
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Persist exact proof evidence in a separate commit
+        id: persist
+        env:
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE_DIR="docs/handoff/rgp/evidence/$EVIDENCE_KEY.runner-automation"
+          test ! -e "$EVIDENCE_DIR"
+          git fetch origin project-chat-handoff
+          REMOTE="$(git rev-parse refs/remotes/origin/project-chat-handoff)"
+          test "$REMOTE" = "$GITHUB_SHA" || { echo "branch moved before evidence persistence: $REMOTE" >&2; exit 1; }
+          mkdir -p "$EVIDENCE_DIR"
+          cp "runner-output/$EVIDENCE_KEY/"* "$EVIDENCE_DIR/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$EVIDENCE_DIR"
+          git commit -m "Persist Steward admission proof $EVIDENCE_KEY"
+          EVIDENCE_COMMIT="$(git rev-parse HEAD)"
+          git push origin HEAD:project-chat-handoff
+          echo "evidence_dir=$EVIDENCE_DIR" >> "$GITHUB_OUTPUT"
+          echo "evidence_commit=$EVIDENCE_COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Install exact persisted candidate bytes
+        if: steps.request.outputs.install == 'true'
+        env:
+          EVIDENCE_DIR: ${{ steps.persist.outputs.evidence_dir }}
+          EVIDENCE_COMMIT: ${{ steps.persist.outputs.evidence_commit }}
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin project-chat-handoff
+          REMOTE="$(git rev-parse refs/remotes/origin/project-chat-handoff)"
+          test "$REMOTE" = "$EVIDENCE_COMMIT" || { echo "branch moved before canonical installation: $REMOTE" >&2; exit 1; }
+          cmp -s "$EVIDENCE_DIR/candidate.pems2.jcs.json" docs/project-chat-handoff.json && { echo "authorized install is a no-op" >&2; exit 1; }
+          python3 docs/handoff/pems/v2/validate_pems2_contract.py --candidate "$EVIDENCE_DIR/candidate.pems2.jcs.json"
+          cp "$EVIDENCE_DIR/candidate.pems2.jcs.json" docs/project-chat-handoff.json
+          cp "$EVIDENCE_DIR/candidate.cove.json" docs/project-chat-handoff.cove.json
+          git add docs/project-chat-handoff.json docs/project-chat-handoff.cove.json
+          git diff --cached --quiet && { echo "no canonical bytes changed" >&2; exit 1; }
+          git commit -m "Install Steward-approved RGP candidate $EVIDENCE_KEY"
+          INSTALL_COMMIT="$(git rev-parse HEAD)"
+          git push origin HEAD:project-chat-handoff
+          test "$(git hash-object docs/project-chat-handoff.json)" = "$(git hash-object "$EVIDENCE_DIR/candidate.pems2.jcs.json")"
+          test "$(git hash-object docs/project-chat-handoff.cove.json)" = "$(git hash-object "$EVIDENCE_DIR/candidate.cove.json")"
+          echo "installed exact candidate at $INSTALL_COMMIT"
