@@ -1,0 +1,92 @@
+{
+  "disposition_id": "RGPD-20260816T214100-0700-007",
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "created_at": "2026-08-16T21:41:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "admitted",
+  "supersedes_disposition": "RGPD-20260816T194400-0700-006",
+  "canonical_snapshot": {
+    "pre_install_branch_head": "bff31f8df1a9a2ee71752aa22527a7a969bee2e9",
+    "pre_install_pems2_blob": "303e6219bdde775481c1093dec6d6382213e6dde",
+    "pre_install_cove_blob": "f4afac03f16517b2d977e143836821521527faf1",
+    "base_normalized_pems_sha256": "aeba21697477ccb667d8dd31124ed7dc64d0887b2cadf3b1188a07b0005b2a4e",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "proof": {
+    "workflow_run": 31993774695,
+    "artifact_id": 9276157458,
+    "repository_evidence_commit": "bff31f8df1a9a2ee71752aa22527a7a969bee2e9",
+    "evidence_directory": "docs/handoff/rgp/evidence/RGP-20260816T190100-0700-002.admission-006.runner-artifact",
+    "pems2_sha256": "8fc0fca86c5c04496470e1a73820a70d485c5cb806f19c8dc85af87b927c9155",
+    "cove_sha256": "5a434b5fe939ede998a1f6a03b1050a7de089b5650ebeed3f9f1259557f114b5",
+    "pems_schema_valid": true,
+    "cove_structural_round_trip": true,
+    "repeated_pems_bytes_identical": true,
+    "repeated_cove_bytes_identical": true,
+    "dangling_relation_endpoints": 0,
+    "record_ids_unique": true,
+    "relation_ids_unique": true,
+    "contradictions_canonicalized": true,
+    "derived_propositions_have_premises": true
+  },
+  "candidate_results": {
+    "r1": "admitted_historical_observation",
+    "r2": "admitted_current_observation",
+    "r3": "admitted_assumption",
+    "r4": "admitted_open_unresolved_item",
+    "r5": "admitted_derived_claim",
+    "r6": "admitted_current_observation",
+    "r7": "rejected_unsupported_universal_generalization"
+  },
+  "record_map": {
+    "r1": "pems:proposition:7fd6f40c408d41c2e6e5",
+    "r2": "pems:proposition:8b9f0d3af665298b7959",
+    "r3": "pems:proposition:97ee9d0d6e6cc6f90797",
+    "r4": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+    "r5": "pems:proposition:253012b9436691d7f6fd",
+    "r6": "pems:proposition:cb5ce5d414a043cc68f5"
+  },
+  "relation_map": {
+    "r2_contradicts_r1": "pems:relation:6cbd8786ab5055bbbcd7",
+    "r2_supersedes_r1": "pems:relation:3654afa607e6fb5db11d",
+    "r5_derived_from_r2": "pems:relation:75166ee4bacb687bd13d",
+    "r5_derived_from_r3": "pems:relation:6f895a3105dd0567d15c",
+    "r5_depends_on_r6": "pems:relation:d05f3ff845a915222b17"
+  },
+  "provenance_reconciliation": {
+    "r1_source": "pems:source:134fb5da998bf8c8126c",
+    "r1_source_observation": "pems:source_observation:327d701bbe500a65277d",
+    "r2_r3_r4_r6_source": "pems:source:9e6e2f39f397a9cd8633",
+    "r2_r3_r4_r6_source_observation": "pems:source_observation:55f10a283d7d18942016"
+  },
+  "semantic_findings": [
+    "r3 remains an assumption and is not promoted to established fact.",
+    "r4 remains uncertainty and is represented as a current open unresolved_item.",
+    "r2 contradicts r1 and separately supersedes r1; the two relations remain distinct.",
+    "r5 is derived_from r2 and r3 and separately depends_on r6 with conditional_validity semantics.",
+    "r7 remains rejected because the successful non-no-op proof establishes this transaction, not universal correctness for every future transaction."
+  ],
+  "canonical_installation": {
+    "commit": "64fc0c3197f2a896c844ba442dfd12ee43620e27",
+    "canonical_pems2_blob": "71353ef28b7a3b4bbcbfbd73253580de785d9f4e",
+    "canonical_cove_blob": "bb53509105a88e46625d09fb15020e233cff38ba",
+    "exact_evidence_blobs_installed": true,
+    "post_install_exact_blob_verification": true,
+    "unrelated_tree_content_preserved": true,
+    "production_main_changed": false
+  },
+  "graph_integrity": "passed",
+  "reason_codes": [
+    "RGP_VALIDATOR_PASSED",
+    "SEMANTIC_IDENTITIES_RECONCILED",
+    "CANONICAL_PROVENANCE_RESOLVED",
+    "UNCERTAINTY_LOSSLESSLY_REPRESENTED",
+    "NON_NOOP_TRANSACTION_PROOF_PASSED",
+    "GRAPH_INTEGRITY_PASSED",
+    "PEMS2_COVE_JCS_DETERMINISM_PASSED",
+    "EXACT_CANDIDATE_BYTES_INSTALLED",
+    "POST_INSTALL_VERIFICATION_PASSED",
+    "R7_REJECTED",
+    "TRIAL_2_ADMITTED"
+  ]
+}
