@@ -1,0 +1,27 @@
+{
+  "records": [
+    {
+      "temp_id": "r1",
+      "kind": "observation",
+      "statement": "The resource-loading investigation measured only the supplied loading stages.",
+      "provenance": {
+        "primary": ["eval:phase1:resource-loading-investigation:investigation"]
+      }
+    },
+    {
+      "temp_id": "r2",
+      "kind": "observation",
+      "statement": "No measurements were supplied for other platforms or builds.",
+      "provenance": {
+        "primary": ["eval:phase1:resource-loading-investigation:investigation"]
+      }
+    },
+    {
+      "temp_id": "r3",
+      "kind": "claim",
+      "statement": "The supplied evidence does not establish universal causality.",
+      "premise": ["r1", "r2"]
+    }
+  ],
+  "relations": []
+}
