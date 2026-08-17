@@ -1,0 +1,110 @@
+{
+  "disposition_id": "RGPD-20260816T171759-0700-002",
+  "submission_id": "RGP-20260816T152100-0700-001",
+  "created_at": "2026-08-16T17:17:59-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "provisional",
+  "supersedes_disposition": "docs/handoff/rgp/dispositions/RGP-20260816T152100-0700-001.steward.json",
+  "supersedes_disposition_blob": "898c10828603ec61c7fb3a17836154ac821ab8ae",
+  "submission_snapshot": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T152100-0700-001.json",
+    "blob": "c6aebafed624c8231696770b48efae285e44a0b6",
+    "evidence_commit": "372f1a64f38f46a7a24d9602274ec7d1797d6bc5"
+  },
+  "evidence_bundle": {
+    "path": "docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.evidence.json",
+    "blob": "e4c228cb480f768610e220b71a1f406b945b17ce"
+  },
+  "canonical_snapshot": {
+    "branch_commit": "2d6d9f120a237c52e6adcff814cdaf43da034712",
+    "semantic": "pems/2",
+    "cove_contract": "cove/1",
+    "serializer_contract": "jcs/1",
+    "cove_blob": "a6bd37d0a253241c5c217d684b6604e47c0ed72a",
+    "expanded_blob": "876b24888dbf9c8f66126be8eacf2cd299a41cd9",
+    "record_count": 174,
+    "relation_count": 0
+  },
+  "prior_blocker_resolution": {
+    "trial_not_independently_reconciled": "resolved",
+    "canonical_provenance_resolution_not_verified": "partially_resolved",
+    "graph_identity_integrity_not_verified": "resolved"
+  },
+  "identity_reconciliation": {
+    "r1": {
+      "result": "new_identity_required_if_admitted",
+      "kind": "proposition",
+      "proposition_kind": "observation",
+      "epistemic_role": "asserted"
+    },
+    "r2": {
+      "result": "new_identity_required_if_admitted",
+      "kind": "proposition",
+      "proposition_kind": "observation",
+      "epistemic_role": "asserted"
+    },
+    "r3": {
+      "result": "new_identity_required_if_admitted",
+      "kind": "proposition",
+      "proposition_kind": "claim",
+      "epistemic_role": "derived"
+    },
+    "r4": {
+      "result": "reuse_existing_identity_if_admitted",
+      "canonical_id": "pems:decision:2197184a0ef4b2a120e4",
+      "verified_exact_statement_match": true,
+      "verified_lifecycle": "current",
+      "verified_decision_state": "accepted"
+    }
+  },
+  "provenance_reconciliation": {
+    "r4": {
+      "status": "resolved_existing",
+      "source_observation_id": "pems:source_observation:be6819991bf46e7cc226"
+    },
+    "r1_r2": {
+      "status": "immutable_external_evidence_verified_new_canonical_source_chain_required_if_admitted",
+      "repository": "loteque/gdscript-voxel-engine",
+      "commit": "da59ddaa352f09d6e64908c458d7e61e1fae61fd",
+      "path": "docs/handoff/rgp/SUBMISSION_PROTOCOL.md",
+      "git_blob": "0df2d40146a30b163ff78bd445cc2b52d5cb2221",
+      "existing_canonical_source_match": false,
+      "existing_canonical_source_observation_match": false
+    }
+  },
+  "graph_integrity": {
+    "status": "semantically_reconciled_pending_atomic_persistence",
+    "required_record_transaction": ["r1", "r2", "r3", "r4"],
+    "required_pems2_relations_if_admitted": [
+      {"from": "r3", "kind": "derived_from", "to": "r2"},
+      {"from": "r1", "kind": "supports", "to": "r3"},
+      {"from": "pems:decision:2197184a0ef4b2a120e4", "kind": "supports", "to": "r3"}
+    ],
+    "dangling_candidate_premises": 0,
+    "dangling_candidate_relation_endpoints": 0,
+    "duplicate_exact_canonical_statement_matches_for_r1_r3": 0,
+    "supersession_required": false,
+    "partial_persistence_permitted": false
+  },
+  "canonical_mutation": "withheld",
+  "reason_codes": [
+    "RGP_VALIDATOR_SURFACE_NOT_REPLAYABLE",
+    "CANONICAL_TRANSACTION_NOT_SAFELY_EXECUTABLE_ON_CURRENT_WRITE_SURFACE"
+  ],
+  "remaining_blockers": [
+    {
+      "code": "RGP_VALIDATOR_SURFACE_NOT_REPLAYABLE",
+      "detail": "The submission declares validator rgp-validator/1, but no immutable repository validator/schema implementation corresponding to that declared validator was discoverable on the current project-chat-handoff state. The Steward independently inspected the envelope and graph against the current RGP Engineer directive and found no structural graph defect, but cannot truthfully claim deterministic validator replay."
+    },
+    {
+      "code": "CANONICAL_TRANSACTION_NOT_SAFELY_EXECUTABLE_ON_CURRENT_WRITE_SURFACE",
+      "detail": "Admission requires one atomic connected-graph mutation plus canonical PEMS/2 normalization, COVE/1 regeneration, JCS/1 deterministic bytes, semantic/graph validation, and round-trip proof. The current connected write surface provides complete-file/blob writes but no repository-native execution/patch transform for the accepted canonical generator. Manually retranscribing or reconstructing the 174-record canonical artifact into replacement payloads would violate Steward complete-source and deterministic-write safety."
+    }
+  ],
+  "required_resolution_evidence": [
+    "An immutable, repository-addressable rgp-validator/1 validation surface sufficient for independent replay of this exact submission, or an accepted protocol revision that identifies the authoritative replay surface unambiguously.",
+    "A safe deterministic canonical admission execution path that consumes the exact current canonical PEMS/2 snapshot plus this reconciled transaction and emits/validates the complete PEMS/2, COVE/1, and JCS/1 artifacts with exact hashes, graph-integrity proof, and round-trip evidence before Steward canonical installation."
+  ],
+  "authoritative_effect": "none",
+  "human_reasoning": "The new immutable evidence resolves the substantive identity question and most provenance/graph questions: r4 is independently verified as the existing accepted current decision, r1-r3 are not exact canonical duplicates, the protocol source is immutable Git evidence, and the connected PEMS/2 graph can be represented without dangling references if admitted atomically. The trial still cannot be marked admitted because deterministic producer validation cannot be independently replayed from a named repository validation surface, and the current Steward tool surface cannot safely execute and prove the required full canonical PEMS/2/COVE transaction. Admission status is governance state, so technically plausible mappings are not persisted piecemeal or treated as canonical until the complete transaction can be validated and written safely."
+}
