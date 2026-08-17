@@ -1,0 +1,16 @@
+{
+  "contract": "rgp-proof-artifact-persist-request/1",
+  "artifact_id": 9282041637,
+  "source_run_id": 32011861367,
+  "source_head_sha": "8f142bb223dbebef250606706c82a4f7d78a2712",
+  "evidence_dir": "docs/handoff/rgp/evidence/RGP-20260817T013000-0700-005.admission-014.runner-artifact",
+  "expected_files": {
+    "admission-proof.json": "39eb0c4dcd02a5fbe57108bae6b46ad12fde707f6760d7946900e2f94d38d2b9",
+    "candidate.cove.json": "d9b6590580a83f7120684f17a2b793bdbce15d73902516dd5b028ba35a6165a1",
+    "candidate.pems2.jcs.json": "8f6e0c2141b83f1f50fad7b6e7eda44176ce7b4a59f5a07940a0a64c2bac7edf",
+    "pems2-candidate-validation.txt": "24733c848375f4fd59937dfbcba8fd33ad9ab9d3bdccddf4a76ad5dc0c42091d",
+    "rgp-validator.txt": "fb46910f163e6e507068095274e9601425452627b43aee3b469077d02401e021",
+    "runner-summary.json": "ac0a6853261e5f8c599dba7f2c2bcd5fbcdde357c769ccb00dbcae57eca515a5",
+    "transaction.txt": "c7daf9fd16c0b0e7b229aaddfc73ac043a9ca5a42b0cd272ab0b22ee15ccf8a2"
+  }
+}
