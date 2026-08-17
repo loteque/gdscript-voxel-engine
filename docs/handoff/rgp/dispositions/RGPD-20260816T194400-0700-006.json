@@ -1,0 +1,109 @@
+{
+  "disposition_id": "RGPD-20260816T194400-0700-006",
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "created_at": "2026-08-16T19:44:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "provisional",
+  "supersedes_disposition": "RGPD-20260816T192600-0700-005",
+  "canonical_snapshot": {
+    "branch_head": "8f22ecda3c0524d8331af4c8643d419b1c2f5642",
+    "canonical_pems2_blob": "303e6219bdde775481c1093dec6d6382213e6dde",
+    "canonical_cove_blob": "f4afac03f16517b2d977e143836821521527faf1",
+    "normalized_pems_sha256": "aeba21697477ccb667d8dd31124ed7dc64d0887b2cadf3b1188a07b0005b2a4e",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "submission": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T190100-0700-002.json",
+    "blob": "4045b4577613cb3532742b79b80ff6196f207f0e",
+    "validator": "rgp-validator/1",
+    "validator_blob": "5675c652b6ad894fe3e1388a4290d2965b2540a0",
+    "replay_status": "previously_passed_and_submission_bytes_unchanged"
+  },
+  "architect_resolution": {
+    "contract_path": "docs/handoff/pems/v2/RGP_UNCERTAINTY_IMPORT.md",
+    "contract_blob": "86ab2afcc43fff7e6285e2bccb1b42c1be3cf737",
+    "evidence_path": "docs/handoff/pems/v2/RGP_UNCERTAINTY_IMPORT_EVIDENCE.json",
+    "evidence_blob": "aeb3af60f8c013ae4c0cfef0e5a4906b7426e1c2",
+    "representation_blocker_resolved": true,
+    "r4_mapping": "RGP uncertainty -> PEMS/2 unresolved_item, lifecycle current, resolution_state open"
+  },
+  "candidate_results": {
+    "r1": "semantically_admissible_as_historical_observation_pending_transaction_proof",
+    "r2": "semantically_admissible_current_observation_pending_transaction_proof",
+    "r3": "semantically_admissible_assumption_pending_transaction_proof",
+    "r4": "semantically_admissible_open_unresolved_item_pending_transaction_proof",
+    "r5": "semantically_admissible_derived_claim_pending_transaction_proof",
+    "r6": "semantically_admissible_current_observation_pending_transaction_proof",
+    "r7": "rejected_unsupported_universal_generalization"
+  },
+  "record_map": {
+    "r1": "pems:proposition:7fd6f40c408d41c2e6e5",
+    "r2": "pems:proposition:8b9f0d3af665298b7959",
+    "r3": "pems:proposition:97ee9d0d6e6cc6f90797",
+    "r4": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+    "r5": "pems:proposition:253012b9436691d7f6fd",
+    "r6": "pems:proposition:cb5ce5d414a043cc68f5"
+  },
+  "relation_map": {
+    "r2_contradicts_r1": "pems:relation:6cbd8786ab5055bbbcd7",
+    "r2_supersedes_r1": "pems:relation:3654afa607e6fb5db11d",
+    "r5_derived_from_r2": "pems:relation:75166ee4bacb687bd13d",
+    "r5_derived_from_r3": "pems:relation:6f895a3105dd0567d15c",
+    "r5_depends_on_r6": "pems:relation:d05f3ff845a915222b17"
+  },
+  "provenance_reconciliation": {
+    "r1_source": "pems:source:134fb5da998bf8c8126c",
+    "r1_source_observation": "pems:source_observation:327d701bbe500a65277d",
+    "r2_r3_r4_r6_source": "pems:source:9e6e2f39f397a9cd8633",
+    "r2_r3_r4_r6_source_observation": "pems:source_observation:55f10a283d7d18942016",
+    "immutable_inputs": [
+      {
+        "commit": "2166793849b7670c72d840ccebaf4866d27f64f3",
+        "path": "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
+        "blob": "24dec513a43fc95c8fbda186260f61f27c3cfad2"
+      },
+      {
+        "commit": "b87a080a7273b14a4506976a1c9a534a943dbb20",
+        "path": "docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md",
+        "blob": "d53b49792a645d5775a15fea980b671d74b922f3"
+      }
+    ]
+  },
+  "semantic_findings": [
+    "r1 is preserved as historical observation rather than erased; r2 both contradicts and supersedes it.",
+    "r3 remains an assumption and is not promoted to established fact.",
+    "r4 remains uncertainty and is represented losslessly as a current open unresolved_item under the Architect-owned compatibility profile.",
+    "r5 is derived_from both r2 and r3; its depends_on r6 relation remains distinct conditional_validity semantics.",
+    "contradicts and supersedes remain distinct and coexist.",
+    "r7 remains rejected because the no-op self-test does not establish correctness for every future non-no-op transaction."
+  ],
+  "admission_transaction": {
+    "plan_path": "docs/handoff/rgp/admission/transactions/RGP-20260816T190100-0700-002.steward-006.json",
+    "plan_blob": "7f951e2d1debc6c5a6a57111346117f880cab83b",
+    "contract": "rgp-pems2-admission-transaction/1",
+    "execution_status": "not_executed",
+    "canonical_mutation": "withheld"
+  },
+  "execution_blocker": {
+    "code": "STANDING_PROOF_WORKFLOW_NOT_INVOKABLE_FROM_CURRENT_STEWARD_TOOL_SURFACE",
+    "detail": "The repository standing proof workflow requires workflow_dispatch or workflow_call for a non-no-op transaction. The connected GitHub surface available to this activation supports workflow inspection and reruns but exposes no workflow-dispatch operation. The local execution environment also cannot resolve github.com, so exact repository bytes cannot be safely acquired there to run the transaction tool. Modifying Architect/RGP-owned workflow or admission tooling merely to trigger a run would exceed Steward ownership and is not authorized.",
+    "safety_effect": "The Steward refuses manual reconstruction of canonical PEMS/COVE or an unproved canonical installation."
+  },
+  "graph_integrity": "semantic_graph_reconciled_transaction_plan_complete_but_unproved",
+  "validation": {
+    "pems2_candidate_validation": "not_run_no_candidate_generated",
+    "cove_round_trip": "not_run_no_candidate_generated",
+    "jcs_generation": "not_run_no_candidate_generated"
+  },
+  "reason_codes": [
+    "RGP_SUBMISSION_BYTES_UNCHANGED",
+    "RGP_UNCERTAINTY_REVERSE_IMPORT_NORMATIVELY_RESOLVED",
+    "SEMANTIC_IDENTITIES_RECONCILED",
+    "CANONICAL_PROVENANCE_RESOLVED",
+    "R7_UNSUPPORTED_UNIVERSAL_GENERALIZATION_REJECTED",
+    "ADMISSION_TRANSACTION_PLAN_AUTHORED",
+    "TRANSACTION_PROOF_EXECUTION_UNAVAILABLE",
+    "CANONICAL_MUTATION_WITHHELD"
+  ],
+  "next_gate": "Execute the committed transaction plan through the standing RGP Admission Proof workflow or an equivalently exact execution of the accepted transaction tool. Only a passing exact-base, schema, graph, deterministic COVE/JCS and round-trip proof permits a subsequent admitted disposition and canonical installation."
+}
