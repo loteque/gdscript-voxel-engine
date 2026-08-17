@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Distiller Operations</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Reasoning Distiller · project-chat-handoff</p>
+        <h1>Operations Dashboard</h1>
+        <p class="lede">Read-only telemetry for Distiller candidates, Steward reconciliation, deterministic proof, and canonical installation.</p>
+      </div>
+      <div id="live-badge" class="badge neutral">Loading live status…</div>
+    </header>
+
+    <section class="authority card">
+      <strong>Authority boundary</strong>
+      <span>Distiller produces candidates.</span>
+      <span>Project Engineering Steward reconciles and authorizes.</span>
+      <span>Automation proves and executes only.</span>
+    </section>
+
+    <section id="summary" class="stat-grid"></section>
+
+    <section class="grid two">
+      <article class="card">
+        <div class="section-head"><h2>Pipeline status</h2><span>repository-derived</span></div>
+        <div id="pipeline-chart" class="chart"></div>
+      </article>
+      <article class="card">
+        <div class="section-head"><h2>Proof transaction mix</h2><span>persisted evidence</span></div>
+        <div id="proof-chart" class="chart"></div>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card">
+        <div class="section-head"><h2>Test evidence</h2><span>PASS / FAIL lines</span></div>
+        <div id="test-chart" class="chart"></div>
+      </article>
+      <article class="card">
+        <div class="section-head"><h2>GitHub Actions</h2><span>live overlay</span></div>
+        <div id="actions" class="actions-list">Loading…</div>
+      </article>
+    </section>
+
+    <section class="card">
+      <div class="section-head"><h2>Admission queue</h2><span id="generated-at"></span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Submission</th><th>Status</th><th>Plans</th><th>Requests</th><th>Proofs</th><th>Dispositions</th></tr></thead>
+          <tbody id="queue"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="./app.js"></script>
+</body>
+</html>
