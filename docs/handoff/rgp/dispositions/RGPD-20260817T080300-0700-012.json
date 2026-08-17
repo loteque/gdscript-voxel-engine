@@ -1,0 +1,98 @@
+{
+  "disposition_id": "RGPD-20260817T080300-0700-012",
+  "submission_id": "RGP-20260817T073100-0700-007",
+  "created_at": "2026-08-17T08:03:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "admitted",
+  "submission": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260817T073100-0700-007.json",
+    "blob": "f56b885d235896986b8d64fa2ef28caa444a8eb0",
+    "rgp_version": "rgp/1",
+    "validator": "rgp-validator/1"
+  },
+  "canonical_snapshot": {
+    "pre_install_pems2_blob": "807ccc0fa708966ee300053738f16fc086994094",
+    "pre_install_cove_blob": "085d7b211529e4d313ebb10f60f6592ef0646c9c",
+    "base_normalized_pems_sha256": "86288d731731c2cb0e01e1f17fd59b6506b9e79a6078921e3da630a50fea09cd",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "proof": {
+    "workflow_run": 32040766845,
+    "artifact_id": 9291905078,
+    "repository_evidence_commit": "893e36ce8ce213ab204812facda505d49ff3d593",
+    "evidence_directory": "docs/handoff/rgp/evidence/RGP-20260817T073100-0700-007.admission-016-v2.runner-artifact",
+    "transaction_contract": "rgp-pems2-admission-transaction/2",
+    "pems2_sha256": "07818a18e982bd0dd58d0273dfac4715212ffbfcd8c5ce89cad129ebf195c7a2",
+    "cove_sha256": "7e9e1c77222df7e5ccbf7b508b0af574c79773b74c8ea1066c156afa4e0458a6",
+    "pems_schema_valid": true,
+    "base_exact_match": true,
+    "record_update_before_states_exact": true,
+    "record_identity_preserved": true,
+    "record_kind_preserved": true,
+    "graph_integrity_passed": true,
+    "repeated_pems_bytes_identical": true,
+    "repeated_cove_bytes_identical": true,
+    "canonical_written_by_proof_runner": false
+  },
+  "record_map": {
+    "r1": "pems:proposition:65f78e7f4109a723ebd1",
+    "r2": "pems:proposition:46842a30062ed52d579c",
+    "r3": "pems:proposition:2f835b519a295141a201",
+    "r4": "pems:decision:e7b384909352ef0ee65c",
+    "r5": "pems:unresolved_item:fe7a5220140a5fd6527c"
+  },
+  "identity_reconciliation": {
+    "r1": "new_distinct_identity_quantitative_latency_observation",
+    "r2": "new_distinct_identity_accepted_run_metrics_observation",
+    "r3": "semantic_reuse_existing_scaling_pressure_observation",
+    "r4": "semantic_reuse_existing_resource_loading_ahead_of_lod_decision",
+    "r5": "semantic_reuse_existing_unresolved_loading_latency_cause"
+  },
+  "provenance_reconciliation": {
+    "performance_report_source": "pems:source:acc8077cfbdc4d2daf3a",
+    "performance_report_observation": "pems:source_observation:2dc69352f16d6b19d15f",
+    "pr49_source": "pems:source:347cc1f8dc37dba9a3a1",
+    "pr49_observation": "pems:source_observation:c1f2072d646556c7ef46",
+    "reused_resource_loading_decision_enriched": true
+  },
+  "reused_record_updates": [
+    {
+      "record_id": "pems:decision:e7b384909352ef0ee65c",
+      "before_sha256": "80430d0e86b3d71b089b3200e934553e5b507ba2d0760e644a735f46c7e3e2b6",
+      "after_sha256": "f756fc149f2a8b09b389ce1e74d30e7b474a9b8fa74e1c50eb45a36d4a7d10cc",
+      "identity_preserved": true,
+      "kind_preserved": true
+    }
+  ],
+  "semantic_findings": [
+    "The approximately 2.2-second average latency remains a measured observation tied to the accepted mobile-Web baseline rather than a universal performance claim.",
+    "The accepted-run failure, cancellation, residency, and memory measurements remain scoped observations.",
+    "The scaling-pressure inference reuses existing canonical meaning rather than creating duplicate canonical churn.",
+    "The unresolved internal composition of loading latency remains an open unresolved item rather than being promoted into a causal explanation.",
+    "The resource-loading-before-LOD decision reuses existing canonical identity and gains stronger typed provenance from the performance report and PR #49."
+  ],
+  "canonical_installation": {
+    "workflow_run": 32041067475,
+    "commit": "a841f0971111893556cea9f5ee4ba490a71eff39",
+    "canonical_pems2_blob": "b5a3490b0e1e9dafab1c4b8dbdd6fcabd0dca7c0",
+    "canonical_cove_blob": "25f13eecef75385f938d84e3e3620503df9796c8",
+    "exact_evidence_blobs_installed": true,
+    "post_install_exact_blob_verification": true,
+    "production_main_changed": false
+  },
+  "graph_integrity": "passed",
+  "canonical_mutation": "performed",
+  "reason_codes": [
+    "RGP_STRUCTURE_ACCEPTED",
+    "QUANTITATIVE_EVIDENCE_SCOPE_PRESERVED",
+    "UNCERTAINTY_PRESERVED_AS_UNRESOLVED_ITEM",
+    "SEMANTIC_IDENTITY_REUSE_PRESERVED",
+    "TYPED_PROVENANCE_RECONCILED",
+    "REUSED_RECORD_GUARDED_UPDATE_PROVED",
+    "EXACT_BASE_MATCH_PASSED",
+    "GRAPH_INTEGRITY_PASSED",
+    "PEMS2_COVE_JCS_DETERMINISM_PASSED",
+    "EXACT_CANDIDATE_BYTES_INSTALLED",
+    "PHASE4_ROUTINE_TRIAL_3_ADMITTED"
+  ]
+}
