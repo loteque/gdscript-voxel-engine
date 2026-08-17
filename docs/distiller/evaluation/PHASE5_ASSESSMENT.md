@@ -2,17 +2,17 @@
 
 Date: 2026-08-17
 Contract: `rgp/1`
-Status: **PASS — mechanical admission executor established; reconciliation authorization is external**
+Status: **PASS — Steward-governed mechanical admission automation established**
 
 ## Entry condition
 
-Phase 4 passed after three routine guarded admissions covering mixed semantic reuse/new meaning, unresolved investigation evidence, and quantitative performance evidence. In every Phase-4 trial the Distiller remained a non-authoritative producer and proof/install remained deterministic, exact-base, and auditable.
+Phase 4 passed after three routine Steward-governed admissions covering mixed semantic reuse/new meaning, unresolved investigation evidence, and quantitative performance evidence. In every Phase-4 trial the Distiller remained a non-authoritative producer and proof/install remained deterministic, exact-base, and auditable.
 
 ## Mechanical automation demonstrated
 
 Phase 5 added `.github/workflows/rgp-steward-admission-automation.yml` and the governance contract in `docs/distiller/PHASE5_AUTOMATION.md`.
 
-The original Phase-5 trials demonstrated that the repository can automate the mechanical path after a reconciliation plan exists:
+The Phase-5 trials demonstrated that the repository can automate the mechanical path after a Steward reconciliation plan exists:
 
 - RGP validation;
 - guarded-update pressure tests;
@@ -25,25 +25,17 @@ The original Phase-5 trials demonstrated that the repository can automate the me
 
 The proof-only dry run and live documentation-release-policy trial remain valid evidence for those mechanical properties.
 
-## Authority-model correction
+## Correct authority model
 
-The original Phase-5 request contract represented semantic authority as repository-local `project-engineering-steward` approval bound to GitHub actor `loteque`.
+**The Project Engineering Steward owns semantic reconciliation authority. The Distiller does not.**
 
-That representation conflated two different concerns and is now superseded for new runs.
+The Distiller produces immutable candidate RGP only. It does not decide semantic identity, canonical reuse, lifecycle, provenance sufficiency, uncertainty resolution, record updates, or admission.
 
-**Intended governance:** reconciliation authorization belongs to an external authority. The repository workflow is an executor, not a reconciliation authority.
+The Steward performs those authority-bearing decisions and encodes them in the reconciliation transaction and disposition. The repository workflow executes the resulting plan deterministically and fails closed on invalid, stale, or concurrently displaced state.
 
-The corrected request contract is `rgp-admission-execution-request/2`.
+The GitHub execution actor protects the repository execution/write surface; it does not transfer reconciliation authority to the Distiller or workflow.
 
-A new execution request must provide an `external_reconciliation_authorization` object containing:
-
-- `authority_class: "external"`;
-- an opaque external authorization reference;
-- a `sha256:<digest>` binding that authorization to the exact committed reconciliation plan.
-
-The workflow verifies the exact plan digest and then performs deterministic execution. It does not decide whether the external authority was semantically correct, who should hold that authority, or whether reconciliation should have been authorized.
-
-The GitHub actor check now protects only the repository execution/write surface. It is explicitly **not** reconciliation authorization.
+The current execution-request contract is `rgp-steward-admission-execution-request/3`, which declares `reconciliation_authority = "project-engineering-steward"` and binds execution to the exact committed Steward plan digest.
 
 ## Historical proof-only pressure run
 
@@ -53,11 +45,11 @@ The workflow was corrected without modifying that failed request. A new immutabl
 
 **PASS.** The corrected dry run successfully completed validation, pressure tests, exact-base deterministic proof, candidate validation, deterministic evidence generation, and separate proof-evidence persistence while canonical installation remained skipped.
 
-## Historical live automation trial — documentation release policy
+## Live automation trial — documentation release policy
 
 Submission: `RGP-20260817T091500-0700-008`.
 
-The submitted candidate graph was unchanged from the Phase-3 `docs-release-policy` shadow candidate. The reconciliation plan admitted the four policy/validation meanings plus typed PR #51 source records against a 218-record / 14-relation base.
+The submitted candidate graph was unchanged from the Phase-3 `docs-release-policy` shadow candidate. The Steward reconciliation plan admitted the four policy/validation meanings plus typed PR #51 source records against a 218-record / 14-relation base.
 
 Workflow run `32044753159` passed all mechanical stages. The deterministic proof established:
 
@@ -72,24 +64,20 @@ Workflow run `32044753159` passed all mechanical stages. The deterministic proof
 
 The proof bundle was persisted first in commit `f512792f5e39f78fe437f6373ec93c3932f64a9d`, and the exact persisted candidate bytes were then installed in commit `6e908a125582f49a20def9dbc656b104d9651b06`.
 
-Those historical artifacts are retained unchanged. They prove the mechanical pipeline, not the corrected external-authorization interface.
-
 ## Current Phase-5 boundary
 
-**PASS for mechanical execution.**
+**PASS.**
 
-The repository now enforces the intended separation for new requests:
+The intended separation is:
 
-- Distiller: produces candidate RGP only;
-- external authority: authorizes semantic reconciliation;
-- committed reconciliation plan: carries the exact semantic choices;
-- repository executor: validates plan binding and performs deterministic proof/persist/install mechanics;
+- Distiller: non-authoritative candidate producer;
+- Project Engineering Steward: semantic reconciliation and admission authority;
+- committed Steward transaction: exact semantic choices;
+- repository executor: deterministic validation/proof/persist/install mechanics;
 - canonical installation: exact-base, evidence-before-install, byte-for-byte.
 
-The repository does not self-authorize reconciliation and does not grant the Distiller reconciliation authority.
+An intermediate documentation revision incorrectly described reconciliation authority as external to the Steward. That interpretation is superseded and is not part of the intended design.
 
 ## Disposition
 
-Phase 5 remains complete as a mechanical automation milestone, with the authority model corrected so reconciliation authorization is explicitly external.
-
-Any future integration with a concrete external authority may strengthen authentication of the external authorization reference (for example by signed attestation or a dedicated external service), but that integration must not move semantic reconciliation authority into the repository executor.
+Phase 5 remains complete. Routine admissions may use the automated mechanical execution path after Steward reconciliation. No Distiller self-admission or Distiller reconciliation authority is authorized.
