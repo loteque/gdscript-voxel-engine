@@ -2,7 +2,7 @@
 
 Date: 2026-08-17
 Contract: `rgp/1`
-Status: **routine Steward-governed admission in progress**
+Status: **PASS — routine Steward-governed admission established**
 
 ## Entry condition
 
@@ -10,146 +10,128 @@ Phase 3 passed on a five-shape real-work shadow set with protocol-valid candidat
 
 ## Guarded admission substrate
 
-Phase 4 uses the repository's existing immutable RGP submission, Steward reconciliation, deterministic admission proof, proof-artifact persistence, and exact-base canonical installation machinery. The Distiller has no direct PEMS/COVE mutation path.
+Phase 4 used the repository's existing immutable RGP submission, Steward reconciliation, deterministic admission proof, proof-artifact persistence, and exact-base canonical installation machinery. The Distiller never received a direct PEMS/COVE mutation path.
 
 ## Routine trial 1 — common no-clip camera
 
 Submission: `RGP-20260817T013000-0700-005`.
 
-The submitted `candidate_graph` is unchanged from the Phase-3 `common-no-clip-camera` shadow candidate.
-
-### Reconciliation pressure encountered
-
-The first Steward plan (`steward-012`) was rejected by the deterministic PEMS/2 transaction runner even though the immutable RGP submission passed validation. The rejected plan incorrectly represented RGP `decision` records as PEMS proposition records and used unsupported source-locator fields. The failure was preserved; neither the submission nor the failed plan was edited in place.
-
-The corrected `steward-013` plan passed deterministic proof, but Steward semantic review withheld it from installation because it would have added duplicate canonical records for common-camera ownership and the historical demo compatibility adapter.
-
-The narrowed `steward-014` plan reused the existing canonical identities for those already-represented meanings and admitted only four new records: the resolved PR source, its immutable source observation, the explicit MobileTouchControls non-goal decision, and the headless-validation wiring observation.
-
-### Deterministic proof
-
-Proof request run `32011861367` passed:
-
-- authoritative RGP validation passed;
-- deterministic PEMS/2 transaction passed;
-- candidate PEMS/2 schema/semantic validation passed;
-- graph integrity passed;
-- exact-base check passed;
-- repeated PEMS and COVE bytes were deterministic;
-- the proof runner wrote no canonical state.
-
-The accepted proof candidate has:
-
-- base: 204 records / 14 relations;
-- candidate: 208 records / 14 relations;
-- 4 reused canonical records;
-- 4 new records;
-- 0 new relations;
-- candidate PEMS JCS SHA-256 `8f6e0c2141b83f1f50fad7b6e7eda44176ce7b4a59f5a07940a0a64c2bac7edf`;
-- candidate COVE SHA-256 `d9b6590580a83f7120684f17a2b793bdbce15d73902516dd5b028ba35a6165a1`.
-
-The exact proof artifact bytes were persisted under `docs/handoff/rgp/evidence/RGP-20260817T013000-0700-005.admission-014.runner-artifact/` before installation.
-
-### Canonical installation
-
-The explicit guarded install request verified the unchanged canonical base and exact persisted candidate blobs, validated the candidate, and installed the exact candidate bytes in one commit.
+**PASS.** The unchanged Distiller candidate entered the immutable submission contract. An invalid Steward representation was rejected mechanically and preserved. A later mechanically valid but duplicate-heavy plan was withheld. The final reconciliation reused existing common-camera identities and admitted only genuinely missing durable meaning. Exact proof artifacts were persisted before guarded installation.
 
 Installation commit: `0f1be824f32f95b8e0e9814168d4c9a4bbf9677d`.
 
-Installed canonical blob identities:
+Final disposition: `docs/handoff/rgp/dispositions/RGPD-20260817T014700-0700-010.json`.
 
-- PEMS/2: `3060c588368e58bf11967775527ae2283b125f2e`
-- COVE: `042b0b2f7d8a855fd45faf22a8db8feb28ac0028`
-
-The final immutable Steward disposition is `docs/handoff/rgp/dispositions/RGPD-20260817T014700-0700-010.json`.
-
-## Trial-1 result
-
-**PASS.**
-
-This trial demonstrates all of the following simultaneously:
-
-- a Distiller candidate can enter the existing immutable submission contract unchanged;
-- a bad Steward representation is rejected mechanically without corrupting or rewriting the producer submission;
-- a mechanically valid but semantically duplicate-heavy plan can be withheld before installation;
-- canonical identity reuse can eliminate duplicate churn;
-- new durable meaning can be admitted alongside reused canonical meaning;
-- raw source identifiers can be resolved into canonical typed provenance without authority promotion;
-- proof and installation remain separate, exact-base, auditable stages;
-- the Distiller never directly writes canonical PEMS/COVE.
+This trial established mixed semantic reuse plus genuinely new implementation meaning without producer mutation or duplicate canonical churn.
 
 ## Routine trial 2 — resource-loading roadmap uncertainty
 
 Submission: `RGP-20260817T054500-0700-006`.
 
-The submitted `candidate_graph` is unchanged from the Phase-3 `resource-loading-roadmap` shadow candidate. It contains one measured observation, one explicit uncertainty, and two project/planning decisions.
+**PASS.** The unchanged candidate preserved one measured observation, one explicit causal uncertainty, and two planning decisions. The measured scaling-pressure observation and unresolved loading-latency cause were admitted as new durable meaning; two existing planning decisions were reused. Guarded transaction v2 enriched two reused records with stronger typed provenance under exact before-state guards while preserving identity and kind.
+
+Proof candidate: 214 records / 14 relations from a 208-record / 14-relation base.
+
+Installation commit: `40535385b0e9905edba2858492f880c3d4406ac7`.
+
+Final disposition: `docs/handoff/rgp/dispositions/RGPD-20260817T054600-0700-011.json`.
+
+This trial established uncertainty preservation, non-causal promotion of measured evidence, multi-record guarded updates, and mixed reuse/new-meaning admission.
+
+## Routine trial 3 — streaming performance baseline
+
+Submission: `RGP-20260817T073100-0700-007`.
+
+The submitted graph was unchanged from the Phase-3 `streaming-performance-baseline` candidate and contained two quantitative observations, one derived scaling-pressure claim, one project decision, and one unresolved uncertainty.
 
 ### Semantic reconciliation
 
-The Steward preserved the baseline's causal uncertainty rather than promoting it to a fact. Two candidate meanings were already canonical and were reused:
+The Steward reconciled the candidate against the exact Trial-2 canonical state:
 
-- `r3` maps to `pems:decision:e7b384909352ef0ee65c` (`Resource loading was elevated ahead of LOD.`);
-- `r4` maps to `pems:decision:ca231dae6fce15247762` (outcome-oriented, nonprescriptive planning guidance).
+- `r1` became a new scoped quantitative latency observation;
+- `r2` became a new accepted-run metrics observation;
+- `r3` reused `pems:proposition:2f835b519a295141a201` rather than duplicating the already-canonical scaling-pressure meaning;
+- `r4` reused `pems:decision:e7b384909352ef0ee65c` and enriched its provenance under an exact before-state guard;
+- `r5` reused `pems:unresolved_item:fe7a5220140a5fd6527c` rather than creating a second uncertainty record.
 
-The measured scaling-pressure observation and unresolved loading-latency cause were admitted as genuinely new durable meaning. Baseline and PR #52 source identifiers were resolved into typed immutable source observations.
-
-Because PR #52 supplied stronger provenance for both reused decisions, the Steward used guarded admission transaction v2 to enrich both existing records while preserving identity and kind. This intentionally exercised a connected admission containing two exact-before-state updates to reused canonical records.
+PR #49 was resolved to a typed repository source plus immutable source observation. The existing performance report source/observation from Trial 2 was reused.
 
 ### Deterministic proof
 
-Proof request run `32031251395` passed:
+Proof request run `32040766845` passed:
 
 - authoritative RGP validation passed;
 - guarded-update v2 pressure tests passed;
 - exact canonical base matched;
-- both reused-record before states matched exactly;
-- both reused record identities and kinds were preserved;
+- reused-record before state matched exactly;
+- reused record identity and kind were preserved;
 - candidate PEMS/2 validation and graph integrity passed;
 - repeated PEMS and COVE bytes were deterministic;
 - the proof runner wrote no canonical state.
 
-The accepted proof candidate has:
+The proof candidate has:
 
-- base: 208 records / 14 relations;
-- candidate: 214 records / 14 relations;
-- 2 reused canonical records;
-- 2 guarded reused-record provenance updates;
-- 6 new records;
+- base: 214 records / 14 relations;
+- candidate: 218 records / 14 relations;
+- 5 reused canonical records;
+- 1 guarded reused-record provenance update;
+- 4 new records;
 - 0 new relations;
-- candidate PEMS JCS SHA-256 `86288d731731c2cb0e01e1f17fd59b6506b9e79a6078921e3da630a50fea09cd`;
-- candidate COVE SHA-256 `f2db2f559a9f9baf72aa58e2b3cf5e2823c3d50258dbd4ca60d5eea617d89793`.
+- candidate PEMS JCS SHA-256 `07818a18e982bd0dd58d0273dfac4715212ffbfcd8c5ce89cad129ebf195c7a2`;
+- candidate COVE SHA-256 `7e9e1c77222df7e5ccbf7b508b0af574c79773b74c8ea1066c156afa4e0458a6`.
 
-The exact proof artifact bytes were persisted under `docs/handoff/rgp/evidence/RGP-20260817T054500-0700-006.admission-015-v2.runner-artifact/` in commit `5b3e3e9a7ecccc323ae3f2d97a59187635588ec7` before installation.
+The exact proof bundle was persisted under `docs/handoff/rgp/evidence/RGP-20260817T073100-0700-007.admission-016-v2.runner-artifact/` before installation.
 
 ### Canonical installation
 
-The guarded install request verified the unchanged canonical base and exact persisted candidate blobs and installed the exact candidate bytes atomically.
+Guarded install workflow run `32041067475` verified the unchanged Trial-2 base, exact persisted candidate blobs, and candidate validity, then installed the exact candidate bytes atomically.
 
-Installation commit: `40535385b0e9905edba2858492f880c3d4406ac7`.
+Installation commit: `a841f0971111893556cea9f5ee4ba490a71eff39`.
 
 Installed canonical blob identities:
 
-- PEMS/2: `807ccc0fa708966ee300053738f16fc086994094`
-- COVE: `085d7b211529e4d313ebb10f60f6592ef0646c9c`
+- PEMS/2: `b5a3490b0e1e9dafab1c4b8dbdd6fcabd0dca7c0`
+- COVE: `25f13eecef75385f938d84e3e3620503df9796c8`
 
-The final immutable Steward disposition is `docs/handoff/rgp/dispositions/RGPD-20260817T054600-0700-011.json`.
+Final disposition: `docs/handoff/rgp/dispositions/RGPD-20260817T080300-0700-012.json`.
 
-## Trial-2 result
+### Trial-3 result
 
 **PASS.**
 
-This trial demonstrates:
+This trial establishes that quantitative evidence can be admitted without converting fixture-specific measurements into universal claims, while semantic reuse prevents duplicate inference/uncertainty records and guarded provenance enrichment preserves canonical identity.
 
-- uncertainty remains uncertainty through Distiller submission and canonical admission;
-- measured evidence is not promoted into an unsupported causal explanation;
-- semantic reuse works for existing roadmap and planning decisions;
-- reused records can gain new typed primary provenance without identity churn;
-- one connected v2 transaction can safely update multiple reused canonical records under exact before-state guards;
-- new observations and unresolved questions can be admitted alongside reused meaning;
-- proof, persistence, and canonical installation remain separate auditable stages.
+## Phase-4 exit gate
 
-## Current Phase-4 disposition
+**PASS.**
 
-**Phase 4 remains active, not complete.**
+Three routine Steward-governed Distiller submissions have now exercised the required pressure shapes:
 
-Two routine submissions have now passed: one mixed reuse/new-meaning implementation candidate and one investigation/uncertainty-heavy candidate with guarded multi-record provenance updates. The remaining high-value pressure shape before closing the Phase-4 gate is a measured-performance or policy candidate, preferably one that tests whether quantitative evidence or policy semantics can be reconciled without duplicate canonical churn or authority promotion.
+1. mixed semantic reuse plus genuinely new implementation meaning;
+2. investigation/uncertainty-heavy evidence with multiple guarded reused-record provenance updates;
+3. measured quantitative performance evidence with scoped observations, reused inference/uncertainty meaning, and a guarded provenance update.
+
+Across all three trials:
+
+- Distiller submissions remained immutable;
+- deterministic RGP validation remained a hard boundary;
+- Steward, not the Distiller, owned semantic identity reconciliation and admission authority;
+- duplicate canonical meaning was reused rather than re-added;
+- uncertainties remained uncertainties;
+- observations remained scoped to their evidence;
+- reused-record updates were exact-before-state guarded and identity/kind preserving;
+- proof runners did not mutate canonical state;
+- proof artifacts were persisted before installation;
+- canonical installers required exact base and exact candidate blobs;
+- canonical PEMS/COVE mutation occurred only through the guarded installer;
+- production `main` was not changed by these admission trials.
+
+## Disposition
+
+Phase 4 is complete. Routine Steward-governed admission is established for the evaluated Distiller workflow.
+
+This does **not** grant the Distiller authority to admit its own output or to write canonical PEMS/COVE directly. Human/Steward semantic reconciliation and the deterministic proof/install boundary remain mandatory.
+
+## Next gate
+
+Proceed to Phase 5 only as a separately defined governance step. The next question is not whether the Distiller can produce or route candidates safely; it is whether any portion of routine reconciliation/admission can be automated further without collapsing the separation among producer, validator, Steward authority, proof, and exact-byte installation.
