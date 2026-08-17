@@ -1,0 +1,99 @@
+{
+  "evidence_id": "RGPE-20260816T211455-0700-002",
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "created_at": "2026-08-16T21:14:55-07:00",
+  "producer": "rgp-engineer",
+  "purpose": "Immutable repository-native execution evidence for the Steward-authored Trial-2 admission transaction. This artifact is evidence only and grants no admission or canonical authority.",
+  "submission_snapshot": {
+    "repository": "loteque/gdscript-voxel-engine",
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T190100-0700-002.json",
+    "blob_sha": "4045b4577613cb3532742b79b80ff6196f207f0e"
+  },
+  "proof_request": {
+    "path": "docs/handoff/rgp/proof-requests/RGP-20260816T190100-0700-002.admission-006.json",
+    "blob_sha": "2738bfa30d98fefd62065715e45a42cafe333d42",
+    "sha256": "6a907564f131707a1c9189bc088fb3e2c77871e109d2cdaac0f0c0195da6401a",
+    "contract": "rgp-admission-proof-request/1"
+  },
+  "admission_plan": {
+    "path": "docs/handoff/rgp/admission/transactions/RGP-20260816T190100-0700-002.steward-006.json",
+    "blob_sha": "7f951e2d1debc6c5a6a57111346117f880cab83b",
+    "expected_base_sha256": "aeba21697477ccb667d8dd31124ed7dc64d0887b2cadf3b1188a07b0005b2a4e"
+  },
+  "runner": {
+    "workflow": "RGP Admission Proof Request",
+    "workflow_path": ".github/workflows/rgp-admission-proof-request.yml",
+    "workflow_blob_sha": "cdecc59a04b0273edac02537f650a5a5a8765b77",
+    "permissions": "contents: read",
+    "run_id": 31993774695,
+    "run_url": "https://github.com/loteque/gdscript-voxel-engine/actions/runs/31993774695",
+    "head_sha": "ea55c10387e48bd2d9f4c48e26a3290a48cf9112",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "job_id": 95281742438,
+    "job": "prove-request"
+  },
+  "results": {
+    "rgp_validator": "pass",
+    "base": {
+      "record_count": 179,
+      "relation_count": 3,
+      "sha256": "aeba21697477ccb667d8dd31124ed7dc64d0887b2cadf3b1188a07b0005b2a4e"
+    },
+    "candidate": {
+      "semantic": "pems/2",
+      "record_count": 189,
+      "relation_count": 8,
+      "pems_jcs_sha256": "8fc0fca86c5c04496470e1a73820a70d485c5cb806f19c8dc85af87b927c9155",
+      "cove_jcs_sha256": "5a434b5fe939ede998a1f6a03b1050a7de089b5650ebeed3f9f1259557f114b5",
+      "cove_tuple": "cove/1|pems/2|jcs/1"
+    },
+    "transaction": {
+      "new_record_count": 10,
+      "new_relation_count": 5,
+      "reuse_record_count": 0
+    },
+    "proofs": {
+      "canonical_written": false,
+      "pems_schema_valid": true,
+      "cove_structural_round_trip": true,
+      "repeated_pems_bytes_identical": true,
+      "repeated_cove_bytes_identical": true,
+      "graph_integrity": {
+        "record_ids_unique": true,
+        "relation_ids_unique": true,
+        "dangling_relation_endpoints": 0,
+        "derived_propositions_have_premises": true,
+        "derived_relation_count": 3,
+        "contradictions_canonicalized": true
+      }
+    },
+    "pems2_contract_validation": {
+      "status": "pass",
+      "candidate_graph_reference_integrity": true,
+      "candidate_sha256": "8fc0fca86c5c04496470e1a73820a70d485c5cb806f19c8dc85af87b927c9155"
+    }
+  },
+  "artifact": {
+    "artifact_id": 9276157458,
+    "name": "rgp-admission-RGP-20260816T190100-0700-002.admission-006",
+    "size_bytes": 29812,
+    "zip_sha256": "88ad715430dc43cbb35f3613e2350d8cda824787ae4a9a3ac10d80ee656d1d7f",
+    "expires_at": "2026-09-16T04:14:54Z",
+    "url": "https://github.com/loteque/gdscript-voxel-engine/actions/runs/31993774695/artifacts/9276157458",
+    "files": {
+      "admission-proof.json": "c78f2e942c39a91455d7af9a84978197617cec35694e4762f30314489ca0c491",
+      "candidate.cove.json": "5a434b5fe939ede998a1f6a03b1050a7de089b5650ebeed3f9f1259557f114b5",
+      "candidate.pems2.jcs.json": "8fc0fca86c5c04496470e1a73820a70d485c5cb806f19c8dc85af87b927c9155",
+      "pems2-candidate-validation.txt": "37cf2097d59c324dbcd190b9b8c1a076c213b3211e9a07b84dbe5edddcc9c085",
+      "rgp-validator.txt": "fc5b531d717e6c6aff5e2d22e71a3087b3119402125e4eb188da1fcb1c077b9a",
+      "transaction.txt": "00d426adbdf89b920c37a3593e17ebdffc570742ff40202054c71952afc25444"
+    }
+  },
+  "authority": {
+    "proof_only": true,
+    "canonical_written": false,
+    "steward_reconsideration_required": true
+  }
+}
