@@ -1,0 +1,123 @@
+{
+  "disposition_id": "RGPD-20260816T221030-0700-009",
+  "submission_id": "RGP-20260816T215500-0700-003",
+  "created_at": "2026-08-16T22:10:30-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "admitted",
+  "supersedes_disposition": "RGPD-20260816T221000-0700-008",
+  "submission": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T215500-0700-003.json",
+    "blob": "40588850c66fc4b65dcdecae5ca03fcf35c7348c",
+    "rgp_version": "rgp/1",
+    "validator": "rgp-validator/1"
+  },
+  "canonical_snapshot": {
+    "pre_install_branch_head": "c53aadd1a7f5a911d157e2a5abd194352d6915a8",
+    "pre_install_pems2_blob": "71353ef28b7a3b4bbcbfbd73253580de785d9f4e",
+    "pre_install_cove_blob": "bb53509105a88e46625d09fb15020e233cff38ba",
+    "base_normalized_pems_sha256": "8fc0fca86c5c04496470e1a73820a70d485c5cb806f19c8dc85af87b927c9155",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "proof": {
+    "workflow_run": 31996651304,
+    "artifact_id": 9277029884,
+    "artifact_zip_sha256": "44d9772f78f90c4cd57c560d5bfb959ec1bda0fa42443505f854dcba1e70b10b",
+    "repository_evidence_commit": "030fa0c4b2326ed2c98e8105b866d070cde62d76",
+    "evidence_directory": "docs/handoff/rgp/evidence/RGP-20260816T215500-0700-003.admission-008-v2.runner-artifact",
+    "transaction_contract": "rgp-pems2-admission-transaction/2",
+    "pems2_sha256": "936ed6d5e5079b1b680cd3faa3a67ffec86aaa4b2b27f6e228b2576e75fce971",
+    "cove_sha256": "0a28d35e0b3afa833db512e3462cd84df4458d3a0c5f193b7364434f23a71eb7",
+    "pems_schema_valid": true,
+    "base_exact_match": true,
+    "record_update_before_states_exact": true,
+    "record_identity_preserved": true,
+    "record_kind_preserved": true,
+    "graph_integrity_passed": true,
+    "dangling_relation_endpoints": 0,
+    "record_ids_unique": true,
+    "relation_ids_unique": true,
+    "contradictions_canonicalized": true,
+    "derived_propositions_have_premises": true,
+    "cove_structural_round_trip": true,
+    "repeated_pems_bytes_identical": true,
+    "repeated_cove_bytes_identical": true,
+    "canonical_written_by_proof_runner": false
+  },
+  "record_map": {
+    "r1": "pems:proposition:8b9f0d3af665298b7959",
+    "r2": "pems:proposition:8b9f0d3af665298b7959",
+    "r3": "pems:proposition:00d9e23c7dfa57881587",
+    "r4": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+    "r5": "pems:proposition:297653e183984377a669",
+    "r6": "pems:proposition:297653e183984377a669",
+    "r7": "pems:proposition:fb3c3d1349a736388aa3"
+  },
+  "identity_reconciliation": {
+    "r1": "exact_reuse",
+    "r2": "semantic_paraphrase_reuse_same_truth_conditions_as_r1",
+    "r3": "new_distinct_identity_branch_local_execution_event",
+    "r4": "exact_reuse_existing_uncertainty_preserved_historically_after_supersession",
+    "r5_r6": "one_new_identity_same_trial2_proof_event_and_truth_condition_two_primary_provenance_chains",
+    "r7": "new_distinct_identity_evidence_persistence_event"
+  },
+  "provenance_reconciliation": {
+    "r1_r2_r4_source_observation": "pems:source_observation:55f10a283d7d18942016",
+    "trial2_admitted_disposition_source": "pems:source:ba53541c58ee4cc40b10",
+    "trial2_admitted_disposition_observation": "pems:source_observation:beaadeb8ffbc6c5f60c4",
+    "trial2_admission_proof_source": "pems:source:033db9f885716455c58c",
+    "trial2_admission_proof_observation": "pems:source_observation:c28bd5fb6aa528e94f10",
+    "r5_r6_combined_primary": [
+      "pems:source_observation:beaadeb8ffbc6c5f60c4",
+      "pems:source_observation:c28bd5fb6aa528e94f10"
+    ]
+  },
+  "relation_map": {
+    "r5_contradicts_r4": "pems:relation:2f0fc7bc1228246f28ee",
+    "r5_supersedes_r4": "pems:relation:8c2e4ee3e1b8006bb746",
+    "r3_supports_r5": "pems:relation:0a9b856e428d9fcb7033"
+  },
+  "reused_record_update": {
+    "record_id": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+    "before_sha256": "9c1c104f3c02a84217c348c11587de9005c8ed590cce64a9a1d971eabb57113c",
+    "after_sha256": "c7be630595a4c4ee1cc04ce00eff01ee3fbfeb099e07c3626b0ce883dd9f31da",
+    "before_semantics": "current open uncertainty",
+    "after_semantics": "historically preserved unresolved_item",
+    "identity_preserved": true,
+    "kind_preserved": true
+  },
+  "semantic_findings": [
+    "r1 and r2 retain one canonical identity despite lexical variation.",
+    "r3 remains materially distinct from the standing-workflow proposition.",
+    "r4 is preserved historically and no longer remains a current open uncertainty after supersession.",
+    "r5 and r6 retain one canonical semantic identity while preserving both primary provenance chains.",
+    "r7 remains distinct as an evidence-persistence/install-sequencing fact.",
+    "r5 contradicts r4 and separately supersedes r4; those relations remain distinct.",
+    "r3 supports r5 but is not a constitutive premise."
+  ],
+  "canonical_installation": {
+    "commit": "9947512075e32e32374ecf992a2804518d307240",
+    "canonical_pems2_blob": "bacb825f1ea6bb8f7aa92dc086444d7c68850f05",
+    "canonical_cove_blob": "090e77317e1f50ab020ac5f0291be2cbb2ca8946",
+    "exact_evidence_blobs_installed": true,
+    "post_install_exact_blob_verification": true,
+    "unrelated_tree_content_preserved": true,
+    "production_main_changed": false
+  },
+  "graph_integrity": "passed",
+  "canonical_mutation": "performed",
+  "reason_codes": [
+    "RGP_STRUCTURE_ACCEPTED",
+    "SEMANTIC_IDENTITY_RECONCILIATION_PRESERVED",
+    "CANONICAL_PROVENANCE_RESOLVED",
+    "GUARDED_REUSED_RECORD_UPDATE_PROVED",
+    "REUSED_UNCERTAINTY_HISTORICALLY_PRESERVED",
+    "CONTRADICTS_AND_SUPERSEDES_PRESERVED_DISTINCTLY",
+    "MULTI_SOURCE_SEMANTIC_CONVERGENCE_PRESERVED",
+    "EXACT_BASE_MATCH_PASSED",
+    "GRAPH_INTEGRITY_PASSED",
+    "PEMS2_COVE_JCS_DETERMINISM_PASSED",
+    "EXACT_CANDIDATE_BYTES_INSTALLED",
+    "POST_INSTALL_VERIFICATION_PASSED",
+    "TRIAL_3_ADMITTED"
+  ]
+}
