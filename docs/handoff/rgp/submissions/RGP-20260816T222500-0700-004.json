@@ -1,0 +1,108 @@
+{
+  "submission_id": "RGP-20260816T222500-0700-004",
+  "producer": {
+    "role": "rgp-engineer",
+    "instance": "trial-4-multi-submission-evolution"
+  },
+  "created_at": "2026-08-16T22:25:00-07:00",
+  "rgp_version": "rgp/1",
+  "status": "candidate",
+  "source_context": {
+    "summary": "Trial 4 multi-submission evolution pressure test against the admitted Trial-3 canonical baseline.",
+    "refs": [
+      "github:commit:8b493fe186be82d0e3cfddb8853106dd7e95754e",
+      "github:blob:1d5e316961d00b5f02470c8e09f03592c861fb4a"
+    ]
+  },
+  "candidate_graph": {
+    "records": [
+      {
+        "temp_id": "r1",
+        "kind": "observation",
+        "statement": "The Trial-2 non-no-op admission transaction passed the defined deterministic admission proof.",
+        "provenance": {
+          "primary": [
+            "github:blob:e4b0fbf4f7e031614b0177e9ffedfde4cd06a83f"
+          ]
+        }
+      },
+      {
+        "temp_id": "r2",
+        "kind": "observation",
+        "statement": "Trial 3's guarded admission transaction v2 passed with an exact before-state lifecycle update to a reused canonical unresolved-item record while preserving record identity and kind.",
+        "provenance": {
+          "primary": [
+            "github:blob:ca7cd65ece40b82cf4d8459de07d80d9eed8a111"
+          ]
+        }
+      },
+      {
+        "temp_id": "r3",
+        "kind": "observation",
+        "statement": "Trial 3 installed the exact persisted v2 proof candidate as canonical PEMS/2 and COVE state and preserved unrelated repository tree content.",
+        "provenance": {
+          "primary": [
+            "github:blob:1d5e316961d00b5f02470c8e09f03592c861fb4a"
+          ]
+        }
+      },
+      {
+        "temp_id": "r4",
+        "kind": "uncertainty",
+        "statement": "Whether the standing RGP Admission Proof workflow preserves its guarantees for a novel non-no-op admission transaction remains unverified.",
+        "provenance": {
+          "context": [
+            "github:blob:d160687805e0959323eb7b5efbc912014ea29c9b"
+          ]
+        }
+      },
+      {
+        "temp_id": "r5",
+        "kind": "uncertainty",
+        "statement": "Whether guarded admission transaction v2 preserves its guarantees when one connected admission updates multiple reused canonical records remains unverified.",
+        "provenance": {
+          "context": [
+            "github:blob:ca7cd65ece40b82cf4d8459de07d80d9eed8a111"
+          ]
+        }
+      },
+      {
+        "temp_id": "r6",
+        "kind": "claim",
+        "statement": "RGP admission has demonstrated multi-generation canonical evolution across both additive non-no-op admission and a guarded reused-record lifecycle transition.",
+        "premise": [
+          "r1",
+          "r2",
+          "r3"
+        ]
+      },
+      {
+        "temp_id": "r7",
+        "kind": "claim",
+        "statement": "The successful Trial-3 v2 proof establishes that guarded admission updates are correct for any number of reused-record updates in every future admission transaction."
+      }
+    ],
+    "relations": [
+      {
+        "from": "r1",
+        "type": "contradicts",
+        "to": "r4"
+      },
+      {
+        "from": "r1",
+        "type": "supersedes",
+        "to": "r4"
+      },
+      {
+        "from": "r7",
+        "type": "contradicts",
+        "to": "r5"
+      }
+    ]
+  },
+  "validation": {
+    "status": "passed",
+    "validator": "rgp-validator/1",
+    "validated_at": "2026-08-16T22:25:01-07:00"
+  }
+}
