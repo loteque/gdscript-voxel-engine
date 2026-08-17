@@ -1,0 +1,8 @@
+{
+  "contract": "rgp-pems2-admission-transaction/2",
+  "expected_base_sha256": "07818a18e982bd0dd58d0273dfac4715212ffbfcd8c5ce89cad129ebf195c7a2",
+  "reuse_record_ids": [],
+  "record_updates": [],
+  "new_records": [],
+  "new_relations": []
+}
