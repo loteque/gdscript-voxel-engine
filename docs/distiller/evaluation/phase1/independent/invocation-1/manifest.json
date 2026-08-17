@@ -1,0 +1,35 @@
+{
+  "contract": "distiller-phase1-independent-invocation-manifest/1",
+  "invocation": 1,
+  "branch": "project-chat-handoff",
+  "input_revision": "7ae3fefe1b3f2f9cb19020977874de55346bb24b",
+  "rgp_contract": "rgp/1",
+  "inputs": {
+    "docs/distiller/DIRECTIVE.md": "d578841d64da93f0883686eda80f00fde53d5f66",
+    "docs/distiller/evaluation/PHASE0_BASELINE.md": "f8a130bef35b818197320bb7bde93dac051d71f5",
+    "docs/distiller/evaluation/phase1-inputs.json": "7b343786418923648ebc3aa2b6a78bda8b993bf7",
+    "docs/distiller/evaluation/expected.yaml": "3436454b60e3235bf2305a5dc62e8849670a2661",
+    "docs/distiller/evaluation/SCORING.md": "017eaf8ab1fa8e4b9646616d924fc6a9aa7c2b05"
+  },
+  "cases": [
+    "field-authority",
+    "offline-runtime-split",
+    "validation-demo-contract",
+    "resource-loading-investigation",
+    "deployed-ui-failure"
+  ],
+  "candidate_blobs": {
+    "field-authority": "aabb10ccd2a857b6fca8c9b9e418b77947b43d45",
+    "offline-runtime-split": "1a3e236d05fff85a367ab4690824c330203bb938",
+    "validation-demo-contract": "b3b7f59d6ca3f5f81b50274185dc703439f1ecfe",
+    "resource-loading-investigation": "eb15a0961c37d0de8cfb8473b4f2eca636b794be",
+    "deployed-ui-failure": "af5794a01a43961b5b8c4b0471b366f256686d95"
+  },
+  "prior_outputs_excluded": true,
+  "excluded_paths": [
+    "docs/distiller/evaluation/phase1/runs/",
+    "docs/distiller/evaluation/phase1/independent/"
+  ],
+  "canonical_pems_cove_modified": false,
+  "admission_artifacts_modified": false
+}
