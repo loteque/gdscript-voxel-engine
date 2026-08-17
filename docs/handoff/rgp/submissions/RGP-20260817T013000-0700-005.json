@@ -1,0 +1,61 @@
+{
+  "submission_id": "RGP-20260817T013000-0700-005",
+  "producer": {
+    "role": "reasoning-distiller",
+    "instance": "phase4-routine-admission-common-no-clip-camera"
+  },
+  "created_at": "2026-08-17T01:30:00-07:00",
+  "rgp_version": "rgp/1",
+  "status": "candidate",
+  "source_context": {
+    "summary": "Phase 4 routine Steward-governed admission trial using the validated Phase-3 common no-clip camera shadow candidate unchanged.",
+    "refs": [
+      "docs/distiller/evaluation/phase3/shadow/common-no-clip-camera/candidate.rgp.json",
+      "github:pull/57",
+      "github:commit/0c62cbcfbfef7eac03213f23b0fdc311d7e3afa4"
+    ]
+  },
+  "candidate_graph": {
+    "records": [
+      {
+        "temp_id": "r1",
+        "kind": "decision",
+        "statement": "NoClipCameraController ownership was moved into common/input as the reusable project-independent free-flight camera component.",
+        "provenance": {
+          "primary": ["shadow:common-no-clip-camera:pr57"],
+          "corroborating": ["shadow:common-no-clip-camera:merge"]
+        }
+      },
+      {
+        "temp_id": "r2",
+        "kind": "decision",
+        "statement": "The historical demo camera path remains as a thin compatibility adapter to the common implementation.",
+        "provenance": {
+          "primary": ["shadow:common-no-clip-camera:pr57"],
+          "corroborating": ["shadow:common-no-clip-camera:merge"]
+        }
+      },
+      {
+        "temp_id": "r3",
+        "kind": "decision",
+        "statement": "MobileTouchControls was not promoted or generalized as part of the camera extraction.",
+        "provenance": {
+          "primary": ["shadow:common-no-clip-camera:pr57"]
+        }
+      },
+      {
+        "temp_id": "r4",
+        "kind": "observation",
+        "statement": "Independent headless tests for the common no-clip camera were added and wired into the existing validation workflow.",
+        "provenance": {
+          "primary": ["shadow:common-no-clip-camera:merge"]
+        }
+      }
+    ]
+  },
+  "validation": {
+    "status": "passed",
+    "validator": "rgp-validator/1",
+    "validated_at": "2026-08-17T01:18:34-07:00"
+  }
+}
