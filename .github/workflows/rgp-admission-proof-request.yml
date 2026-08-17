@@ -26,6 +26,9 @@ jobs:
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check jsonschema==4.25.1
 
+      - name: Run guarded-update pressure tests
+        run: python3 docs/handoff/rgp/admission/test_admission_transaction_v2.py
+
       - name: Resolve immutable proof request
         id: request
         shell: bash
@@ -96,7 +99,25 @@ jobs:
           EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
         run: |
           set -euo pipefail
-          python3 docs/handoff/rgp/admission/apply_admission_transaction.py \
+          CONTRACT="$(python3 - "$PLAN_PATH" <<'PY'
+          import json, sys
+          print(json.load(open(sys.argv[1], encoding='utf-8')).get('contract', ''))
+          PY
+          )"
+          case "$CONTRACT" in
+            rgp-pems2-admission-transaction/1)
+              TOOL=docs/handoff/rgp/admission/apply_admission_transaction.py
+              ;;
+            rgp-pems2-admission-transaction/2)
+              TOOL=docs/handoff/rgp/admission/apply_admission_transaction_v2.py
+              ;;
+            *)
+              echo "unsupported admission transaction contract: $CONTRACT" >&2
+              exit 1
+              ;;
+          esac
+          echo "contract=$CONTRACT tool=$TOOL"
+          python3 "$TOOL" \
             --base "$BASE_PATH" \
             --plan "$PLAN_PATH" \
             --schema docs/handoff/pems/v2/pems-v2.schema.json \
@@ -144,9 +165,11 @@ jobs:
               data = (out / name).read_bytes()
               files[name] = {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
           request_bytes = Path(os.environ['REQUEST_PATH']).read_bytes()
+          proof = json.loads((out / 'admission-proof.json').read_text(encoding='utf-8'))
           summary = {
               'status': 'passed',
               'runner': 'rgp-admission-proof-request/1',
+              'admission_transaction_contract': proof['contract'],
               'request_path': os.environ['REQUEST_PATH'],
               'request_sha256': hashlib.sha256(request_bytes).hexdigest(),
               'submission_path': os.environ['SUBMISSION_PATH'],
