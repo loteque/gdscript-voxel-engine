@@ -85,7 +85,7 @@ jobs:
           if not re.fullmatch(r'[A-Za-z0-9._-]+', req['evidence_key']):
               raise SystemExit('invalid evidence_key')
 
-          for key in required:
+          for key in ['submission_path','plan_path','base_path']:
               if not Path(req[key]).is_file():
                   raise SystemExit(f'referenced file does not exist: {req[key]}')
 
