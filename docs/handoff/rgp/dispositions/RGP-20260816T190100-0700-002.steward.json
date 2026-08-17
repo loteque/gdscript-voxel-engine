@@ -1,0 +1,30 @@
+{
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "steward_role": "Project Engineering Steward",
+  "disposition": "provisional",
+  "canonical_mutation": "withheld",
+  "authoritative_effect": "none",
+  "candidate_dispositions": {
+    "r1": "historical_or_superseded_only_if_later_admitted",
+    "r2": "admissible_pending_transactional_graph_resolution",
+    "r3": "provisional_assumption_not_fact",
+    "r4": "provisional_missing_normative_reverse_import_mapping",
+    "r5": "provisional_depends_on_r2_r3_r6_and_connected_graph_integrity",
+    "r6": "admissible_pending_transactional_graph_resolution",
+    "r7": "rejected_unsupported_universal_generalization"
+  },
+  "reason_codes": [
+    "rgp_uncertainty_to_pems2_mapping_not_normatively_established",
+    "connected_graph_cannot_be_transactionally_admitted_without_semantic_invention"
+  ],
+  "verified_semantic_constraints": [
+    "assumption_must_remain_assumption",
+    "uncertainty_must_remain_unresolved",
+    "contradicts_and_supersedes_are_distinct",
+    "premise_maps_to_derived_from_not_depends_on",
+    "depends_on_maps_to_conditional_validity_not_derivation",
+    "r7_must_not_enter_canonical_memory"
+  ],
+  "next_action": "Obtain an accepted normative PEMS/2 import rule for RGP uncertainty, or an explicit accepted rule reconciling this uncertainty to unresolved_item without semantic loss. Then reacquire current canonical state and reconsider the complete connected transaction; do not partially persist r1-r6.",
+  "human_reasoning": "The immutable Trial 2 submission is structurally coherent and intentionally tests semantic admission rather than mere validator acceptance. Current repository evidence establishes the forward compatibility direction from PEMS unresolved state to RGP uncertainty but does not establish the reverse RGP uncertainty import required for r4. The Steward will not invent that mapping. r7 is independently rejected as an unsupported universal inference: a successful no-op self-test cannot establish correctness for every future non-no-op transaction. Because the production-quality r1-r6 graph is transactionally connected through premise, contradiction, supersession, and conditional dependency semantics, canonical mutation is withheld rather than partially admitting a graph whose uncertainty node lacks a normative PEMS/2 representation. No candidate content is installed by this disposition."
+}
