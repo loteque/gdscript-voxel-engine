@@ -5,44 +5,65 @@ Contract: `rgp/1`
 
 ## Purpose
 
-Phase 5 automates only the mechanical portions of the proven Phase-4 admission path while preserving human/Steward semantic authority.
+Phase 5 automates only the mechanical portions of the proven admission path.
 
 The Distiller still cannot admit its own output or write canonical PEMS/COVE directly.
 
-## Authority boundary
+## Correct authority boundary
 
-A Phase-5 automation run requires an immutable Steward approval request committed separately from the RGP submission and reconciliation plan.
+**Reconciliation authorization is external to this repository automation.**
 
-The approval request must:
+The repository does not decide who is authorized to reconcile candidate meaning, and the GitHub Actions workflow is not a semantic authority. An external authority decides whether a reconciliation plan is authorized and supplies an authorization reference bound to the exact reconciliation-plan digest.
+
+The repository consumes that already-authorized plan and performs deterministic execution only.
+
+Two authority scopes are therefore intentionally separate:
+
+1. **External reconciliation authority** — decides semantic identity, reuse, lifecycle, provenance sufficiency, uncertainty handling, and whether the reconciliation plan is authorized.
+2. **Repository execution authority** — decides only whether the already externally-authorized plan should be executed in proof-only or proof-plus-install mode against the current exact canonical state.
+
+The external authorization reference is audit metadata from the external authority. The workflow verifies that its declared SHA-256 digest matches the exact committed reconciliation plan; it does not manufacture or reinterpret the external authority decision.
+
+## Execution request
+
+A Phase-5 execution run requires an immutable execution request committed separately from the RGP submission and reconciliation plan.
+
+The current request contract is `rgp-admission-execution-request/2` and must:
 
 - identify an already-committed immutable RGP submission;
-- identify an already-committed Steward reconciliation transaction;
+- identify an already-committed reconciliation transaction;
 - identify the canonical PEMS/2 base path;
-- declare whether canonical installation is authorized;
-- identify the approving GitHub actor;
-- declare `project-engineering-steward` as the semantic authority.
+- provide `external_reconciliation_authorization.authority_class = "external"`;
+- provide an opaque external authorization reference;
+- bind that external authorization to the exact reconciliation plan with `sha256:<digest>`;
+- declare whether canonical installation is requested;
+- explicitly request execution.
 
-The workflow rejects approval commits that contain any change besides one newly-added automation request JSON. This prevents a producer or workflow from altering the submission, plan, or canonical memory in the same commit that grants approval.
+The workflow rejects request commits that contain any change besides one newly-added execution-request JSON. This prevents a producer or executor from changing the submission, reconciliation plan, or canonical memory in the same commit that requests execution.
+
+The repository execution actor check is not reconciliation authorization. It only protects the repository write/execution surface.
 
 ## Automated stages
 
-After Steward approval, the workflow may automate:
+After an externally-authorized reconciliation plan has been supplied, the workflow may automate:
 
 1. authoritative RGP validation;
 2. guarded admission-transaction pressure tests;
-3. deterministic PEMS/2 reconciliation proof against the exact base;
-4. PEMS/2 contract validation and graph-integrity proof;
-5. deterministic PEMS/COVE generation;
-6. immutable proof-evidence persistence in a separate commit;
-7. optimistic-concurrency verification that the branch has not moved;
-8. exact-byte canonical installation in a second, separate commit when `install` is explicitly true.
+3. verification that the external authorization digest matches the exact committed reconciliation plan;
+4. deterministic PEMS/2 reconciliation proof against the exact base;
+5. PEMS/2 contract validation and graph-integrity proof;
+6. deterministic PEMS/COVE generation;
+7. immutable proof-evidence persistence in a separate commit;
+8. optimistic-concurrency verification that the branch has not moved;
+9. exact-byte canonical installation in a second, separate commit when installation is requested.
 
 The generated proof candidate is copied to canonical paths byte-for-byte. It is never regenerated during installation.
 
 ## Non-automated stages
 
-Automation does not decide:
+Repository automation does not decide:
 
+- who has reconciliation authority;
 - whether a proposition is worth admitting;
 - whether candidate meaning is semantically identical to an existing canonical record;
 - whether an uncertainty may be resolved;
@@ -50,35 +71,38 @@ Automation does not decide:
 - whether source authority is sufficient;
 - which canonical identities should be reused;
 - whether a reused record should be updated;
-- whether canonical installation is authorized.
+- whether a reconciliation plan is semantically authorized.
 
-Those remain Steward responsibilities encoded in the reconciliation transaction and approval request.
+Those decisions belong to the external reconciliation authority and are encoded in the externally-authorized reconciliation artifact supplied to the repository.
 
 ## Concurrency and mutation safety
 
-The automation request commit is treated as the optimistic-concurrency anchor.
+The execution-request commit is treated as the optimistic-concurrency anchor.
 
-Before persisting proof evidence, the workflow verifies that the remote `project-chat-handoff` head still equals the approval-request commit. Before installation, it verifies that the remote head still equals the evidence-persistence commit. Any intervening write fails the run rather than rebasing or silently recomputing.
+Before persisting proof evidence, the workflow verifies that the remote `project-chat-handoff` head still equals the execution-request commit. Before installation, it verifies that the remote head still equals the evidence-persistence commit. Any intervening write fails the run rather than rebasing or silently recomputing.
 
 The deterministic admission transaction also requires an exact normalized PEMS base hash, and v2 reused-record updates require exact before-state hashes while preserving record identity and kind.
 
 ## Modes
 
-`install: false` performs proof plus immutable evidence persistence only. It is the safe mode for automation regression testing.
+`install: false` performs proof plus immutable evidence persistence only.
 
 `install: true` additionally performs exact-byte canonical installation after proof evidence has been persisted successfully and the branch concurrency guard still holds.
 
-## Phase-5 exit gate
+Neither mode grants reconciliation authority to the repository.
 
-Phase 5 passes when:
+## Historical Phase-5 evidence
 
-- the new automation workflow passes a proof-only dry run against current canonical state;
-- at least one novel Steward-reconciled Distiller candidate is admitted using the automated proof/persist/install path;
-- the candidate submission and Steward reconciliation remain immutable;
-- semantic identity decisions are supplied by the Steward, not inferred by the workflow;
-- proof evidence is committed before canonical installation;
-- canonical installation uses the exact persisted candidate bytes;
-- stale-base or branch-movement conditions fail closed;
-- no automatic Distiller self-admission path exists.
+The original Phase-5 trials used a repository-local `project-engineering-steward` approval field bound to a GitHub actor. Those artifacts are preserved unchanged as historical evidence of the mechanical automation trials.
 
-A Phase-5 pass authorizes routine use of this Steward-triggered automation, not autonomous semantic admission.
+That representation is now superseded for new runs by `rgp-admission-execution-request/2`, which explicitly leaves reconciliation authorization external and treats the repository workflow as an executor only.
+
+## Phase-5 disposition
+
+The mechanical automation demonstrated by the original Phase-5 trials remains valid. The governance boundary is corrected as follows:
+
+- Distiller output remains non-authoritative;
+- reconciliation authorization remains external;
+- repository automation verifies exact artifact binding and deterministic mechanics only;
+- canonical mutation remains exact-base, evidence-before-install, and byte-for-byte;
+- no automatic Distiller self-admission or repository self-authorization path exists.
