@@ -1,0 +1,33 @@
+{
+  "submission_id": "RGP-20260817T073100-0700-007",
+  "producer": {
+    "role": "reasoning-distiller",
+    "instance": "phase4-routine-admission-streaming-performance-baseline"
+  },
+  "created_at": "2026-08-17T07:31:00-07:00",
+  "rgp_version": "rgp/1",
+  "status": "candidate",
+  "source_context": {
+    "summary": "Phase 4 routine Steward-governed admission trial using the validated Phase-3 streaming-performance-baseline shadow candidate unchanged.",
+    "refs": [
+      "docs/distiller/evaluation/phase3/shadow/streaming-performance-baseline/candidate.rgp.json",
+      "docs/performance/0.13.0-large-single-lod-validation.md",
+      "github:pull/49",
+      "github:commit/7b0620e26bc3f43335313d04c533ca3957f90daa"
+    ]
+  },
+  "candidate_graph": {
+    "records": [
+      {"temp_id":"r1","kind":"observation","statement":"The accepted mobile-Web baseline measured approximately 2.2 seconds average chunk load latency with four concurrent loads.","provenance":{"primary":["shadow:streaming-performance:report"]}},
+      {"temp_id":"r2","kind":"observation","statement":"The accepted run recorded zero failed loads, zero pending cancellations, peak residency of 36 chunks, and approximately 0.39 MiB estimated resident mesh memory.","provenance":{"primary":["shadow:streaming-performance:report"]}},
+      {"temp_id":"r3","kind":"claim","statement":"Resource-loading throughput was the first obvious runtime scaling pressure exposed by this mobile-Web experiment.","premise":["r1","r2"],"provenance":{"context":["shadow:streaming-performance:report"]}},
+      {"temp_id":"r4","kind":"decision","statement":"The project should investigate where threaded resource-loading time is spent before introducing LOD to address the observed loading latency.","provenance":{"primary":["shadow:streaming-performance:report"],"corroborating":["shadow:streaming-performance:pr49"]}},
+      {"temp_id":"r5","kind":"uncertainty","statement":"The internal composition of the approximately 2.2-second average mobile-Web load latency remained unresolved.","provenance":{"primary":["shadow:streaming-performance:report"]}}
+    ]
+  },
+  "validation": {
+    "status": "passed",
+    "validator": "rgp-validator/1",
+    "validated_at": "2026-08-17T07:31:00-07:00"
+  }
+}
