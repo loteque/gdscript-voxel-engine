@@ -1,0 +1,113 @@
+{
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "producer": {
+    "role": "reasoning-distiller",
+    "instance": "rgp-engineer-semantic-coverage-trial-2"
+  },
+  "created_at": "2026-08-16T19:01:00-07:00",
+  "rgp_version": "rgp/1",
+  "status": "candidate",
+  "source_context": {
+    "summary": "Semantic coverage trial over the evolution from trial-scoped RGP admission tooling to the standing admission-proof workflow. Exercises assumption, uncertainty, contradicts, depends_on, supersedes, and one intentionally adversarial overgeneralization for Steward non-admission testing.",
+    "refs": [
+      "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json",
+      "docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+    ]
+  },
+  "candidate_graph": {
+    "records": [
+      {
+        "temp_id": "r1",
+        "kind": "observation",
+        "statement": "No generic repository-native RGP admission runner exists.",
+        "provenance": {
+          "primary": [
+            "github:blob:24dec513a43fc95c8fbda186260f61f27c3cfad2:docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json"
+          ]
+        }
+      },
+      {
+        "temp_id": "r2",
+        "kind": "observation",
+        "statement": "A standing RGP Admission Proof workflow exists and can replay validation and deterministic admission proof generation without installing canonical PEMS/COVE state.",
+        "provenance": {
+          "primary": [
+            "github:blob:d53b49792a645d5775a15fea980b671d74b922f3:docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r3",
+        "kind": "assumption",
+        "statement": "The standing RGP Admission Proof workflow is representative enough of the proven trial-specific execution path to use as the execution substrate for subsequent RGP admissions.",
+        "provenance": {
+          "context": [
+            "github:blob:d53b49792a645d5775a15fea980b671d74b922f3:docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r4",
+        "kind": "uncertainty",
+        "statement": "Whether the standing RGP Admission Proof workflow preserves its guarantees for a novel non-no-op admission transaction remains unverified.",
+        "provenance": {
+          "context": [
+            "github:blob:d53b49792a645d5775a15fea980b671d74b922f3:docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r5",
+        "kind": "claim",
+        "statement": "The standing RGP Admission Proof workflow remains suitable for Steward-governed admission proofs."
+      },
+      {
+        "temp_id": "r6",
+        "kind": "observation",
+        "statement": "The standing RGP Admission Proof workflow has read-only repository permissions and leaves canonical installation to the Steward.",
+        "provenance": {
+          "primary": [
+            "github:blob:d53b49792a645d5775a15fea980b671d74b922f3:docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+          ]
+        }
+      },
+      {
+        "temp_id": "r7",
+        "kind": "claim",
+        "statement": "A successful no-op self-test proves the standing RGP Admission Proof workflow is correct for every future non-no-op admission transaction."
+      }
+    ],
+    "relations": [
+      {
+        "from": "r2",
+        "type": "contradicts",
+        "to": "r1"
+      },
+      {
+        "from": "r2",
+        "type": "supersedes",
+        "to": "r1"
+      },
+      {
+        "from": "r5",
+        "type": "depends_on",
+        "to": "r6"
+      },
+      {
+        "from": "r2",
+        "type": "supports",
+        "to": "r5"
+      },
+      {
+        "from": "r3",
+        "type": "supports",
+        "to": "r5"
+      }
+    ]
+  },
+  "validation": {
+    "status": "passed",
+    "validator": "rgp-validator/1",
+    "validated_at": "2026-08-16T19:01:01-07:00"
+  }
+}
