@@ -1,0 +1,106 @@
+{
+  "contract": "rgp-pems2-admission-transaction/1",
+  "expected_base_sha256": "9f448f75ab56f580bef9c05da96e109f329645574943e6934507f276ad500460",
+  "reuse_record_ids": [
+    "pems:decision:2197184a0ef4b2a120e4",
+    "pems:source:eb92b21e7f3c92db6d23",
+    "pems:source_observation:be6819991bf46e7cc226"
+  ],
+  "new_records": [
+    {
+      "id": "pems:source:62553c84fc8f07553bbd",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_file",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "path": "docs/handoff/rgp/SUBMISSION_PROTOCOL.md"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:33f20411467adcdf5db7",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:62553c84fc8f07553bbd",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-16T18:26:00-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "da59ddaa352f09d6e64908c458d7e61e1fae61fd",
+          "path": "docs/handoff/rgp/SUBMISSION_PROTOCOL.md"
+        },
+        "captured_fingerprint": "git-blob:0df2d40146a30b163ff78bd445cc2b52d5cb2221"
+      }
+    },
+    {
+      "id": "pems:proposition:c182a3621c50ca0a72a2",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": [
+          "pems:source_observation:33f20411467adcdf5db7"
+        ]
+      },
+      "data": {
+        "statement": "The RGP Submission Protocol requires committed candidate submissions to remain immutable.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:7e912c63b137e4d61c10",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": [
+          "pems:source_observation:33f20411467adcdf5db7"
+        ]
+      },
+      "data": {
+        "statement": "The RGP Submission Protocol prohibits RGP producers from writing directly to the canonical PEMS/COVE handoff artifacts.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:02d7775743aced7cf526",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "data": {
+        "statement": "Candidate RGP production and canonical PEMS persistence are separate operations.",
+        "proposition_kind": "claim",
+        "epistemic_role": "derived"
+      }
+    }
+  ],
+  "new_relations": [
+    {
+      "id": "pems:relation:fdb1ff6319d4f62f87cf",
+      "kind": "derived_from",
+      "from": "pems:proposition:02d7775743aced7cf526",
+      "to": "pems:proposition:7e912c63b137e4d61c10",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:c4e53fcc04f234848108",
+      "kind": "supports",
+      "from": "pems:proposition:c182a3621c50ca0a72a2",
+      "to": "pems:proposition:02d7775743aced7cf526",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:ddd25b5b4093d80d7f49",
+      "kind": "supports",
+      "from": "pems:decision:2197184a0ef4b2a120e4",
+      "to": "pems:proposition:02d7775743aced7cf526",
+      "lifecycle": "current",
+      "data": {}
+    }
+  ]
+}

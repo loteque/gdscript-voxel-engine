@@ -1,0 +1,179 @@
+name: RGP Admission Reconsideration 003
+
+on:
+  push:
+    branches: [project-chat-handoff]
+    paths:
+      - 'docs/handoff/rgp/admission/transactions/RGP-20260816T152100-0700-001.steward-003.json'
+      - '.github/workflows/rgp-admission-reconsideration-003.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  replay-and-prove:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact branch state
+        uses: actions/checkout@v4
+        with:
+          ref: project-chat-handoff
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validator dependency
+        run: python -m pip install --disable-pip-version-check jsonschema==4.25.1
+
+      - name: Replay authoritative RGP validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003
+          python3 docs/handoff/rgp/validator/rgp_validator.py docs/handoff/rgp/submissions/RGP-20260816T152100-0700-001.json \
+            | tee docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003/validator-replay.txt
+
+      - name: Execute deterministic PEMS2 admission transaction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 docs/handoff/rgp/admission/apply_admission_transaction.py \
+            --base docs/project-chat-handoff.json \
+            --plan docs/handoff/rgp/admission/transactions/RGP-20260816T152100-0700-001.steward-003.json \
+            --schema docs/handoff/pems/v2/pems-v2.schema.json \
+            --out-dir docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003
+
+      - name: Run PEMS2 contract validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 docs/handoff/pems/v2/validate_pems2_contract.py \
+            | tee docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003/pems2-contract-validator.txt
+
+      - name: Independently verify admitted graph and unchanged base records
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import importlib.util
+          import json
+          from pathlib import Path
+
+          root = Path('.')
+          tool_path = root / 'docs/handoff/rgp/admission/apply_admission_transaction.py'
+          spec = importlib.util.spec_from_file_location('admission_tool', tool_path)
+          mod = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(mod)
+
+          base = json.loads((root / 'docs/project-chat-handoff.json').read_text())
+          plan = json.loads((root / 'docs/handoff/rgp/admission/transactions/RGP-20260816T152100-0700-001.steward-003.json').read_text())
+          out = root / 'docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003'
+          candidate = json.loads((out / 'candidate.pems2.jcs.json').read_text())
+          cove = json.loads((out / 'candidate.cove.json').read_text())
+          proof = json.loads((out / 'admission-proof.json').read_text())
+
+          nbase = mod.normalize_pems(base)
+          ncandidate = mod.normalize_pems(candidate)
+          base_records = {r['id']: r for r in nbase['records']}
+          cand_records = {r['id']: r for r in ncandidate['records']}
+          base_relations = {r['id']: r for r in nbase['relations']}
+          cand_relations = {r['id']: r for r in ncandidate['relations']}
+          new_record_ids = {r['id'] for r in plan['new_records']}
+          new_relation_ids = {r['id'] for r in plan['new_relations']}
+
+          assert set(cand_records) - set(base_records) == new_record_ids
+          assert set(cand_relations) - set(base_relations) == new_relation_ids
+          assert all(cand_records[k] == v for k, v in base_records.items())
+          assert all(cand_relations[k] == v for k, v in base_relations.items())
+
+          r1 = cand_records['pems:proposition:c182a3621c50ca0a72a2']
+          r2 = cand_records['pems:proposition:7e912c63b137e4d61c10']
+          r3 = cand_records['pems:proposition:02d7775743aced7cf526']
+          r4 = cand_records['pems:decision:2197184a0ef4b2a120e4']
+          obs = cand_records['pems:source_observation:33f20411467adcdf5db7']
+          src = cand_records['pems:source:62553c84fc8f07553bbd']
+
+          assert r1['data'] == {
+              'statement': 'The RGP Submission Protocol requires committed candidate submissions to remain immutable.',
+              'proposition_kind': 'observation',
+              'epistemic_role': 'asserted',
+          }
+          assert r2['data'] == {
+              'statement': 'The RGP Submission Protocol prohibits RGP producers from writing directly to the canonical PEMS/COVE handoff artifacts.',
+              'proposition_kind': 'observation',
+              'epistemic_role': 'asserted',
+          }
+          assert r3['data'] == {
+              'statement': 'Candidate RGP production and canonical PEMS persistence are separate operations.',
+              'proposition_kind': 'claim',
+              'epistemic_role': 'derived',
+          }
+          assert r1['provenance'] == {'primary': ['pems:source_observation:33f20411467adcdf5db7']}
+          assert r2['provenance'] == {'primary': ['pems:source_observation:33f20411467adcdf5db7']}
+          assert r4['data']['summary'] == 'The Project Engineering Steward owns reconciliation of canonical PEMS meaning; accepted reconciliation regenerates docs/project-chat-handoff.cove.json canonically and docs/project-chat-handoff.json as its deterministic compatibility derivative.'
+          assert 'pems:source_observation:be6819991bf46e7cc226' in r4['provenance']['untyped']
+          assert src['data']['identity_locator'] == {'repository': 'loteque/gdscript-voxel-engine', 'path': 'docs/handoff/rgp/SUBMISSION_PROTOCOL.md'}
+          assert obs['data']['source_id'] == src['id']
+          assert obs['data']['evidence_state'] == 'immutable_snapshot'
+          assert obs['data']['evidence_locator'] == {
+              'repository': 'loteque/gdscript-voxel-engine',
+              'commit': 'da59ddaa352f09d6e64908c458d7e61e1fae61fd',
+              'path': 'docs/handoff/rgp/SUBMISSION_PROTOCOL.md',
+          }
+          assert obs['data']['captured_fingerprint'] == 'git-blob:0df2d40146a30b163ff78bd445cc2b52d5cb2221'
+
+          expected_edges = {
+              ('pems:proposition:02d7775743aced7cf526', 'derived_from', 'pems:proposition:7e912c63b137e4d61c10'),
+              ('pems:proposition:c182a3621c50ca0a72a2', 'supports', 'pems:proposition:02d7775743aced7cf526'),
+              ('pems:decision:2197184a0ef4b2a120e4', 'supports', 'pems:proposition:02d7775743aced7cf526'),
+          }
+          actual_edges = {(cand_relations[rid]['from'], cand_relations[rid]['kind'], cand_relations[rid]['to']) for rid in new_relation_ids}
+          assert actual_edges == expected_edges
+
+          assert proof['base']['sha256'] == plan['expected_base_sha256']
+          assert proof['proofs']['pems_schema_valid'] is True
+          assert proof['proofs']['graph_integrity']['record_ids_unique'] is True
+          assert proof['proofs']['graph_integrity']['relation_ids_unique'] is True
+          assert proof['proofs']['graph_integrity']['dangling_relation_endpoints'] == 0
+          assert proof['proofs']['graph_integrity']['derived_propositions_have_premises'] is True
+          assert proof['proofs']['cove_structural_round_trip'] is True
+          assert proof['proofs']['repeated_pems_bytes_identical'] is True
+          assert proof['proofs']['repeated_cove_bytes_identical'] is True
+          assert proof['candidate']['cove_tuple'] == 'cove/1|pems/2|jcs/1'
+          assert cove['c'] == 'cove/1' and cove['p'] == 'pems/2' and cove['s'] == 'jcs/1'
+          assert mod._decode(cove['x'], cove['d'], cove['h']) == ncandidate
+
+          result = {
+              'status': 'passed',
+              'base_records_unchanged': len(base_records),
+              'base_relations_unchanged': len(base_relations),
+              'new_record_ids': sorted(new_record_ids),
+              'new_relation_ids': sorted(new_relation_ids),
+              'rgp_semantics_preserved': True,
+              'required_edges_exact': True,
+              'typed_provenance_resolved': True,
+              'cove_profile': cove['c'],
+              'pems_profile': cove['p'],
+              'serializer_profile': cove['s'],
+          }
+          (out / 'independent-verification.json').write_text(json.dumps(result, sort_keys=True, separators=(',', ':')))
+          print(json.dumps(result, indent=2, sort_keys=True))
+          PY
+
+      - name: Commit immutable admission evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/handoff/rgp/evidence/RGP-20260816T152100-0700-001.admission-003/
+          git diff --cached --check
+          if git diff --cached --quiet; then
+            echo 'Admission evidence already current.'
+            exit 0
+          fi
+          git commit -m 'steward: record RGP admission proof 003'
+          git push origin HEAD:project-chat-handoff
