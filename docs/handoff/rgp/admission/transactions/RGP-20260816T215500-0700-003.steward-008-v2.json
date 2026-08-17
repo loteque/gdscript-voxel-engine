@@ -1,0 +1,162 @@
+{
+  "contract": "rgp-pems2-admission-transaction/2",
+  "expected_base_sha256": "8fc0fca86c5c04496470e1a73820a70d485c5cb806f19c8dc85af87b927c9155",
+  "reuse_record_ids": [
+    "pems:source:9e6e2f39f397a9cd8633",
+    "pems:source_observation:55f10a283d7d18942016",
+    "pems:proposition:8b9f0d3af665298b7959",
+    "pems:unresolved_item:f9b6d2ffa30628f5c387"
+  ],
+  "record_updates": [
+    {
+      "record_id": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+      "expected_before_sha256": "9c1c104f3c02a84217c348c11587de9005c8ed590cce64a9a1d971eabb57113c",
+      "replacement": {
+        "id": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+        "kind": "unresolved_item",
+        "lifecycle": "historical",
+        "provenance": {
+          "context": [
+            "pems:source_observation:55f10a283d7d18942016"
+          ]
+        },
+        "data": {
+          "summary": "Whether the standing RGP Admission Proof workflow preserves its guarantees for a novel non-no-op admission transaction remains unverified.",
+          "resolution_state": "open"
+        }
+      }
+    }
+  ],
+  "new_records": [
+    {
+      "id": "pems:source:ba53541c58ee4cc40b10",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_file",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "path": "docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:beaadeb8ffbc6c5f60c4",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:ba53541c58ee4cc40b10",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-16T22:10:00-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "ac9dfa6afdd430d8f60d6d229e6c65527f25d485",
+          "path": "docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json"
+        },
+        "captured_fingerprint": "git-blob:6e5056966ee69ee0ac48394e2e74240e3670c17b"
+      }
+    },
+    {
+      "id": "pems:source:033db9f885716455c58c",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_file",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "path": "docs/handoff/rgp/evidence/RGP-20260816T190100-0700-002.admission-006.runner-artifact/admission-proof.json"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:c28bd5fb6aa528e94f10",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:033db9f885716455c58c",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-16T22:10:00-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "bff31f8df1a9a2ee71752aa22527a7a969bee2e9",
+          "path": "docs/handoff/rgp/evidence/RGP-20260816T190100-0700-002.admission-006.runner-artifact/admission-proof.json"
+        },
+        "captured_fingerprint": "git-blob:e4b0fbf4f7e031614b0177e9ffedfde4cd06a83f"
+      }
+    },
+    {
+      "id": "pems:proposition:00d9e23c7dfa57881587",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": [
+          "pems:source_observation:beaadeb8ffbc6c5f60c4"
+        ]
+      },
+      "data": {
+        "statement": "A branch-local immutable proof-request workflow successfully executed the Trial 2 non-no-op admission proof on project-chat-handoff without itself installing canonical PEMS/COVE state.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:297653e183984377a669",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": [
+          "pems:source_observation:beaadeb8ffbc6c5f60c4",
+          "pems:source_observation:c28bd5fb6aa528e94f10"
+        ]
+      },
+      "data": {
+        "statement": "The Trial 2 novel non-no-op admission transaction completed a successful deterministic admission proof with valid PEMS/2 output, graph integrity, deterministic PEMS/COVE bytes, and a successful COVE structural round trip.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:fb3c3d1349a736388aa3",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": [
+          "pems:source_observation:beaadeb8ffbc6c5f60c4"
+        ]
+      },
+      "data": {
+        "statement": "The successful Trial 2 candidate PEMS/2 and COVE bytes were persisted under immutable RGP evidence before the Steward installed those exact blobs as canonical memory.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    }
+  ],
+  "new_relations": [
+    {
+      "id": "pems:relation:2f0fc7bc1228246f28ee",
+      "kind": "contradicts",
+      "from": "pems:proposition:297653e183984377a669",
+      "to": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:8c2e4ee3e1b8006bb746",
+      "kind": "supersedes",
+      "from": "pems:proposition:297653e183984377a669",
+      "to": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:0a9b856e428d9fcb7033",
+      "kind": "supports",
+      "from": "pems:proposition:00d9e23c7dfa57881587",
+      "to": "pems:proposition:297653e183984377a669",
+      "lifecycle": "current",
+      "data": {}
+    }
+  ]
+}
