@@ -1,0 +1,104 @@
+{
+  "disposition_id": "RGPD-20260816T221000-0700-008",
+  "submission_id": "RGP-20260816T215500-0700-003",
+  "created_at": "2026-08-16T22:10:00-07:00",
+  "steward": "project-engineering-steward",
+  "disposition": "provisional",
+  "canonical_snapshot": {
+    "branch_head": "1ad022de54d547aa0481b8a5d86a0082f3ee4069",
+    "canonical_pems2_blob": "71353ef28b7a3b4bbcbfbd73253580de785d9f4e",
+    "canonical_cove_blob": "bb53509105a88e46625d09fb15020e233cff38ba",
+    "normalized_pems_sha256": "8fc0fca86c5c04496470e1a73820a70d485c5cb806f19c8dc85af87b927c9155",
+    "profile": "cove/1 + pems/2 + jcs/1"
+  },
+  "submission": {
+    "path": "docs/handoff/rgp/submissions/RGP-20260816T215500-0700-003.json",
+    "blob": "40588850c66fc4b65dcdecae5ca03fcf35c7348c",
+    "rgp_version": "rgp/1",
+    "validator": "rgp-validator/1",
+    "validator_blob": "5675c652b6ad894fe3e1388a4290d2965b2540a0",
+    "structural_assessment": "passes_current_validator_rules"
+  },
+  "record_map": {
+    "r1": "pems:proposition:8b9f0d3af665298b7959",
+    "r2": "pems:proposition:8b9f0d3af665298b7959",
+    "r3": "pems:proposition:00d9e23c7dfa57881587",
+    "r4": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+    "r5": "pems:proposition:297653e183984377a669",
+    "r6": "pems:proposition:297653e183984377a669",
+    "r7": "pems:proposition:fb3c3d1349a736388aa3"
+  },
+  "identity_reconciliation": {
+    "r1": "exact_reuse",
+    "r2": "semantic_paraphrase_reuse_same_truth_conditions_as_r1",
+    "r3": "new_distinct_identity_branch_local_execution_event",
+    "r4": "exact_reuse_existing_open_uncertainty",
+    "r5_r6": "one_new_identity_same_trial2_proof_event_and_truth_condition_two_primary_provenance_chains",
+    "r7": "new_distinct_identity_evidence_persistence_event"
+  },
+  "reserved_provenance_identities": {
+    "trial2_admitted_disposition_source": "pems:source:ba53541c58ee4cc40b10",
+    "trial2_admitted_disposition_observation": "pems:source_observation:beaadeb8ffbc6c5f60c4",
+    "trial2_admission_proof_source": "pems:source:033db9f885716455c58c",
+    "trial2_admission_proof_observation": "pems:source_observation:c28bd5fb6aa528e94f10"
+  },
+  "provenance_reconciliation": {
+    "r1_r2_r4": "reuse pems:source_observation:55f10a283d7d18942016",
+    "r3_r6_r7": "resolve github blob 6e5056966ee69ee0ac48394e2e74240e3670c17b at docs/handoff/rgp/dispositions/RGPD-20260816T214100-0700-007.json through reserved disposition source-observation",
+    "r5": "resolve github blob e4b0fbf4f7e031614b0177e9ffedfde4cd06a83f at immutable Trial-2 admission-proof evidence through reserved proof source-observation",
+    "r5_r6_combined_primary": [
+      "pems:source_observation:beaadeb8ffbc6c5f60c4",
+      "pems:source_observation:c28bd5fb6aa528e94f10"
+    ]
+  },
+  "relation_map": {
+    "r5_contradicts_r4": "pems:relation:2f0fc7bc1228246f28ee",
+    "r5_supersedes_r4": "pems:relation:8c2e4ee3e1b8006bb746",
+    "r3_supports_r5": "pems:relation:0a9b856e428d9fcb7033"
+  },
+  "semantic_findings": [
+    "r1 and r2 denote the same standing-workflow proposition; lexical variation does not create a second identity.",
+    "r3 concerns the branch-local proof-request execution mechanism and is materially distinct from the standing workflow proposition.",
+    "r4 reuses the admitted Trial-2 uncertainty identity; later proof evidence must preserve it historically rather than erase or rebind it.",
+    "r5 and r6 denote the same successful Trial-2 non-no-op proof event. r5 expands constitutive checks of the defined proof and r6 summarizes that same proof; both provenance chains must be retained on one identity.",
+    "r7 is an evidence-persistence/install-sequencing fact, not the proof-success proposition, and remains distinct.",
+    "r5 both contradicts and supersedes r4; contradiction and historical replacement remain separate semantics.",
+    "r3 supports r5 but is not a constitutive premise."
+  ],
+  "representation_assessment": {
+    "r4_target_after_supersession": "historically_preserved unresolved_item; it must no longer export as a current open RGP uncertainty after the superseding proof state becomes canonical",
+    "pems2_contract_requirement": "admission preserves lifecycle/history through supersession and current-state RGP export only treats current open/blocked/deferred unresolved_item as uncertainty",
+    "semantic_loss_if_left_current": true
+  },
+  "execution_blocker": {
+    "code": "ADMISSION_TRANSACTION_V1_CANNOT_UPDATE_REUSED_RECORD_LIFECYCLE",
+    "tool_path": "docs/handoff/rgp/admission/apply_admission_transaction.py",
+    "detail": "The accepted transaction tool supports reuse assertions plus additive new records and relations, but it has no governed operation for atomically updating an existing reused record. Trial 3 requires the reused r4 unresolved_item to transition out of current/open uncertainty semantics while being preserved historically when r5 supersedes it. Adding only the supersedes relation would leave r4 current and exportable as current RGP uncertainty, contradicting the accepted lifecycle/compatibility contract.",
+    "required_repair": "Extend the deterministic admission transaction contract/tool with exact-base guarded updates to reused canonical records, including before-state identity checks, lifecycle/history preservation, schema/semantic validation, deterministic COVE/JCS generation, and post-update proof. Tooling must apply Steward-selected updates but must not decide semantic identity or supersession.",
+    "safety_effect": "Canonical mutation withheld; no partial r3-r7 graph is installed."
+  },
+  "candidate_results": {
+    "r1": "semantically_admissible_reuse_pending_transaction_capability",
+    "r2": "semantically_admissible_reuse_same_identity_as_r1_pending_transaction_capability",
+    "r3": "semantically_admissible_new_observation_pending_transaction_capability",
+    "r4": "semantically_reconciled_existing_uncertainty_requires_atomic_historical_transition",
+    "r5": "semantically_admissible_new_observation_pending_transaction_capability",
+    "r6": "semantically_admissible_same_identity_as_r5_pending_transaction_capability",
+    "r7": "semantically_admissible_new_observation_pending_transaction_capability"
+  },
+  "graph_integrity": "semantic_graph_reconciled_but_atomic_persistence_blocked_by_reused_record_update_gap",
+  "canonical_mutation": "withheld",
+  "reason_codes": [
+    "RGP_STRUCTURE_ACCEPTED",
+    "EXACT_IDENTITY_REUSE_RECONCILED",
+    "PARAPHRASE_IDENTITY_REUSE_RECONCILED",
+    "SIMILAR_BUT_DISTINCT_IDENTITIES_PRESERVED",
+    "MULTI_SOURCE_SEMANTIC_CONVERGENCE_RECONCILED",
+    "PROVENANCE_IDENTITIES_RESERVED",
+    "CONTRADICTS_AND_SUPERSEDES_PRESERVED_DISTINCTLY",
+    "REUSED_UNCERTAINTY_REQUIRES_LIFECYCLE_TRANSITION",
+    "ADMISSION_TRANSACTION_UPDATE_CAPABILITY_MISSING",
+    "CONNECTED_GRAPH_CANONICAL_MUTATION_WITHHELD"
+  ],
+  "next_gate": "RGP admission tooling must gain a deterministic Steward-directed update operation for reused records. After that repair is validated, replay this reconciliation against the then-current canonical base, execute an exact transaction including r4 historical transition plus r3/r5-r6/r7 and all three relations, and issue a superseding disposition."
+}
