@@ -1,0 +1,46 @@
+{
+  "disposition_id": "RGPD-20260816T191200-0700-004",
+  "submission_id": "RGP-20260816T190100-0700-002",
+  "steward_role": "Project Engineering Steward",
+  "disposition": "provisional",
+  "canonical_mutation": "withheld",
+  "candidate_results": {
+    "r1": "provisional_historical_superseded_candidate",
+    "r2": "provisional_pending_connected_transaction",
+    "r3": "provisional_assumption_preserved_as_assumption",
+    "r4": "provisional_representation_blocker",
+    "r5": "provisional_pending_premises_and_dependency",
+    "r6": "provisional_pending_connected_transaction",
+    "r7": "rejected_unsupported_universal_generalization"
+  },
+  "authoritative_findings": [
+    "The immutable submission is structurally coherent enough for Steward semantic review; producer validation is not treated as truth authority.",
+    "r3 must remain an assumption and may not be promoted to established fact.",
+    "r4 is a genuine uncertainty and may not be silently coerced to generic claim semantics.",
+    "The current reviewed compatibility surface establishes PEMS unresolved_item -> RGP uncertainty but does not establish the reverse RGP uncertainty -> PEMS/2 import required to persist r4 without invention.",
+    "r2 contradicts r1 and r2 supersedes r1 express distinct semantics and must not be collapsed: contradiction captures incompatible bare propositions; supersession captures historical replacement while retaining prior evidence.",
+    "r5 premise references r2 and r3 must project as derivation/derived_from, while r5 depends_on r6 is conditional validity and must remain distinct from derivation.",
+    "r7 is semantically unsupported by its evidence: a successful no-op self-test cannot establish correctness for every future non-no-op transaction. r7 is rejected and must not enter canonical memory.",
+    "Because r4 lacks an accepted lossless reverse-import representation and the submitted semantic slice is being evaluated as a connected admission transaction, canonical mutation is withheld rather than partially persisting a weakened graph."
+  ],
+  "blockers": [
+    {
+      "code": "RGP_UNCERTAINTY_TO_PEMS2_IMPORT_RULE_MISSING",
+      "detail": "No accepted normative mapping was established for importing an RGP uncertainty as PEMS/2 while preserving unresolved epistemic semantics. The Steward will not invent this mapping during admission."
+    }
+  ],
+  "required_resolution": [
+    "PEMS/COVE Architect defines and validates an explicit normative RGP uncertainty -> PEMS/2 import rule, including lifecycle/state, provenance, identity, round-trip, and compatibility behavior.",
+    "After that rule is accepted, reconsider r1-r6 transactionally against the then-current canonical PEMS/2 snapshot; preserve r7 rejection."
+  ],
+  "semantic_integrity": {
+    "assumption_preserved": true,
+    "uncertainty_preserved_by_non_admission": true,
+    "contradicts_distinct_from_supersedes": true,
+    "premise_distinct_from_depends_on": true,
+    "adversarial_overgeneralization_rejected": true,
+    "partial_persistence_prevented": true
+  },
+  "authoritative_effect": "No canonical PEMS/COVE mutation. r7 is rejected for this submission. r1-r6 remain provisional as a connected semantic slice pending a normative uncertainty import rule.",
+  "next_gate": "PEMS/COVE Architect representation decision for RGP uncertainty import, followed by Steward reconsideration."
+}
