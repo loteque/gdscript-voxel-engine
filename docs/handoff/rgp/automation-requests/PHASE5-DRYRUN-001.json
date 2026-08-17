@@ -1,0 +1,11 @@
+{
+  "contract": "rgp-steward-admission-automation-request/1",
+  "authority": "project-engineering-steward",
+  "approved_by_github_actor": "loteque",
+  "approved": true,
+  "install": false,
+  "submission_path": "docs/handoff/rgp/submissions/RGP-20260817T073100-0700-007.json",
+  "plan_path": "docs/handoff/rgp/admission/transactions/PHASE5-DRYRUN-001.steward-017-v2.json",
+  "base_path": "docs/project-chat-handoff.json",
+  "evidence_key": "PHASE5-DRYRUN-001"
+}
