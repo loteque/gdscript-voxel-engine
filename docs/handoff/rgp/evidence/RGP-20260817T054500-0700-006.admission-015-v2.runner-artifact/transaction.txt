@@ -1,0 +1,53 @@
+{
+  "base": {
+    "record_count": 208,
+    "relation_count": 14,
+    "sha256": "8f6e0c2141b83f1f50fad7b6e7eda44176ce7b4a59f5a07940a0a64c2bac7edf"
+  },
+  "candidate": {
+    "cove_jcs_sha256": "f2db2f559a9f9baf72aa58e2b3cf5e2823c3d50258dbd4ca60d5eea617d89793",
+    "cove_tuple": "cove/1|pems/2|jcs/1",
+    "pems_jcs_sha256": "86288d731731c2cb0e01e1f17fd59b6506b9e79a6078921e3da630a50fea09cd",
+    "record_count": 214,
+    "relation_count": 14,
+    "semantic": "pems/2"
+  },
+  "contract": "rgp-pems2-admission-transaction/2",
+  "proofs": {
+    "base_exact_match": true,
+    "canonical_written": false,
+    "cove_structural_round_trip": true,
+    "graph_integrity": {
+      "contradictions_canonicalized": true,
+      "dangling_relation_endpoints": 0,
+      "derived_propositions_have_premises": true,
+      "derived_relation_count": 6,
+      "record_ids_unique": true,
+      "relation_ids_unique": true
+    },
+    "pems_schema_valid": true,
+    "record_identity_preserved": true,
+    "record_kind_preserved": true,
+    "record_update_before_states_exact": true,
+    "repeated_cove_bytes_identical": true,
+    "repeated_pems_bytes_identical": true
+  },
+  "transaction": {
+    "new_record_count": 6,
+    "new_relation_count": 0,
+    "record_update_count": 2,
+    "record_updates": [
+      {
+        "after_sha256": "80430d0e86b3d71b089b3200e934553e5b507ba2d0760e644a735f46c7e3e2b6",
+        "before_sha256": "f6f0842d2c9f05c5e57d344eda776bc1114e9228b2869fea3c59997b4b14f1f7",
+        "record_id": "pems:decision:e7b384909352ef0ee65c"
+      },
+      {
+        "after_sha256": "924c89c5780d15a5d327f75ec872dd395e5805c21ff3ca39a7746c02b1e06101",
+        "before_sha256": "bcdb470b8451160727cb4ab96141baca1da60bba8aea405be4bcd9dc88920a5c",
+        "record_id": "pems:decision:ca231dae6fce15247762"
+      }
+    ],
+    "reuse_record_count": 2
+  }
+}
