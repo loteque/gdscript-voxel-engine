@@ -2,168 +2,202 @@
 
 ## Goal
 
-Develop a small, testable process that distills observable engineering work into provenance-backed symbolic reasoning records while allowing working agents to communicate concisely.
+Develop a small, testable producer that distills observable engineering work into provenance-backed `rgp/1` candidate graphs while allowing working agents to communicate concisely.
 
-The roadmap intentionally progresses from prompt experiment to protocol to deterministic tooling to application. Do not build a service before the distillation contract is demonstrated to be useful and stable.
+The Reasoning Distiller produces candidates only. It does not reconstruct hidden chain-of-thought, decide canonical truth, reconcile canonical identity, or grant admission.
 
-## Phase 0 — Corpus and Evaluation Cases
+The current experimental semantic contract is `rgp/1` and is change-controlled during producer evaluation. Do not add vocabulary because a prompt is inconvenient; semantic changes require a demonstrated pressure case and evaluation.
 
-Establish a small evaluation corpus from completed voxel-engine work.
+## Current RGP/1 semantic core
 
-- Select several completed tasks containing meaningful decisions, evidence, assumptions, and uncertainty.
-- Include at least one case with a rejected alternative, one validation-driven conclusion, one architectural decision, and one inconclusive investigation.
-- Define expected durable information for each case by human review.
-- Define failure examples: invented causality, invented alternatives, duplicated facts, loss of provenance, excessive retention, and promotion of agent interpretation to owner requirement.
+Record kinds:
 
-Exit criterion: a repeatable corpus exists against which distillation quality can be judged.
+- `observation`
+- `decision`
+- `assumption`
+- `uncertainty`
+- `claim`
+
+Derivation:
+
+- `premise` stored on the derived proposition
+
+General non-derivational relations:
+
+- `supports`
+- `contradicts`
+- `depends_on`
+- `supersedes`
+
+Provenance roles:
+
+- `primary`
+- `corroborating`
+- `context`
+
+Validation evidence that is external evidence belongs in provenance. `validated_by` is not an `rgp/1` relation.
+
+Normative authority is resolved from external source chains. RGP does not carry an `authority` field and the Distiller must not manufacture normative standing.
+
+## Phase 0 — Corpus and Evaluation Baseline
+
+Status: **baseline established; current-RGP reconciliation required as corpus evolves.**
+
+Use completed voxel-engine work as fixed evaluation material.
+
+The baseline corpus must cover at least:
+
+- an architectural ownership decision;
+- an offline/runtime separation decision;
+- a validation-driven governed requirement;
+- an evidence-driven investigation whose conclusion is narrower than the motivating hypothesis;
+- an unresolved failure where uncertainty must remain unresolved;
+- adversarial pressure for invented causality, invented alternatives, duplicate propositions, provenance loss, authority promotion, unsupported universal generalization, premise cycles, and derivation/dependency confusion.
+
+Human-reviewed expectations must state the durable propositions, allowed/required semantic structure, provenance expectations, and material inventions to reject. Evaluation expectations are test oracles, not canonical PEMS records.
+
+Exit criterion: a repeatable corpus and scoring rubric exist, aligned with current `rgp/1`, against which fresh Distiller runs can be compared.
 
 ## Phase 1 — Distiller Agent Prototype
 
-Implement the distiller as a specialized agent instruction with a strict structured-output contract.
+Status: **next implementation phase.**
 
-Initial candidate record types:
-
-- observation
-- decision
-- assumption
-- uncertainty
-
-Initial relations:
-
-- supports
-- contradicts
-- depends_on
-- supersedes
-- validated_by
+Implement the Distiller as a specialized agent instruction using the strict `rgp/1` structured-output contract in `docs/distiller/DIRECTIVE.md`.
 
 Requirements:
 
-- consume only observable task evidence and explicit outcomes;
-- never claim or reconstruct hidden chain of thought;
-- emit atomic candidate propositions rather than essays;
-- attach provenance references where available;
-- distinguish derived interpretation from governed project truth;
+- consume only observable supplied evidence and explicit outcomes;
+- never claim or reconstruct hidden chain-of-thought;
+- emit atomic propositions rather than essays;
+- distinguish observation, decision, assumption, uncertainty, and claim;
+- use `premise` only for constitutive derivation;
+- use only `supports`, `contradicts`, `depends_on`, and `supersedes` for general relations;
+- attach minimal sufficient provenance where available;
+- require primary provenance for non-derived observations;
+- keep source identity and normative authority external;
 - omit low-value activity records;
-- report unsupported relationships rather than guessing them.
+- omit unsupported relations instead of guessing them.
 
-Exit criterion: repeated runs over the evaluation corpus produce compact, useful candidate records with acceptably low invention and omission rates.
+Run each corpus case multiple times from fresh invocations. Capture output without editing before scoring.
 
-## Phase 2 — Distillation Protocol
+Exit criterion: repeated runs over the corpus meet the Phase-1 acceptance threshold with no hard failures and show acceptably low invention, omission, duplication, relation, and provenance error rates.
 
-Freeze the first experimental interchange format between working agents, the distiller, and memory tooling.
+## Phase 2 — Producer/Validator Integration
 
-Define:
+Status: RGP structural validation exists; Distiller producer integration remains to be exercised.
 
-- evidence-bundle schema;
-- candidate-record schema;
-- relation schema;
-- provenance requirements;
-- epistemic/authority status;
-- confidence representation if retained;
-- rejection/error representation;
-- versioning rules.
+Feed Distiller output directly into the authoritative RGP validator. Keep deterministic structural checks outside the semantic agent.
 
-The protocol must remain independent of PEMS serialization and COVE encoding even when mappings exist.
+Required checks include:
 
-Exit criterion: a distillation result can be validated without interpreting free-form prose.
-
-## Phase 3 — Deterministic Validation Tooling
-
-Move non-semantic responsibilities out of the agent.
-
-Implement deterministic checks for:
-
-- schema validity;
+- schema/shape validity;
+- record and relation vocabulary;
 - reference integrity;
-- allowed record and relation types;
-- required provenance;
-- malformed/self-referential relations;
-- stable candidate identity where appropriate;
-- duplicate candidate detection;
-- complete-source repository-write safety for history-sensitive artifacts.
+- non-empty and acyclic premise structure;
+- non-derived observation grounding requirements;
+- malformed or self-referential graph structure;
+- omission of forbidden empty/null fields.
 
-Do not automate semantic admission yet.
+Structural validation is evidence of protocol validity only. It does not prove truth, authority, semantic identity, provenance resolution, or admission.
 
-Exit criterion: invalid distillation output is rejected mechanically before it can reach project memory.
+Exit criterion: malformed Distiller output fails mechanically before any reconciliation surface, and valid output passes without producer-specific exceptions.
 
-## Phase 4 — Admission Contract and PEMS Candidate Mapping
+## Phase 3 — Shadow Operation
 
-The admission boundary is now defined in `docs/distiller/ADMISSION.md`.
-
-Validated distillation remains provisional until a separate admission step decides whether each connected candidate subgraph is rejected, retained provisionally, or admitted to canonical memory.
-
-Admission must preserve provenance, premise structure, conflicts, uncertainty, assumptions, and historical identity. Structural validity is necessary but never sufficient for admission. Normative standing is resolved from external source chains rather than created by the admission mechanism.
-
-Next establish:
-
-- mapping from candidate records to stable PEMS identities;
-- candidate-to-existing-record reconciliation;
-- transactional premise and relation rewrites from `temp_id` to canonical IDs;
-- conflict and supersession mapping;
-- provisional/rejected operational metadata;
-- initial review-required versus deterministically admissible policy classes.
-
-Exit criterion: validated candidates can be reconciled and admitted into PEMS without weakening provenance, graph integrity, authority boundaries, or historical traceability.
-
-## Phase 5 — Shadow Operation
-
-Run the distiller after real project tasks without allowing it to mutate canonical memory automatically.
+Run the Distiller after real project tasks while prohibiting automatic canonical mutation.
 
 For each run:
 
-- preserve the candidate output;
-- compare it with the working agent's concise response;
-- review what should and should not become durable memory;
-- track false relations, missed records, duplicates, and unnecessary records;
-- adjust vocabulary only when repeated evidence justifies it.
+- preserve the immutable candidate output;
+- preserve the observable evidence bundle or immutable source references;
+- compare the candidate against human review;
+- track invented propositions, omissions, false relations, duplicate semantics, provenance quality, authority errors, unnecessary retention, and review burden;
+- submit candidates to Steward reconciliation only when shadow evaluation explicitly calls for an admission exercise;
+- change vocabulary only when repeated evidence demonstrates irreducible semantic loss or ambiguity.
 
-Exit criterion: the distiller routinely captures useful durable structure with low review burden.
+Exit criterion: the Distiller routinely captures useful durable structure with low review burden and stable results across multiple roles/tasks.
 
-## Phase 6 — Controlled Admission
+## Phase 4 — Routine Steward-Governed Admission
 
-Permit bounded automated admission only for record classes and provenance conditions shown to be reliable.
+The admission boundary is defined by the RGP submission/evidence protocols and the Steward admission directive. Candidate validity remains distinct from semantic admission.
 
-Keep higher-authority transitions explicit. In particular, an agent-derived interpretation must not silently become an owner requirement, project policy, or accepted architectural decision.
+Operationalize the proven path:
 
-Exit criterion: admitted records remain trustworthy across multiple agent roles and tasks.
+```text
+observable evidence
+    -> Distiller candidate RGP
+    -> RGP validator
+    -> immutable submission
+    -> Steward reconciliation
+    -> deterministic exact-base PEMS/2 transaction proof
+    -> exact candidate PEMS/COVE installation
+    -> immutable disposition
+```
 
-## Phase 7 — Orchestration and Productization
+Preserve:
 
-Only after the protocol and admission behavior are stable, decide whether orchestration should become a dedicated application/service.
+- Steward-only semantic identity reconciliation;
+- Steward-only canonical provenance resolution;
+- rejected/provisional/admitted disposition;
+- connected-graph integrity;
+- exact-base optimistic concurrency;
+- guarded reused-record updates when authorized;
+- deterministic `cove/1 + pems/2 + jcs/1` generation;
+- exact-byte installation and post-write verification.
+
+Exit criterion: routine candidates can traverse the governed pipeline without trial-specific choreography or authority leakage into tooling.
+
+## Phase 5 — Bounded Automation Research
+
+Only after shadow operation demonstrates low error and low review burden, evaluate whether any narrow classes are suitable for bounded automated handling.
+
+No automation may silently determine canonical truth, owner requirements, project policy, architectural decisions, or semantic identity equivalence.
+
+The default remains human Steward reconciliation.
+
+Exit criterion: any proposed automation class has explicit provenance preconditions, failure behavior, pressure tests, and a governance authorization. Absence of such evidence means no automation.
+
+## Phase 6 — Orchestration and Productization
+
+Only after producer and governed admission behavior are stable, decide whether orchestration should become a dedicated application/service.
 
 Possible responsibilities:
 
-- collect evidence bundles from agent/tool executions;
+- collect immutable evidence bundles from agent/tool executions;
 - invoke semantic distillation;
-- run deterministic validation;
-- submit candidates to reconciliation/admission;
-- expose inspection and query interfaces;
+- run deterministic RGP validation;
+- package immutable Steward submissions;
+- invoke proof-only admission tooling after Steward authorization;
+- expose inspection/query interfaces;
 - generate evaluation metrics and diagnostics.
 
-Storage topology and conversational product integration remain deployment concerns, not semantic requirements.
+Storage topology and conversational product integration remain deployment concerns, not RGP semantics.
 
-Exit criterion: productization removes operational friction without changing the proven semantic contract.
+Exit criterion: productization removes operational friction without changing the proven semantic or authority contracts.
 
 ## Deferred
 
-Do not implement these until the narrow experiment demonstrates need:
+Do not implement without demonstrated need:
 
 - generalized cognition or chain-of-thought storage;
 - large reasoning ontologies;
 - automatic causal inference;
 - fully autonomous architectural-decision admission;
-- a dedicated database solely for the distiller;
+- automated semantic identity reconciliation;
+- a dedicated database solely for the Distiller;
 - a long-running service;
-- domain-specific voxel-engine reasoning types in the generic protocol.
+- domain-specific voxel-engine reasoning kinds in generic RGP.
 
 ## Evaluation Questions
 
 At each phase ask:
 
-1. Can another agent reconstruct why an important project decision exists without reading the original chat?
-2. Are all durable claims traceable to observable evidence or explicit authority?
-3. Does the representation distinguish fact, interpretation, assumption, and uncertainty?
-4. Is the distiller inventing relationships that were not established?
-5. Is it preserving too much low-value activity?
-6. Does the symbolic record reduce the need for verbose conversational responses?
-7. Would the representation remain useful outside this voxel-engine project?
+1. Can another agent reconstruct the durable argument without reading the original chat?
+2. Are retained empirical propositions traceable to supplied evidence?
+3. Does the graph preserve fact, decision, interpretation, assumption, and uncertainty without promotion?
+4. Are `premise`, `supports`, `depends_on`, `contradicts`, and `supersedes` used for their distinct meanings?
+5. Is the Distiller inventing relationships, causality, identity equivalence, or authority?
+6. Is provenance minimal, sufficient, and non-fabricated?
+7. Is low-value activity excluded?
+8. Are repeated fresh runs stable enough for practical review?
+9. Would the representation remain useful outside this voxel-engine project?
