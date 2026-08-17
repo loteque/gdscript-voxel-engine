@@ -1,6 +1,6 @@
 # Distiller Phase 1 Assessment
 
-Date: 2026-08-16
+Date: 2026-08-17
 Role: Reasoning Graph Protocol Engineer
 Contract: `rgp/1`
 Baseline commit: `0f196fb096a1830b184710d175f9e6b03f0a5112`
@@ -11,65 +11,91 @@ Baseline commit: `0f196fb096a1830b184710d175f9e6b03f0a5112`
 
 **Initial evaluation batch: pass.**
 
-**Prototype stability: not yet established.**
+**Independent repeated-run stability gate: fail.**
 
-The Phase-1 producer contract is explicit in `docs/distiller/PHASE1_PROTOTYPE.md`, with a fixed supplied-source registry in `docs/distiller/evaluation/phase1-inputs.json`.
+**Prototype stability: not established.**
 
-The initial batch preserves 15 raw candidate graphs: three semantic passes over each of the five Phase-0 core cases.
+The Phase-1 producer contract remains explicit in `docs/distiller/PHASE1_PROTOTYPE.md`, with a fixed supplied-source registry in `docs/distiller/evaluation/phase1-inputs.json`.
 
-## Structural validation
+Three genuinely fresh Distiller invocations have now been preserved under `docs/distiller/evaluation/phase1/independent/`, covering the same five Phase-0 core cases for 15 independent candidate graphs total. Raw candidates were not edited during closeout. Detailed per-run diagnostics and scores are recorded separately in `docs/distiller/evaluation/phase1/independent/closeout.json`.
 
-All 15 candidate graphs satisfy the current deterministic validator contract in `docs/distiller/validation/validate_distillation.py`:
+## Deterministic structural validation
 
-- only current `rgp/1` record kinds are used;
-- only current provenance roles are used;
-- non-derived observations carry `provenance.primary`;
-- no unsupported or empty optional structures are emitted;
-- no dangling, self-referential, or cyclic premise references exist;
-- no invalid relation vocabulary is emitted.
+Invocation 1 passes the current deterministic validator for all five cases.
 
-No candidate uses `validated_by`, embedded `authority`, hidden-chain-of-thought material, fabricated source IDs, or PEMS/COVE mutation instructions.
+Invocations 2 and 3 fail deterministic validation for all five cases because each candidate emits:
+
+```json
+"relations": []
+```
+
+The `rgp/1` output contract requires optional empty collections to be omitted, and `validate_distillation.py` rejects `relations` when it is present but empty. This yields 10 validator failures across the 15 independent candidates.
+
+The raw candidates remain preserved as produced. They were not repaired after validation because the Phase-1 invocation contract requires unedited candidate evidence.
+
+No candidate fabricated provenance, emitted an unsupported relation type, reconstructed hidden chain-of-thought, embedded authority, or instructed mutation of canonical PEMS/COVE.
 
 ## Human-review scoring
 
-All 15 batch candidates score 18/18 against the Phase-0 scoring dimensions:
+Thirteen of the 15 independent candidates score 18/18 against the Phase-0 dimensions on semantic content.
 
-- Durable Recall: 3
+The two `resource-loading-investigation` candidates from invocations 2 and 3 each score 16/18:
+
+- Durable Recall: 2
 - Precision: 3
 - Relation Integrity: 3
 - Provenance: 3
-- Authority / Epistemic Safety: 3
+- Authority / Epistemic Safety: 2
 - Compression: 3
 
-No hard failures were recorded.
+They do not satisfy the Phase-1 acceptance threshold because Authority / Epistemic Safety must equal 3.
 
-The batch preserves the expected semantic boundaries:
+Neither case has a hard failure. The issue is narrower: both runs preserve that no measurements were supplied for other platforms or builds as an `observation`, then derive a `claim` that the evidence does not establish universal causality. They omit the oracle-required durable proposition that unmeasured platforms or builds **remain an explicit uncertainty**.
 
-- PointFieldResource ownership remains a decision rather than an inferred performance claim.
-- Offline generation and runtime residency remain separate scoped decisions.
-- The validation-demo requirement is sourced separately from the implementation gap.
-- Resource-loading conclusions remain measurement-scoped and unmeasured platforms/builds remain uncertainty.
-- Green CI/deployment does not erase the observed missing runtime UI, and the cause remains unresolved.
+## Cross-invocation stability
 
-## Important limitation
+### `field-authority`
 
-The three passes per case were produced during one RGP Engineer execution context. They are not genuinely independent fresh model invocations.
+Stable at the required semantic level. All three invocations preserve PointFieldResource authority and the prohibition on consumers duplicating field indexing/state. Invocations 2 and 3 additionally retain the explicit scope limit that runtime streaming is not assigned to PointFieldResource.
 
-Therefore the strict Phase-0 stability criterion is **not yet satisfied**, even though the batch itself is semantically and structurally clean.
+### `offline-runtime-split`
 
-This is not an RGP semantic defect. It is an evaluation-evidence limitation.
+Stable at the required semantic level. All three invocations preserve offline production of persisted assets and runtime ownership of residency. Invocations 2 and 3 additionally preserve PointFieldResource and SurfaceNetsMesher as generation-side concerns.
 
-## Phase-1 disposition
+### `validation-demo-contract`
 
-- Producer contract: **ready**
-- Current `rgp/1` vocabulary fit: **ready**
-- Deterministic structural validation compatibility: **ready**
-- Initial precision/authority/provenance behavior: **promising**
-- Independent repeated-run stability evidence: **pending**
-- Automatic canonical admission: **not authorized**
+Stable in meaning, with factoring variation. Invocation 1 bundles the three owner requirements into one decision; invocations 2 and 3 factor public-runtime validation, headless validation where practical, and Integration Preview exposure into separate atomic decisions. The implementation-gap observation is preserved in all three runs.
+
+### `resource-loading-investigation`
+
+Not stable. The required measurement-scope proposition is preserved in all three invocations, but the required uncertainty appears in only 1 of 3 runs. Invocations 2 and 3 instead use an observation about absent measurements plus a derived claim. This is a repeated proposition-kind disagreement and therefore requires review before progression under the Phase-0 stability policy.
+
+### `deployed-ui-failure`
+
+Stable at the required semantic level. All three invocations preserve successful CI/deployment, the missing RuntimeWorkloadExperimentUI in the deployed phone view, and the unresolved cause. Later runs preserve additional supplied observations without resolving the cause.
+
+## Stability disposition
+
+The independent-run requirement has now been executed, but its exit criteria are not met.
+
+Blocking evidence:
+
+1. 10 of 15 independent candidates fail deterministic structural validation because optional empty `relations` collections were emitted.
+2. The required resource-loading uncertainty is preserved in only 1 of 3 independent runs.
+3. The repeated resource-loading kind disagreement requires review.
+4. The resource-loading cases in invocations 2 and 3 score Authority / Epistemic Safety = 2, below the mandatory threshold of 3.
+
+Therefore Phase 1 must **not** be declared stable and the project should **not** progress to Phase 2 producer/validator integration or shadow operation on the strength of this batch.
+
+Automatic canonical admission remains unauthorized. Canonical PEMS/COVE and admission artifacts were not modified by this evaluation.
 
 ## Next gate
 
-Run the same five core cases through at least three genuinely fresh Distiller invocations and preserve the raw outputs. If every independent run meets the Phase-0 threshold and no kind/relation disagreement requires review, Phase 1 may be declared stable and the project can proceed to Phase 2 producer/validator integration and then shadow operation.
+Make a producer-level correction rather than editing the preserved raw candidates:
 
-Do not modify canonical PEMS/COVE as part of this evaluation.
+- reinforce that optional empty collections, especially `relations`, must be omitted;
+- reinforce that absence of measurements for other platforms/builds leaves their behavior as an explicit `uncertainty`, rather than replacing that uncertainty with only an observation about missing measurements;
+- execute at least three new genuinely fresh Distiller invocations over the same five core cases;
+- preserve those outputs raw and repeat deterministic validation, oracle scoring, and cross-run comparison.
+
+Only after every fresh run satisfies the acceptance threshold and no kind/relation disagreement remains unresolved should Phase 1 be declared stable.
