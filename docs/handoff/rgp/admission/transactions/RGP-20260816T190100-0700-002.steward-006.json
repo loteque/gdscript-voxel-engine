@@ -1,0 +1,183 @@
+{
+  "contract": "rgp-pems2-admission-transaction/1",
+  "expected_base_sha256": "aeba21697477ccb667d8dd31124ed7dc64d0887b2cadf3b1188a07b0005b2a4e",
+  "reuse_record_ids": [],
+  "new_records": [
+    {
+      "id": "pems:source:134fb5da998bf8c8126c",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_file",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "path": "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:327d701bbe500a65277d",
+      "kind": "source_observation",
+      "lifecycle": "historical",
+      "data": {
+        "source_id": "pems:source:134fb5da998bf8c8126c",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-16T18:32:30-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "2166793849b7670c72d840ccebaf4866d27f64f3",
+          "path": "docs/handoff/rgp/dispositions/RGPD-20260816T183100-0700-003.json"
+        },
+        "captured_fingerprint": "git-blob:24dec513a43fc95c8fbda186260f61f27c3cfad2"
+      }
+    },
+    {
+      "id": "pems:source:9e6e2f39f397a9cd8633",
+      "kind": "source",
+      "lifecycle": "current",
+      "data": {
+        "source_kind": "repository_file",
+        "authority": "repository_state",
+        "identity_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "path": "docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+        }
+      }
+    },
+    {
+      "id": "pems:source_observation:55f10a283d7d18942016",
+      "kind": "source_observation",
+      "lifecycle": "current",
+      "data": {
+        "source_id": "pems:source:9e6e2f39f397a9cd8633",
+        "evidence_state": "immutable_snapshot",
+        "observed_at": "2026-08-16T18:51:43-07:00",
+        "evidence_locator": {
+          "repository": "loteque/gdscript-voxel-engine",
+          "commit": "b87a080a7273b14a4506976a1c9a534a943dbb20",
+          "path": "docs/handoff/rgp/tooling/ADMISSION_TOOLING_STATUS_2026-08-16.md"
+        },
+        "captured_fingerprint": "git-blob:d53b49792a645d5775a15fea980b671d74b922f3"
+      }
+    },
+    {
+      "id": "pems:proposition:7fd6f40c408d41c2e6e5",
+      "kind": "proposition",
+      "lifecycle": "historical",
+      "provenance": {
+        "primary": ["pems:source_observation:327d701bbe500a65277d"]
+      },
+      "data": {
+        "statement": "No generic repository-native RGP admission runner exists.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:8b9f0d3af665298b7959",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:55f10a283d7d18942016"]
+      },
+      "data": {
+        "statement": "A standing RGP Admission Proof workflow exists and can replay validation and deterministic admission proof generation without installing canonical PEMS/COVE state.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:proposition:97ee9d0d6e6cc6f90797",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "context": ["pems:source_observation:55f10a283d7d18942016"]
+      },
+      "data": {
+        "statement": "The standing RGP Admission Proof workflow is representative enough of the proven trial-specific execution path to use as the execution substrate for subsequent RGP admissions.",
+        "proposition_kind": "assumption",
+        "epistemic_role": "asserted"
+      }
+    },
+    {
+      "id": "pems:unresolved_item:f9b6d2ffa30628f5c387",
+      "kind": "unresolved_item",
+      "lifecycle": "current",
+      "provenance": {
+        "context": ["pems:source_observation:55f10a283d7d18942016"]
+      },
+      "data": {
+        "summary": "Whether the standing RGP Admission Proof workflow preserves its guarantees for a novel non-no-op admission transaction remains unverified.",
+        "resolution_state": "open"
+      }
+    },
+    {
+      "id": "pems:proposition:253012b9436691d7f6fd",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "data": {
+        "statement": "The standing RGP Admission Proof workflow remains suitable for Steward-governed admission proofs.",
+        "proposition_kind": "claim",
+        "epistemic_role": "derived"
+      }
+    },
+    {
+      "id": "pems:proposition:cb5ce5d414a043cc68f5",
+      "kind": "proposition",
+      "lifecycle": "current",
+      "provenance": {
+        "primary": ["pems:source_observation:55f10a283d7d18942016"]
+      },
+      "data": {
+        "statement": "The standing RGP Admission Proof workflow has read-only repository permissions and leaves canonical installation to the Steward.",
+        "proposition_kind": "observation",
+        "epistemic_role": "asserted"
+      }
+    }
+  ],
+  "new_relations": [
+    {
+      "id": "pems:relation:6cbd8786ab5055bbbcd7",
+      "kind": "contradicts",
+      "from": "pems:proposition:7fd6f40c408d41c2e6e5",
+      "to": "pems:proposition:8b9f0d3af665298b7959",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:3654afa607e6fb5db11d",
+      "kind": "supersedes",
+      "from": "pems:proposition:8b9f0d3af665298b7959",
+      "to": "pems:proposition:7fd6f40c408d41c2e6e5",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:75166ee4bacb687bd13d",
+      "kind": "derived_from",
+      "from": "pems:proposition:253012b9436691d7f6fd",
+      "to": "pems:proposition:8b9f0d3af665298b7959",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:6f895a3105dd0567d15c",
+      "kind": "derived_from",
+      "from": "pems:proposition:253012b9436691d7f6fd",
+      "to": "pems:proposition:97ee9d0d6e6cc6f90797",
+      "lifecycle": "current",
+      "data": {}
+    },
+    {
+      "id": "pems:relation:d05f3ff845a915222b17",
+      "kind": "depends_on",
+      "from": "pems:proposition:253012b9436691d7f6fd",
+      "to": "pems:proposition:cb5ce5d414a043cc68f5",
+      "lifecycle": "current",
+      "data": {
+        "dependency_kind": "conditional_validity"
+      }
+    }
+  ]
+}
