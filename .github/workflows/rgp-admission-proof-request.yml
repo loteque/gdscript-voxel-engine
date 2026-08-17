@@ -1,0 +1,174 @@
+name: RGP Admission Proof Request
+
+on:
+  push:
+    branches: [project-chat-handoff]
+    paths:
+      - 'docs/handoff/rgp/proof-requests/*.json'
+
+permissions:
+  contents: read
+
+jobs:
+  prove-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install validation dependency
+        run: python -m pip install --disable-pip-version-check jsonschema==4.25.1
+
+      - name: Resolve immutable proof request
+        id: request
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t REQUESTS < <(
+            git diff-tree --no-commit-id --name-status -r "$GITHUB_SHA" -- docs/handoff/rgp/proof-requests/ \
+              | awk '$1 == "A" && $2 ~ /\.json$/ {print $2}'
+          )
+          if [ "${#REQUESTS[@]}" -ne 1 ]; then
+            echo "expected exactly one newly added proof-request JSON in this commit; found ${#REQUESTS[@]}" >&2
+            printf '%s\n' "${REQUESTS[@]:-}" >&2
+            exit 1
+          fi
+          REQUEST_PATH="${REQUESTS[0]}"
+          python3 - "$REQUEST_PATH" "$GITHUB_OUTPUT" <<'PY'
+          import json
+          import re
+          import sys
+          from pathlib import Path, PurePosixPath
+
+          request_path = Path(sys.argv[1])
+          output_path = Path(sys.argv[2])
+          request = json.loads(request_path.read_text(encoding='utf-8'))
+          if request.get('contract') != 'rgp-admission-proof-request/1':
+              raise SystemExit('unsupported proof request contract')
+
+          required = ['submission_path', 'plan_path', 'base_path', 'evidence_key']
+          missing = [key for key in required if not isinstance(request.get(key), str) or not request[key]]
+          if missing:
+              raise SystemExit(f'missing/invalid request fields: {missing}')
+
+          def safe_repo_path(value, prefix):
+              p = PurePosixPath(value)
+              if p.is_absolute() or '..' in p.parts or not value.startswith(prefix):
+                  raise SystemExit(f'unsafe path: {value}')
+
+          safe_repo_path(request['submission_path'], 'docs/handoff/rgp/submissions/')
+          safe_repo_path(request['plan_path'], 'docs/handoff/rgp/admission/transactions/')
+          safe_repo_path(request['base_path'], 'docs/')
+          if not re.fullmatch(r'[A-Za-z0-9._-]+', request['evidence_key']):
+              raise SystemExit('evidence_key may contain only letters, digits, dot, underscore, and hyphen')
+
+          for field in required:
+              with output_path.open('a', encoding='utf-8') as f:
+                  f.write(f'{field}={request[field]}\n')
+          with output_path.open('a', encoding='utf-8') as f:
+              f.write(f'request_path={request_path.as_posix()}\n')
+          print(json.dumps(request, indent=2, sort_keys=True))
+          PY
+
+      - name: Replay authoritative RGP validator
+        shell: bash
+        env:
+          SUBMISSION_PATH: ${{ steps.request.outputs.submission_path }}
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        run: |
+          set -euo pipefail
+          mkdir -p "runner-output/${EVIDENCE_KEY}"
+          python3 docs/handoff/rgp/validator/rgp_validator.py "$SUBMISSION_PATH" \
+            | tee "runner-output/${EVIDENCE_KEY}/rgp-validator.txt"
+
+      - name: Execute deterministic PEMS2 admission transaction
+        shell: bash
+        env:
+          PLAN_PATH: ${{ steps.request.outputs.plan_path }}
+          BASE_PATH: ${{ steps.request.outputs.base_path }}
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        run: |
+          set -euo pipefail
+          python3 docs/handoff/rgp/admission/apply_admission_transaction.py \
+            --base "$BASE_PATH" \
+            --plan "$PLAN_PATH" \
+            --schema docs/handoff/pems/v2/pems-v2.schema.json \
+            --out-dir "runner-output/${EVIDENCE_KEY}" \
+            | tee "runner-output/${EVIDENCE_KEY}/transaction.txt"
+
+      - name: Run candidate-aware PEMS2 contract validation
+        shell: bash
+        env:
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        run: |
+          set -euo pipefail
+          python3 docs/handoff/pems/v2/validate_pems2_contract.py \
+            --candidate "runner-output/${EVIDENCE_KEY}/candidate.pems2.jcs.json" \
+            | tee "runner-output/${EVIDENCE_KEY}/pems2-candidate-validation.txt"
+
+      - name: Record immutable runner summary
+        shell: bash
+        env:
+          REQUEST_PATH: ${{ steps.request.outputs.request_path }}
+          SUBMISSION_PATH: ${{ steps.request.outputs.submission_path }}
+          PLAN_PATH: ${{ steps.request.outputs.plan_path }}
+          BASE_PATH: ${{ steps.request.outputs.base_path }}
+          EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          key = os.environ['EVIDENCE_KEY']
+          out = Path('runner-output') / key
+          names = [
+              'candidate.pems2.jcs.json',
+              'candidate.cove.json',
+              'admission-proof.json',
+              'rgp-validator.txt',
+              'transaction.txt',
+              'pems2-candidate-validation.txt',
+          ]
+          files = {}
+          for name in names:
+              data = (out / name).read_bytes()
+              files[name] = {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
+          request_bytes = Path(os.environ['REQUEST_PATH']).read_bytes()
+          summary = {
+              'status': 'passed',
+              'runner': 'rgp-admission-proof-request/1',
+              'request_path': os.environ['REQUEST_PATH'],
+              'request_sha256': hashlib.sha256(request_bytes).hexdigest(),
+              'submission_path': os.environ['SUBMISSION_PATH'],
+              'plan_path': os.environ['PLAN_PATH'],
+              'base_path': os.environ['BASE_PATH'],
+              'evidence_key': key,
+              'head_sha': os.environ.get('GITHUB_SHA'),
+              'files': files,
+              'canonical_written': False,
+              'authority': 'proof_only',
+          }
+          (out / 'runner-summary.json').write_text(
+              json.dumps(summary, sort_keys=True, separators=(',', ':')),
+              encoding='utf-8',
+          )
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
+      - name: Upload complete proof bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: rgp-admission-${{ steps.request.outputs.evidence_key }}
+          path: runner-output/${{ steps.request.outputs.evidence_key }}/
+          if-no-files-found: error
+          retention-days: 30
