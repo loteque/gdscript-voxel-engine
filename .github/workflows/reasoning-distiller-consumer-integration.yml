@@ -7,6 +7,8 @@ on:
       - 'project-knowledge/**'
       - '.github/workflows/reasoning-distiller-consumer-integration.yml'
       - '.github/workflows/rgp-steward-admission-automation.yml'
+  pull_request:
+    branches: [project-chat-handoff]
   workflow_dispatch:
 
 permissions:
