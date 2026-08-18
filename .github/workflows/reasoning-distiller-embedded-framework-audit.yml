@@ -1,4 +1,4 @@
-name: Reasoning Distiller Embedded Framework Audit
+name: Reasoning Distiller Local Framework Audit
 
 on:
   pull_request:
@@ -13,13 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Reject active workflow references to embedded generic framework
+      - name: Reject embedded and cross-repository runtime framework references
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
-          needles=(
+          embedded=(
               'docs/handoff/rgp/validator/rgp_validator.py',
               'docs/handoff/rgp/admission/apply_admission_transaction.py',
               'docs/handoff/rgp/admission/apply_admission_transaction_v2.py',
@@ -30,22 +30,43 @@ jobs:
               'docs/distiller/validation/validate_distillation.py',
               'docs/distiller/validation/rgp-output.schema.json',
           )
-          excluded={
-              '.github/workflows/reasoning-distiller-embedded-framework-audit.yml',
-              '.github/workflows/reasoning-distiller-consumer-integration.yml',
-          }
+          remote_runtime=(
+              'repository: loteque/reasoning-distiller',
+              'raw.githubusercontent.com/loteque/reasoning-distiller',
+              'git@github.com:loteque/reasoning-distiller',
+          )
+          excluded={'.github/workflows/reasoning-distiller-embedded-framework-audit.yml'}
           matches=[]
           for path in sorted(Path('.github/workflows').glob('*.y*ml')):
               if str(path) in excluded:
                   continue
               text=path.read_text(encoding='utf-8')
               for i,line in enumerate(text.splitlines(),1):
-                  if any(n in line for n in needles):
-                      matches.append((str(path), i, line.strip()))
-          print(f'EMBEDDED_ACTIVE_REFERENCE_COUNT={len(matches)}')
-          for path,line,text in matches:
-              print(f'{path}:{line}: {text}')
+                  if any(n in line for n in embedded):
+                      matches.append((str(path), i, 'embedded', line.strip()))
+                  if any(n in line for n in remote_runtime):
+                      matches.append((str(path), i, 'remote-runtime', line.strip()))
+          print(f'ACTIVE_FRAMEWORK_REFERENCE_VIOLATIONS={len(matches)}')
+          for path,line,kind,text in matches:
+              print(f'{path}:{line}: {kind}: {text}')
           if matches:
-              raise SystemExit('active workflow still consumes embedded generic framework')
-          print('PASS no active workflow consumes embedded generic framework')
+              raise SystemExit('active workflows must consume only the project-local Reasoning Distiller installation')
+          print('PASS active workflows use project-local framework only')
+          PY
+
+      - name: Verify managed install contains only manifest-declared payload plus installation metadata
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('.reasoning-distiller')
+          manifest=json.loads((root/'.installation/MANIFEST.json').read_text(encoding='utf-8'))
+          expected={item['path'] for item in manifest['files']}
+          allowed=expected | {'.installation/MANIFEST.json','.installation/INSTALLATION.json'}
+          found={p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()}
+          extra=sorted(found-allowed)
+          missing=sorted(expected-found)
+          assert not extra, f'undeclared managed files: {extra}'
+          assert not missing, f'missing managed files: {missing}'
+          print(f'PASS exact local managed tree files={len(found)}')
           PY
