@@ -4,6 +4,7 @@ on:
   push:
     branches: [project-chat-handoff]
     paths:
+      - '.reasoning-distiller/**'
       - 'project-knowledge/**'
       - '.github/workflows/reasoning-distiller-consumer-integration.yml'
       - '.github/workflows/rgp-steward-admission-automation.yml'
@@ -21,17 +22,6 @@ jobs:
       - name: Checkout voxel-engine project
         uses: actions/checkout@v4
 
-      - name: Checkout pinned Reasoning Distiller framework
-        uses: actions/checkout@v4
-        with:
-          repository: loteque/reasoning-distiller
-          ref: fb7290622d6a9d929a059f111cdd60cd50496fcf
-          path: .reasoning-distiller
-          fetch-depth: 1
-
-      - name: Verify immutable framework pin
-        run: test "$(git -C .reasoning-distiller rev-parse HEAD)" = "fb7290622d6a9d929a059f111cdd60cd50496fcf"
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -39,8 +29,23 @@ jobs:
       - name: Install validation dependencies
         run: python -m pip install --disable-pip-version-check jsonschema==4.25.1 PyYAML==6.0.2
 
-      - name: Validate Project Knowledge Package
-        shell: bash
+      - name: Verify project-local package identity
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('.reasoning-distiller')
+          manifest=json.loads((root/'.installation/MANIFEST.json').read_text(encoding='utf-8'))
+          installation=json.loads((root/'.installation/INSTALLATION.json').read_text(encoding='utf-8'))
+          assert manifest['version'] == '0.1.0'
+          assert manifest['source_commit'] == '8d81967b3f93e825172d961267818238fffc7d38'
+          assert manifest['content_identity'] == 'sha256:ee0df2a91316ed0fa803d690b3e1b5bf6e07a320319255458e68ed1fb02b2dad'
+          assert installation['content_identity'] == manifest['content_identity']
+          assert installation['managed_root'] == '.reasoning-distiller'
+          print('PASS local Reasoning Distiller package identity')
+          PY
+
+      - name: Validate Project Knowledge Package and local backend binding
         run: |
           python - <<'PY'
           import json, yaml
@@ -51,26 +56,42 @@ jobs:
           errors=list(Draft202012Validator(schema).iter_errors(package))
           if errors:
               raise SystemExit('\n'.join(e.message for e in errors))
+          required={'reasoning-distiller-install-package/1','reasoning-distiller-installer/1'}
+          assert required.issubset(set(package['framework']['compatible_contracts']))
           backend=json.loads(Path(package['canonical_backend']['config']).read_text(encoding='utf-8'))
-          assert backend['framework_pin'] == 'fb7290622d6a9d929a059f111cdd60cd50496fcf'
+          assert backend['framework_installation'] == '.reasoning-distiller/.installation/INSTALLATION.json'
+          assert backend['framework_content_identity'] == 'sha256:ee0df2a91316ed0fa803d690b3e1b5bf6e07a320319255458e68ed1fb02b2dad'
           assert Path(backend['pems_path']).is_file()
           assert Path(backend['cove_path']).is_file()
           for key in ('sources','rules','roles','authority','adapters','policy'):
               assert Path(package['locations'][key]).is_dir(), f'missing package location: {key}'
-          print('PASS project-knowledge-package/1')
+          print('PASS project-knowledge-package/1 local binding')
           PY
 
-      - name: Validate active canonical PEMS through standalone framework
+      - name: Block Python network for runtime proof
+        run: |
+          mkdir -p /tmp/rd-netblock
+          cat > /tmp/rd-netblock/sitecustomize.py <<'PY'
+          import socket
+          def blocked(*args, **kwargs):
+              raise RuntimeError('network disabled during P6 consumer proof')
+          socket.create_connection = blocked
+          socket.getaddrinfo = blocked
+          socket.socket.connect = blocked
+          PY
+          echo "PYTHONPATH=/tmp/rd-netblock" >> "$GITHUB_ENV"
+          echo "PYTHONDONTWRITEBYTECODE=1" >> "$GITHUB_ENV"
+
+      - name: Validate active canonical PEMS through local framework
         run: python .reasoning-distiller/backends/pems-cove/validate_pems2_contract.py --candidate docs/project-chat-handoff.json
 
-      - name: Validate project RGP submission through standalone framework
+      - name: Validate project RGP submission through local framework
         run: python .reasoning-distiller/validators/rgp_validator.py docs/handoff/rgp/submissions/RGP-20260817T101500-0700-009.json
 
-      - name: Run standalone guarded-admission pressure suite
+      - name: Run local guarded-admission pressure suite
         run: python .reasoning-distiller/admission/test_admission_transaction_v2.py
 
       - name: Verify embedded generic implementation is retired
-        shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -91,43 +112,16 @@ jobs:
           print('PASS embedded generic implementation retired')
           PY
 
-      - name: Verify active admission executor consumes standalone framework
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          text=Path('.github/workflows/rgp-steward-admission-automation.yml').read_text(encoding='utf-8')
-          required=(
-              'repository: loteque/reasoning-distiller',
-              'ref: fb7290622d6a9d929a059f111cdd60cd50496fcf',
-              '.reasoning-distiller/validators/rgp_validator.py',
-              '.reasoning-distiller/admission/apply_admission_transaction_v2.py',
-              '.reasoning-distiller/backends/pems-cove/validate_pems2_contract.py',
-          )
-          for needle in required:
-              assert needle in text, f'missing standalone dependency: {needle}'
-          forbidden=(
-              'python3 docs/handoff/rgp/validator/rgp_validator.py',
-              'TOOL=docs/handoff/rgp/admission/apply_admission_transaction_v2.py',
-              'python3 docs/handoff/pems/v2/validate_pems2_contract.py',
-          )
-          for needle in forbidden:
-              assert needle not in text, f'active executor still uses embedded framework: {needle}'
-          print('PASS active executor uses pinned standalone framework')
-          PY
-
-      - name: Verify authority boundary remains project-owned
-        shell: bash
+      - name: Verify project-owned authority boundary
         run: |
           python - <<'PY'
           import json, yaml
           from pathlib import Path
           package=yaml.safe_load(Path('project-knowledge/project.yaml').read_text(encoding='utf-8'))
-          assert package['locations']['authority'].startswith('project-knowledge/')
-          assert package['locations']['rules'].startswith('project-knowledge/')
-          assert package['locations']['roles'].startswith('project-knowledge/')
+          for key in ('authority','rules','roles','policy'):
+              assert package['locations'][key].startswith('project-knowledge/')
           backend=json.loads(Path('project-knowledge/canonical/backend.json').read_text(encoding='utf-8'))
           assert backend['pems_path'] == 'docs/project-chat-handoff.json'
           assert backend['cove_path'] == 'docs/project-chat-handoff.cove.json'
-          print('PASS project owns authority, rules, roles, and canonical state')
+          print('PASS project owns authority, rules, roles, policy, and canonical state')
           PY
