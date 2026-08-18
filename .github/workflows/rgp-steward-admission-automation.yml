@@ -22,17 +22,6 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Checkout pinned Reasoning Distiller framework
-        uses: actions/checkout@v4
-        with:
-          repository: loteque/reasoning-distiller
-          ref: fb7290622d6a9d929a059f111cdd60cd50496fcf
-          path: .reasoning-distiller
-          fetch-depth: 1
-
-      - name: Verify immutable framework pin
-        run: test "$(git -C .reasoning-distiller rev-parse HEAD)" = "fb7290622d6a9d929a059f111cdd60cd50496fcf"
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -41,20 +30,28 @@ jobs:
       - name: Install validation dependency
         run: python -m pip install --disable-pip-version-check jsonschema==4.25.1 PyYAML==6.0.2
 
-      - name: Validate project knowledge package against framework contract
+      - name: Verify local framework installation and project knowledge package
         run: |
           python3 - <<'PY'
           import json, yaml
           from pathlib import Path
           from jsonschema import Draft202012Validator
+          root=Path('.reasoning-distiller')
+          manifest=json.loads((root/'.installation/MANIFEST.json').read_text(encoding='utf-8'))
+          installation=json.loads((root/'.installation/INSTALLATION.json').read_text(encoding='utf-8'))
+          assert manifest['version'] == '0.1.0'
+          assert manifest['source_commit'] == '8d81967b3f93e825172d961267818238fffc7d38'
+          assert manifest['content_identity'] == 'sha256:ee0df2a91316ed0fa803d690b3e1b5bf6e07a320319255458e68ed1fb02b2dad'
+          assert installation['content_identity'] == manifest['content_identity']
           package=yaml.safe_load(Path('project-knowledge/project.yaml').read_text(encoding='utf-8'))
-          schema=json.loads(Path('.reasoning-distiller/schemas/project-package.schema.json').read_text(encoding='utf-8'))
+          schema=json.loads((root/'schemas/project-package.schema.json').read_text(encoding='utf-8'))
           errors=list(Draft202012Validator(schema).iter_errors(package))
           if errors:
               raise SystemExit('\n'.join(e.message for e in errors))
           backend=json.loads(Path(package['canonical_backend']['config']).read_text(encoding='utf-8'))
-          assert backend['framework_pin'] == 'fb7290622d6a9d929a059f111cdd60cd50496fcf'
-          print('PASS project-knowledge-package/1')
+          assert backend['framework_installation'] == '.reasoning-distiller/.installation/INSTALLATION.json'
+          assert backend['framework_content_identity'] == manifest['content_identity']
+          print('PASS local framework + project-knowledge-package/1')
           PY
 
       - name: Resolve isolated Steward execution request
@@ -140,6 +137,7 @@ jobs:
         env:
           SUBMISSION_PATH: ${{ steps.request.outputs.submission_path }}
           EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+          PYTHONDONTWRITEBYTECODE: '1'
         shell: bash
         run: |
           set -euo pipefail
@@ -147,6 +145,8 @@ jobs:
           python3 .reasoning-distiller/validators/rgp_validator.py "$SUBMISSION_PATH" | tee "runner-output/$EVIDENCE_KEY/rgp-validator.txt"
 
       - name: Run guarded-update pressure tests
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
         run: python3 .reasoning-distiller/admission/test_admission_transaction_v2.py
 
       - name: Execute deterministic Steward reconciliation proof
@@ -154,6 +154,7 @@ jobs:
           PLAN_PATH: ${{ steps.request.outputs.plan_path }}
           BASE_PATH: ${{ steps.request.outputs.base_path }}
           EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+          PYTHONDONTWRITEBYTECODE: '1'
         shell: bash
         run: |
           set -euo pipefail
@@ -172,6 +173,7 @@ jobs:
       - name: Validate exact proof candidate
         env:
           EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+          PYTHONDONTWRITEBYTECODE: '1'
         shell: bash
         run: |
           set -euo pipefail
@@ -196,13 +198,16 @@ jobs:
           files = {}
           for name in ['candidate.pems2.jcs.json','candidate.cove.json','admission-proof.json','rgp-validator.txt','transaction.txt','pems2-candidate-validation.txt']:
               data = (out / name).read_bytes(); files[name] = {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
+          install=json.loads(Path('.reasoning-distiller/.installation/INSTALLATION.json').read_text(encoding='utf-8'))
           summary = {
               'contract':'rgp-steward-admission-execution-evidence/3', 'status':'proof_passed',
               'execution_request_commit':os.environ['GITHUB_SHA'], 'request_path':os.environ['REQUEST_PATH'],
               'submission_path':os.environ['SUBMISSION_PATH'], 'plan_path':os.environ['PLAN_PATH'], 'base_path':os.environ['BASE_PATH'],
               'evidence_key':key, 'install_requested':os.environ['INSTALL'] == 'true',
               'reconciliation_authority':'project-engineering-steward', 'reconciliation_digest':os.environ['RECONCILIATION_DIGEST'],
-              'framework_repository':'loteque/reasoning-distiller', 'framework_pin':'fb7290622d6a9d929a059f111cdd60cd50496fcf',
+              'framework_installation':'.reasoning-distiller/.installation/INSTALLATION.json',
+              'framework_version':install['version'], 'framework_content_identity':install['content_identity'],
+              'framework_source_commit':install['source_commit'],
               'workflow_performs_semantic_reconciliation':False, 'canonical_written_during_proof':False, 'files':files,
           }
           (out / 'automation-summary.json').write_text(json.dumps(summary, sort_keys=True, separators=(',',':')), encoding='utf-8')
@@ -233,6 +238,7 @@ jobs:
           EVIDENCE_DIR: ${{ steps.persist.outputs.evidence_dir }}
           EVIDENCE_COMMIT: ${{ steps.persist.outputs.evidence_commit }}
           EVIDENCE_KEY: ${{ steps.request.outputs.evidence_key }}
+          PYTHONDONTWRITEBYTECODE: '1'
         shell: bash
         run: |
           set -euo pipefail
