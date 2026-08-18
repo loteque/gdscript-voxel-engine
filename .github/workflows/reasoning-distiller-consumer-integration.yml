@@ -55,6 +55,8 @@ jobs:
           assert backend['framework_pin'] == 'fb7290622d6a9d929a059f111cdd60cd50496fcf'
           assert Path(backend['pems_path']).is_file()
           assert Path(backend['cove_path']).is_file()
+          for key in ('sources','rules','roles','authority','adapters','policy'):
+              assert Path(package['locations'][key]).is_dir(), f'missing package location: {key}'
           print('PASS project-knowledge-package/1')
           PY
 
@@ -66,6 +68,31 @@ jobs:
 
       - name: Run standalone guarded-admission pressure suite
         run: python .reasoning-distiller/admission/test_admission_transaction_v2.py
+
+      - name: Verify active admission executor consumes standalone framework
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/rgp-steward-admission-automation.yml').read_text(encoding='utf-8')
+          required=(
+              'repository: loteque/reasoning-distiller',
+              'ref: fb7290622d6a9d929a059f111cdd60cd50496fcf',
+              '.reasoning-distiller/validators/rgp_validator.py',
+              '.reasoning-distiller/admission/apply_admission_transaction_v2.py',
+              '.reasoning-distiller/backends/pems-cove/validate_pems2_contract.py',
+          )
+          for needle in required:
+              assert needle in text, f'missing standalone dependency: {needle}'
+          forbidden=(
+              'python3 docs/handoff/rgp/validator/rgp_validator.py',
+              'TOOL=docs/handoff/rgp/admission/apply_admission_transaction_v2.py',
+              'python3 docs/handoff/pems/v2/validate_pems2_contract.py',
+          )
+          for needle in forbidden:
+              assert needle not in text, f'active executor still uses embedded framework: {needle}'
+          print('PASS active executor uses pinned standalone framework')
+          PY
 
       - name: Verify authority boundary remains project-owned
         shell: bash
