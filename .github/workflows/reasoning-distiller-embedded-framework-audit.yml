@@ -1,0 +1,39 @@
+name: Reasoning Distiller Embedded Framework Audit
+
+on:
+  pull_request:
+    branches: [project-chat-handoff]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Report active workflow references to embedded generic framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          needles=(
+              'docs/handoff/rgp/validator/',
+              'docs/handoff/rgp/admission/apply_admission_transaction',
+              'docs/handoff/rgp/admission/test_admission_transaction',
+              'docs/handoff/pems/v2/',
+              'docs/distiller/validate_distillation.py',
+              'docs/distiller/rgp-output.schema.json',
+          )
+          matches=[]
+          for path in sorted(Path('.github/workflows').glob('*.y*ml')):
+              text=path.read_text(encoding='utf-8')
+              for i,line in enumerate(text.splitlines(),1):
+                  if any(n in line for n in needles):
+                      matches.append((str(path), i, line.strip()))
+          print(f'EMBEDDED_ACTIVE_REFERENCE_COUNT={len(matches)}')
+          for path,line,text in matches:
+              print(f'{path}:{line}: {text}')
+          PY
