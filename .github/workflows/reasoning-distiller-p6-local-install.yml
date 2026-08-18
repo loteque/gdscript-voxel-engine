@@ -42,10 +42,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/rd-p6
-          BASE='https://raw.githubusercontent.com/loteque/reasoning-distiller/p6-package-candidate/dist/p6'
-          for f in rd_install.py validate_install_package_contract.py reasoning-distiller-0.1.0.tar.gz reasoning-distiller-0.1.0.manifest.json reasoning-distiller-0.1.0.sha256; do
-            curl --fail --location --silent --show-error "$BASE/$f" -o "/tmp/rd-p6/$f"
+          mkdir -p /tmp/rd-p6/packaging /tmp/rd-p6/schemas
+          DIST='https://raw.githubusercontent.com/loteque/reasoning-distiller/p6-package-candidate/dist/p6'
+          SRC='https://raw.githubusercontent.com/loteque/reasoning-distiller/8d81967b3f93e825172d961267818238fffc7d38'
+          curl --fail --location --silent --show-error "$DIST/rd_install.py" -o /tmp/rd-p6/packaging/rd_install.py
+          curl --fail --location --silent --show-error "$DIST/validate_install_package_contract.py" -o /tmp/rd-p6/packaging/validate_install_package_contract.py
+          curl --fail --location --silent --show-error "$SRC/schemas/install-package-manifest.schema.json" -o /tmp/rd-p6/schemas/install-package-manifest.schema.json
+          curl --fail --location --silent --show-error "$SRC/schemas/installation-record.schema.json" -o /tmp/rd-p6/schemas/installation-record.schema.json
+          for f in reasoning-distiller-0.1.0.tar.gz reasoning-distiller-0.1.0.manifest.json reasoning-distiller-0.1.0.sha256; do
+            curl --fail --location --silent --show-error "$DIST/$f" -o "/tmp/rd-p6/$f"
           done
           test "$(sha256sum /tmp/rd-p6/reasoning-distiller-0.1.0.tar.gz | awk '{print $1}')" = "773ab0c9a5946f69ec568aabd9a255569f9511227142baadde077f826aa6cd8a"
 
@@ -62,7 +67,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python /tmp/rd-p6/rd_install.py \
+          python /tmp/rd-p6/packaging/rd_install.py \
             --package /tmp/rd-p6/reasoning-distiller-0.1.0.tar.gz \
             --manifest /tmp/rd-p6/reasoning-distiller-0.1.0.manifest.json \
             --transport-sha256 773ab0c9a5946f69ec568aabd9a255569f9511227142baadde077f826aa6cd8a \
