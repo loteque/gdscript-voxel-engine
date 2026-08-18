@@ -4,6 +4,8 @@ project:
   name: GDScript Voxel Engine
 framework:
   compatible_contracts:
+    - reasoning-distiller-install-package/1
+    - reasoning-distiller-installer/1
     - rgp/1
     - project-knowledge-package/1
     - pems/2
