@@ -37,6 +37,7 @@ jobs:
           )
           self_path='.github/workflows/reasoning-distiller-embedded-framework-audit.yml'
           embedded_literal_holder='.github/workflows/reasoning-distiller-consumer-integration.yml'
+          allowed_update_path='.github/workflows/reasoning-distiller-p7-update.yml'
           matches=[]
           for path in sorted(Path('.github/workflows').glob('*.y*ml')):
               rel=str(path)
@@ -46,14 +47,14 @@ jobs:
               for i,line in enumerate(text.splitlines(),1):
                   if rel != embedded_literal_holder and any(n in line for n in embedded):
                       matches.append((rel, i, 'embedded', line.strip()))
-                  if any(n in line for n in remote_runtime):
+                  if rel != allowed_update_path and any(n in line for n in remote_runtime):
                       matches.append((rel, i, 'remote-runtime', line.strip()))
           print(f'ACTIVE_FRAMEWORK_REFERENCE_VIOLATIONS={len(matches)}')
           for path,line,kind,text in matches:
               print(f'{path}:{line}: {kind}: {text}')
           if matches:
-              raise SystemExit('active workflows must consume only the project-local Reasoning Distiller installation')
-          print('PASS active workflows use project-local framework only')
+              raise SystemExit('active runtime workflows must consume only the project-local Reasoning Distiller installation')
+          print('PASS active runtime workflows use project-local framework only; explicit update pathway excepted')
           PY
 
       - name: Verify managed install contains only manifest-declared payload plus installation metadata
