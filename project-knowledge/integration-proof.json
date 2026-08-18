@@ -1,12 +1,15 @@
 {
   "contract": "reasoning-distiller-consumer-integration-proof/1",
   "status": "PASS",
+  "phase6_0_i": "PASS",
+  "phase6_0": "COMPLETE",
   "project_repository": "loteque/gdscript-voxel-engine",
   "project_branch": "project-chat-handoff",
-  "tested_base_commit": "f6c91ef59428aaa578341f447b3d8d2bec3f57aa",
-  "validation_pr": 61,
-  "validation_head": "b48bbaaf177f0cbf0ae44455e12424c97caca221",
-  "workflow_run": 32088528175,
+  "tested_base_commit": "da725b867325fe9af78af4a25608ee432dfdd4ab",
+  "validation_pr": 64,
+  "validation_head": "abf5cf8b3627b15b41b9184ba1efbf5c6ab58504",
+  "consumer_integration_workflow_run": 32089217092,
+  "embedded_framework_audit_workflow_run": 32089217047,
   "framework_repository": "loteque/reasoning-distiller",
   "framework_pin": "fb7290622d6a9d929a059f111cdd60cd50496fcf",
   "checks": {
@@ -15,7 +18,9 @@
     "active_project_pems_via_standalone_validator": "PASS",
     "project_rgp_submission_via_standalone_validator": "PASS",
     "standalone_guarded_admission_pressure_suite": "PASS",
+    "embedded_generic_executable_schema_implementation_retired": "PASS",
     "active_admission_executor_uses_standalone_framework": "PASS",
+    "active_workflow_embedded_framework_reference_count": 0,
     "project_owns_authority_rules_roles_and_canonical_state": "PASS"
   },
   "authority_invariant": {
@@ -24,5 +29,5 @@
     "executor": "deterministic execution only; no semantic reconciliation"
   },
   "canonical_modified_by_proof": false,
-  "next_migration_gate": "retire remaining embedded generic implementation after all active references are redirected"
+  "next_gate": "Phase 6.1 stable production Distiller invocation contract"
 }
