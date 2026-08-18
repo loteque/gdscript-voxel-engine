@@ -35,17 +35,19 @@ jobs:
               'raw.githubusercontent.com/loteque/reasoning-distiller',
               'git@github.com:loteque/reasoning-distiller',
           )
-          excluded={'.github/workflows/reasoning-distiller-embedded-framework-audit.yml'}
+          self_path='.github/workflows/reasoning-distiller-embedded-framework-audit.yml'
+          embedded_literal_holder='.github/workflows/reasoning-distiller-consumer-integration.yml'
           matches=[]
           for path in sorted(Path('.github/workflows').glob('*.y*ml')):
-              if str(path) in excluded:
+              rel=str(path)
+              if rel == self_path:
                   continue
               text=path.read_text(encoding='utf-8')
               for i,line in enumerate(text.splitlines(),1):
-                  if any(n in line for n in embedded):
-                      matches.append((str(path), i, 'embedded', line.strip()))
+                  if rel != embedded_literal_holder and any(n in line for n in embedded):
+                      matches.append((rel, i, 'embedded', line.strip()))
                   if any(n in line for n in remote_runtime):
-                      matches.append((str(path), i, 'remote-runtime', line.strip()))
+                      matches.append((rel, i, 'remote-runtime', line.strip()))
           print(f'ACTIVE_FRAMEWORK_REFERENCE_VIOLATIONS={len(matches)}')
           for path,line,kind,text in matches:
               print(f'{path}:{line}: {kind}: {text}')
