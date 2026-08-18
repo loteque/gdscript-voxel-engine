@@ -13,22 +13,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Report active workflow references to embedded generic framework
+      - name: Reject active workflow references to embedded generic framework
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
           needles=(
-              'docs/handoff/rgp/validator/',
-              'docs/handoff/rgp/admission/apply_admission_transaction',
-              'docs/handoff/rgp/admission/test_admission_transaction',
-              'docs/handoff/pems/v2/',
-              'docs/distiller/validate_distillation.py',
-              'docs/distiller/rgp-output.schema.json',
+              'docs/handoff/rgp/validator/rgp_validator.py',
+              'docs/handoff/rgp/admission/apply_admission_transaction.py',
+              'docs/handoff/rgp/admission/apply_admission_transaction_v2.py',
+              'docs/handoff/rgp/admission/test_admission_transaction_v2.py',
+              'docs/handoff/pems/v2/validate_pems2_contract.py',
+              'docs/handoff/pems/v2/pems-v2.schema.json',
+              'docs/handoff/pems/v2/validate_rgp_uncertainty_import.py',
+              'docs/distiller/validation/validate_distillation.py',
+              'docs/distiller/validation/rgp-output.schema.json',
           )
+          excluded={
+              '.github/workflows/reasoning-distiller-embedded-framework-audit.yml',
+              '.github/workflows/reasoning-distiller-consumer-integration.yml',
+          }
           matches=[]
           for path in sorted(Path('.github/workflows').glob('*.y*ml')):
+              if str(path) in excluded:
+                  continue
               text=path.read_text(encoding='utf-8')
               for i,line in enumerate(text.splitlines(),1):
                   if any(n in line for n in needles):
@@ -36,4 +45,7 @@ jobs:
           print(f'EMBEDDED_ACTIVE_REFERENCE_COUNT={len(matches)}')
           for path,line,text in matches:
               print(f'{path}:{line}: {text}')
+          if matches:
+              raise SystemExit('active workflow still consumes embedded generic framework')
+          print('PASS no active workflow consumes embedded generic framework')
           PY
