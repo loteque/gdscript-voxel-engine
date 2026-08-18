@@ -1,0 +1,66 @@
+{
+  "contract": "reasoning-distiller-extraction-manifest/1",
+  "baseline": {
+    "repository": "loteque/gdscript-voxel-engine",
+    "branch": "project-chat-handoff",
+    "commit": "1c25bf7cc858218941476097a3a5ac5ba204f270",
+    "tree": "4437a8ed933692c41d3f4159f408efa335b9154f"
+  },
+  "classification_policy": {
+    "framework": "Reusable mechanisms, contracts, schemas, validators, role contracts, proof/execution machinery, and generic evaluation infrastructure.",
+    "reference-corpus": "Immutable voxel-engine material copied only to prove parity/regression; never active standalone canonical state.",
+    "project-owned": "Active voxel-engine knowledge, evidence, policy, authority, role overrides, governance artifacts, adapters, and operational state remain with the consuming project."
+  },
+  "artifacts": [
+    {"source_path":"docs/distiller/DIRECTIVE.md","classification":"framework","destination":"agents/distiller/DIRECTIVE.md"},
+    {"source_path":"docs/handoff/rgp/rgp_engineer_directive.md","blob_sha":"eb6912531a448f94e743a0608b06cc5d5fd4a07e","classification":"framework","destination":"agents/engineer/DIRECTIVE.md"},
+    {"source_path":"docs/handoff/rgp/validator/rgp_validator.py","blob_sha":"5675c652b6ad894fe3e1388a4290d2965b2540a0","classification":"framework","destination":"validators/rgp_validator.py"},
+    {"source_path":"docs/handoff/rgp/validator/README.md","blob_sha":"71f73741b54a1957653675fe7cc7c9df04691dba","classification":"framework","destination":"validators/README.md"},
+    {"source_path":"docs/handoff/rgp/SUBMISSION_PROTOCOL.md","blob_sha":"0df2d40146a30b163ff78bd445cc2b52d5cb2221","classification":"framework","destination":"protocols/rgp/SUBMISSION_PROTOCOL.md"},
+    {"source_path":"docs/handoff/rgp/RECONCILIATION_EVIDENCE_PROTOCOL.md","blob_sha":"09726c30ce575bd9c98a2e982e650a64953408de","classification":"framework","destination":"protocols/reconciliation/RECONCILIATION_EVIDENCE_PROTOCOL.md"},
+    {"source_path":"docs/handoff/pems/v2/pems-v2.schema.json","classification":"framework","destination":"backends/pems-cove/pems-v2.schema.json"},
+    {"source_path":"docs/handoff/pems/v2/validate_pems2_contract.py","classification":"framework","destination":"backends/pems-cove/validate_pems2_contract.py"},
+    {"source_path":"docs/handoff/rgp/admission/apply_admission_transaction.py","classification":"framework","destination":"admission/apply_admission_transaction.py"},
+    {"source_path":"docs/handoff/rgp/admission/apply_admission_transaction_v2.py","classification":"framework","destination":"admission/apply_admission_transaction_v2.py"},
+    {"source_path":"docs/handoff/rgp/admission/test_admission_transaction_v2.py","classification":"framework","destination":"tests/test_admission_transaction_v2.py"},
+
+    {"source_path":"docs/distiller/evaluation/PHASE0_BASELINE.md","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/phase0/PHASE0_BASELINE.md"},
+    {"source_path":"docs/distiller/evaluation/phase1-inputs.json","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/phase0/phase1-inputs.json"},
+    {"source_path":"docs/distiller/evaluation/expected.yaml","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/phase0/expected.yaml"},
+    {"source_path":"docs/distiller/evaluation/SCORING.md","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/phase0/SCORING.md"},
+    {"source_path":"docs/distiller/evaluation/phase1/independent/","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/phase1/independent/","selection":"immutable raw independent candidates and manifests"},
+    {"source_path":"docs/distiller/evaluation/phase3/shadow/","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/phase3/shadow/","selection":"representative shadow cases used by Phase 3"},
+    {"source_path":"docs/handoff/pems/v2/ADMISSION_FIXTURES.json","blob_sha":"e5a9156dc6860fb5370e286d389e1fe0f3678a04","classification":"reference-corpus","destination":"evaluation/fixtures/pems2/ADMISSION_FIXTURES.json"},
+    {"source_path":"docs/handoff/rgp/submissions/","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/admission/submissions/","selection":"selected immutable Phase 4/5 submissions required by parity suite"},
+    {"source_path":"docs/handoff/rgp/admission/transactions/","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/admission/transactions/","selection":"selected fixed transactions required by deterministic proof parity"},
+    {"source_path":"docs/handoff/rgp/evidence/","classification":"reference-corpus","destination":"evaluation/corpus/voxel-engine/admission/evidence/","selection":"selected persisted proof/failure artifacts required by parity suite"},
+
+    {"source_path":"docs/project-chat-handoff.json","classification":"project-owned","destination":null,"reason":"active voxel-engine canonical PEMS/2"},
+    {"source_path":"docs/project-chat-handoff.cove.json","classification":"project-owned","destination":null,"reason":"active voxel-engine canonical COVE"},
+    {"source_path":"docs/handoff/rgp/dispositions/","classification":"project-owned","destination":null,"reason":"active project governance history remains project-owned; selected immutable copies may appear only as explicit regression fixtures"},
+    {"source_path":"docs/handoff/rgp/automation-requests/","classification":"project-owned","destination":null},
+    {"source_path":"docs/handoff/rgp/install-requests/","classification":"project-owned","destination":null},
+    {"source_path":".github/workflows/rgp-steward-admission-automation.yml","blob_sha":"db4131743a2b281fef1f9dc9dffa78f874896199","classification":"project-owned","destination":null,"reason":"current workflow contains voxel-engine repository paths and execution identity; generic mechanism is extracted from underlying contracts/tools, not copied as production workflow"}
+  ],
+  "open_manifest_work": [
+    "Expand directory selections into per-file source_path/blob_sha entries before copying them.",
+    "Resolve missing blob_sha fields from the frozen tree before copying.",
+    "Select the minimum Phase 4/5 proof fixtures required by the approved parity matrix."
+  ],
+  "repository_creation": {
+    "target_suggested": "loteque/reasoning-distiller",
+    "status": "blocked-by-available-connector",
+    "note": "The available GitHub connector can create branches/files in existing repositories but exposes no create-repository action. Do not substitute a directory in gdscript-voxel-engine as the final standalone architecture."
+  },
+  "gate_status": {
+    "6.0A": "PASS",
+    "6.0B": "IN_PROGRESS",
+    "6.0C": "BLOCKED_ADMIN_REPOSITORY_CREATION",
+    "6.0D": "NOT_STARTED",
+    "6.0E": "NOT_STARTED",
+    "6.0F": "NOT_STARTED",
+    "6.0G": "NOT_STARTED",
+    "6.0H": "NOT_STARTED",
+    "6.0I": "NOT_STARTED"
+  }
+}
