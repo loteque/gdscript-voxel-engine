@@ -1,0 +1,156 @@
+name: Reasoning Distiller P7 Update Proof
+
+on:
+  pull_request:
+    branches: [project-chat-handoff]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: reasoning-distiller-p7-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact consumer base
+        uses: actions/checkout@v4
+        with:
+          ref: project-chat-handoff
+          fetch-depth: 2
+
+      - name: Capture exact base and project-owned hashes
+        id: base
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          python3 - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          paths=['project-knowledge/project.yaml','project-knowledge/canonical/backend.json','docs/project-chat-handoff.json','docs/project-chat-handoff.cove.json']
+          data={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths}
+          Path('/tmp/p7-project-before.json').write_text(json.dumps(data,sort_keys=True),encoding='utf-8')
+          PY
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install bootstrap dependencies
+        run: python -m pip install --disable-pip-version-check jsonschema==4.25.1 PyYAML==6.0.2
+
+      - name: Retrieve immutable 0.1.1 package candidate read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/rd-p7/packaging /tmp/rd-p7/schemas
+          DIST='https://raw.githubusercontent.com/loteque/reasoning-distiller/p7-package-candidate/dist/p7'
+          SRC='https://raw.githubusercontent.com/loteque/reasoning-distiller/1da88edc000bbd6db78affe8e604ca499f516d55'
+          curl --fail --location --silent --show-error "$DIST/rd_install.py" -o /tmp/rd-p7/packaging/rd_install.py
+          curl --fail --location --silent --show-error "$DIST/validate_install_package_contract.py" -o /tmp/rd-p7/packaging/validate_install_package_contract.py
+          curl --fail --location --silent --show-error "$SRC/schemas/install-package-manifest.schema.json" -o /tmp/rd-p7/schemas/install-package-manifest.schema.json
+          curl --fail --location --silent --show-error "$SRC/schemas/installation-record.schema.json" -o /tmp/rd-p7/schemas/installation-record.schema.json
+          for f in reasoning-distiller-0.1.1.tar.gz reasoning-distiller-0.1.1.manifest.json reasoning-distiller-0.1.1.sha256; do
+            curl --fail --location --silent --show-error "$DIST/$f" -o "/tmp/rd-p7/$f"
+          done
+          test "$(sha256sum /tmp/rd-p7/reasoning-distiller-0.1.1.tar.gz | awk '{print $1}')" = "773ab0c9a5946f69ec568aabd9a255569f9511227142baadde077f826aa6cd8a"
+
+      - name: Verify starting installation is 0.1.0
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          i=json.loads(Path('.reasoning-distiller/.installation/INSTALLATION.json').read_text(encoding='utf-8'))
+          assert i['version']=='0.1.0', i
+          assert i['content_identity']=='sha256:ee0df2a91316ed0fa803d690b3e1b5bf6e07a320319255458e68ed1fb02b2dad'
+          print('PASS starting installation 0.1.0')
+          PY
+
+      - name: Materialize Project Knowledge Package JSON
+        run: |
+          python - <<'PY'
+          import json, yaml
+          from pathlib import Path
+          data=yaml.safe_load(Path('project-knowledge/project.yaml').read_text(encoding='utf-8'))
+          Path('/tmp/rd-p7/project-package.json').write_text(json.dumps(data,sort_keys=True),encoding='utf-8')
+          PY
+
+      - name: Deterministically update local installation to 0.1.1
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python /tmp/rd-p7/packaging/rd_install.py \
+            --package /tmp/rd-p7/reasoning-distiller-0.1.1.tar.gz \
+            --manifest /tmp/rd-p7/reasoning-distiller-0.1.1.manifest.json \
+            --transport-sha256 773ab0c9a5946f69ec568aabd9a255569f9511227142baadde077f826aa6cd8a \
+            --target "$GITHUB_WORKSPACE" \
+            --project-package /tmp/rd-p7/project-package.json \
+            --source-repository loteque/reasoning-distiller \
+            --source-locator 1da88edc000bbd6db78affe8e604ca499f516d55
+
+      - name: Prove update identity, local runtime, and unchanged project knowledge
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          m=json.loads(Path('.reasoning-distiller/.installation/MANIFEST.json').read_text(encoding='utf-8'))
+          i=json.loads(Path('.reasoning-distiller/.installation/INSTALLATION.json').read_text(encoding='utf-8'))
+          assert m['version']=='0.1.1'
+          assert m['source_commit']=='1da88edc000bbd6db78affe8e604ca499f516d55'
+          assert m['content_identity']=='sha256:a487149caaaf41af70fdf2af6e52b7955a6c3fe14046321649357d21ba7241b4'
+          assert i['content_identity']==m['content_identity']
+          before=json.loads(Path('/tmp/p7-project-before.json').read_text(encoding='utf-8'))
+          after={p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in before}
+          assert before==after,(before,after)
+          print('PASS update identity and project-owned bytes unchanged')
+          PY
+          mkdir -p /tmp/rd-netblock
+          cat > /tmp/rd-netblock/sitecustomize.py <<'PY'
+          import socket
+          def blocked(*args, **kwargs): raise RuntimeError('network disabled during P7 runtime proof')
+          socket.create_connection=blocked
+          socket.getaddrinfo=blocked
+          socket.socket.connect=blocked
+          PY
+          export PYTHONPATH=/tmp/rd-netblock
+          python .reasoning-distiller/backends/pems-cove/validate_pems2_contract.py --candidate docs/project-chat-handoff.json
+          python .reasoning-distiller/validators/rgp_validator.py docs/handoff/rgp/submissions/RGP-20260817T101500-0700-009.json
+          python .reasoning-distiller/admission/test_admission_transaction_v2.py
+
+      - name: Prove auditable update diff and commit exact local update
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -f .reasoning-distiller
+          git diff --cached --name-only > /tmp/p7-diff.txt
+          cat /tmp/p7-diff.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          changed=set(Path('/tmp/p7-diff.txt').read_text().splitlines())
+          allowed={
+            '.reasoning-distiller/.installation/INSTALLATION.json',
+            '.reasoning-distiller/.installation/MANIFEST.json',
+            '.reasoning-distiller/VERSION',
+          }
+          assert changed, 'update produced no diff'
+          assert changed <= allowed, f'unexpected update paths: {sorted(changed-allowed)}'
+          print('PASS auditable update diff', sorted(changed))
+          PY
+          git fetch origin project-chat-handoff
+          test "$(git rev-parse refs/remotes/origin/project-chat-handoff)" = "$BASE_SHA" || { echo 'branch moved before P7 update commit' >&2; exit 1; }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Update Reasoning Distiller package to 0.1.1'
+          git push origin HEAD:project-chat-handoff
