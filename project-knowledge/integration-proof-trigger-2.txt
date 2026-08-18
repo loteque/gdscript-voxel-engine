@@ -1,0 +1,2 @@
+framework_pin=fb7290622d6a9d929a059f111cdd60cd50496fcf
+purpose=phase6.0I-externalized-executor-proof
