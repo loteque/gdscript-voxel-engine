@@ -1,0 +1,26 @@
+contract: project-knowledge-package/1
+project:
+  id: loteque/gdscript-voxel-engine
+  name: GDScript Voxel Engine
+framework:
+  compatible_contracts:
+    - rgp/1
+    - project-knowledge-package/1
+    - pems/2
+    - cove/1
+    - rgp-pems2-admission-transaction/1
+    - rgp-pems2-admission-transaction/2
+canonical_backend:
+  type: pems-cove
+  config: project-knowledge/canonical/backend.json
+locations:
+  sources: project-knowledge/sources
+  rules: project-knowledge/rules
+  roles: project-knowledge/roles
+  authority: project-knowledge/authority
+  evidence: docs/handoff/rgp/evidence
+  canonical: docs
+  transactions: docs/handoff/rgp/admission/transactions
+  dispositions: docs/handoff/rgp/dispositions
+  adapters: project-knowledge/adapters
+  policy: project-knowledge/policy
