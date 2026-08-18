@@ -69,6 +69,28 @@ jobs:
       - name: Run standalone guarded-admission pressure suite
         run: python .reasoning-distiller/admission/test_admission_transaction_v2.py
 
+      - name: Verify embedded generic implementation is retired
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          retired=(
+              'docs/handoff/rgp/validator/rgp_validator.py',
+              'docs/handoff/rgp/admission/apply_admission_transaction.py',
+              'docs/handoff/rgp/admission/apply_admission_transaction_v2.py',
+              'docs/handoff/rgp/admission/test_admission_transaction_v2.py',
+              'docs/handoff/pems/v2/pems-v2.schema.json',
+              'docs/handoff/pems/v2/validate_pems2_contract.py',
+              'docs/handoff/pems/v2/validate_rgp_uncertainty_import.py',
+              'docs/distiller/validation/run_fixture_tests.py',
+              'docs/distiller/validation/schema.json',
+              'docs/distiller/validation/validate_distillation.py',
+          )
+          present=[p for p in retired if Path(p).exists()]
+          assert not present, f'embedded generic implementation remains: {present}'
+          print('PASS embedded generic implementation retired')
+          PY
+
       - name: Verify active admission executor consumes standalone framework
         shell: bash
         run: |
