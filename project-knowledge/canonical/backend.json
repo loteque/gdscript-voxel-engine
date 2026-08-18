@@ -1,0 +1,9 @@
+{
+  "contract": "project-canonical-backend/1",
+  "type": "pems-cove",
+  "framework_pin": "fb7290622d6a9d929a059f111cdd60cd50496fcf",
+  "pems_path": "docs/project-chat-handoff.json",
+  "cove_path": "docs/project-chat-handoff.cove.json",
+  "schema_contract": "pems/2",
+  "encoding_contract": "cove/1|pems/2|jcs/1"
+}
