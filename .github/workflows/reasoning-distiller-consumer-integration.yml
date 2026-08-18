@@ -37,9 +37,9 @@ jobs:
           root=Path('.reasoning-distiller')
           manifest=json.loads((root/'.installation/MANIFEST.json').read_text(encoding='utf-8'))
           installation=json.loads((root/'.installation/INSTALLATION.json').read_text(encoding='utf-8'))
-          assert manifest['version'] == '0.1.0'
-          assert manifest['source_commit'] == '8d81967b3f93e825172d961267818238fffc7d38'
-          assert manifest['content_identity'] == 'sha256:ee0df2a91316ed0fa803d690b3e1b5bf6e07a320319255458e68ed1fb02b2dad'
+          assert manifest['version'] == '0.1.1'
+          assert manifest['source_commit'] == '1da88edc000bbd6db78affe8e604ca499f516d55'
+          assert manifest['content_identity'] == 'sha256:a487149caaaf41af70fdf2af6e52b7955a6c3fe14046321649357d21ba7241b4'
           assert installation['content_identity'] == manifest['content_identity']
           assert installation['managed_root'] == '.reasoning-distiller'
           print('PASS local Reasoning Distiller package identity')
@@ -60,7 +60,9 @@ jobs:
           assert required.issubset(set(package['framework']['compatible_contracts']))
           backend=json.loads(Path(package['canonical_backend']['config']).read_text(encoding='utf-8'))
           assert backend['framework_installation'] == '.reasoning-distiller/.installation/INSTALLATION.json'
-          assert backend['framework_content_identity'] == 'sha256:ee0df2a91316ed0fa803d690b3e1b5bf6e07a320319255458e68ed1fb02b2dad'
+          assert backend['framework_version'] == '0.1.1'
+          assert backend['framework_source_commit'] == '1da88edc000bbd6db78affe8e604ca499f516d55'
+          assert backend['framework_content_identity'] == 'sha256:a487149caaaf41af70fdf2af6e52b7955a6c3fe14046321649357d21ba7241b4'
           assert Path(backend['pems_path']).is_file()
           assert Path(backend['cove_path']).is_file()
           for key in ('sources','rules','roles','authority','adapters','policy'):
@@ -74,7 +76,7 @@ jobs:
           cat > /tmp/rd-netblock/sitecustomize.py <<'PY'
           import socket
           def blocked(*args, **kwargs):
-              raise RuntimeError('network disabled during P6 consumer proof')
+              raise RuntimeError('network disabled during consumer proof')
           socket.create_connection = blocked
           socket.getaddrinfo = blocked
           socket.socket.connect = blocked
