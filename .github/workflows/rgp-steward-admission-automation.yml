@@ -22,13 +22,40 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Checkout pinned Reasoning Distiller framework
+        uses: actions/checkout@v4
+        with:
+          repository: loteque/reasoning-distiller
+          ref: fb7290622d6a9d929a059f111cdd60cd50496fcf
+          path: .reasoning-distiller
+          fetch-depth: 1
+
+      - name: Verify immutable framework pin
+        run: test "$(git -C .reasoning-distiller rev-parse HEAD)" = "fb7290622d6a9d929a059f111cdd60cd50496fcf"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
       - name: Install validation dependency
-        run: python -m pip install --disable-pip-version-check jsonschema==4.25.1
+        run: python -m pip install --disable-pip-version-check jsonschema==4.25.1 PyYAML==6.0.2
+
+      - name: Validate project knowledge package against framework contract
+        run: |
+          python3 - <<'PY'
+          import json, yaml
+          from pathlib import Path
+          from jsonschema import Draft202012Validator
+          package=yaml.safe_load(Path('project-knowledge/project.yaml').read_text(encoding='utf-8'))
+          schema=json.loads(Path('.reasoning-distiller/schemas/project-package.schema.json').read_text(encoding='utf-8'))
+          errors=list(Draft202012Validator(schema).iter_errors(package))
+          if errors:
+              raise SystemExit('\n'.join(e.message for e in errors))
+          backend=json.loads(Path(package['canonical_backend']['config']).read_text(encoding='utf-8'))
+          assert backend['framework_pin'] == 'fb7290622d6a9d929a059f111cdd60cd50496fcf'
+          print('PASS project-knowledge-package/1')
+          PY
 
       - name: Resolve isolated Steward execution request
         id: request
@@ -117,10 +144,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "runner-output/$EVIDENCE_KEY"
-          python3 docs/handoff/rgp/validator/rgp_validator.py "$SUBMISSION_PATH" | tee "runner-output/$EVIDENCE_KEY/rgp-validator.txt"
+          python3 .reasoning-distiller/validators/rgp_validator.py "$SUBMISSION_PATH" | tee "runner-output/$EVIDENCE_KEY/rgp-validator.txt"
 
       - name: Run guarded-update pressure tests
-        run: python3 docs/handoff/rgp/admission/test_admission_transaction_v2.py
+        run: python3 .reasoning-distiller/admission/test_admission_transaction_v2.py
 
       - name: Execute deterministic Steward reconciliation proof
         env:
@@ -136,11 +163,11 @@ jobs:
           PY
           )"
           case "$CONTRACT" in
-            rgp-pems2-admission-transaction/1) TOOL=docs/handoff/rgp/admission/apply_admission_transaction.py ;;
-            rgp-pems2-admission-transaction/2) TOOL=docs/handoff/rgp/admission/apply_admission_transaction_v2.py ;;
+            rgp-pems2-admission-transaction/1) TOOL=.reasoning-distiller/admission/apply_admission_transaction.py ;;
+            rgp-pems2-admission-transaction/2) TOOL=.reasoning-distiller/admission/apply_admission_transaction_v2.py ;;
             *) echo "unsupported admission transaction contract: $CONTRACT" >&2; exit 1 ;;
           esac
-          python3 "$TOOL" --base "$BASE_PATH" --plan "$PLAN_PATH" --schema docs/handoff/pems/v2/pems-v2.schema.json --out-dir "runner-output/$EVIDENCE_KEY" | tee "runner-output/$EVIDENCE_KEY/transaction.txt"
+          python3 "$TOOL" --base "$BASE_PATH" --plan "$PLAN_PATH" --schema .reasoning-distiller/backends/pems-cove/pems-v2.schema.json --out-dir "runner-output/$EVIDENCE_KEY" | tee "runner-output/$EVIDENCE_KEY/transaction.txt"
 
       - name: Validate exact proof candidate
         env:
@@ -148,7 +175,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 docs/handoff/pems/v2/validate_pems2_contract.py --candidate "runner-output/$EVIDENCE_KEY/candidate.pems2.jcs.json" | tee "runner-output/$EVIDENCE_KEY/pems2-candidate-validation.txt"
+          python3 .reasoning-distiller/backends/pems-cove/validate_pems2_contract.py --candidate "runner-output/$EVIDENCE_KEY/candidate.pems2.jcs.json" | tee "runner-output/$EVIDENCE_KEY/pems2-candidate-validation.txt"
 
       - name: Record deterministic execution summary
         env:
@@ -175,6 +202,7 @@ jobs:
               'submission_path':os.environ['SUBMISSION_PATH'], 'plan_path':os.environ['PLAN_PATH'], 'base_path':os.environ['BASE_PATH'],
               'evidence_key':key, 'install_requested':os.environ['INSTALL'] == 'true',
               'reconciliation_authority':'project-engineering-steward', 'reconciliation_digest':os.environ['RECONCILIATION_DIGEST'],
+              'framework_repository':'loteque/reasoning-distiller', 'framework_pin':'fb7290622d6a9d929a059f111cdd60cd50496fcf',
               'workflow_performs_semantic_reconciliation':False, 'canonical_written_during_proof':False, 'files':files,
           }
           (out / 'automation-summary.json').write_text(json.dumps(summary, sort_keys=True, separators=(',',':')), encoding='utf-8')
@@ -212,7 +240,7 @@ jobs:
           REMOTE="$(git rev-parse refs/remotes/origin/project-chat-handoff)"
           test "$REMOTE" = "$EVIDENCE_COMMIT" || { echo "branch moved before canonical installation: $REMOTE" >&2; exit 1; }
           cmp -s "$EVIDENCE_DIR/candidate.pems2.jcs.json" docs/project-chat-handoff.json && { echo "requested install is a no-op" >&2; exit 1; }
-          python3 docs/handoff/pems/v2/validate_pems2_contract.py --candidate "$EVIDENCE_DIR/candidate.pems2.jcs.json"
+          python3 .reasoning-distiller/backends/pems-cove/validate_pems2_contract.py --candidate "$EVIDENCE_DIR/candidate.pems2.jcs.json"
           cp "$EVIDENCE_DIR/candidate.pems2.jcs.json" docs/project-chat-handoff.json; cp "$EVIDENCE_DIR/candidate.cove.json" docs/project-chat-handoff.cove.json
           git add docs/project-chat-handoff.json docs/project-chat-handoff.cove.json
           git diff --cached --quiet && { echo "no canonical bytes changed" >&2; exit 1; }
