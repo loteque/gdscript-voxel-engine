@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/reasoning-distiller-p6-local-install.yml'
       - 'project-knowledge/project.yaml'
+  pull_request:
+    branches: [project-chat-handoff]
   workflow_dispatch:
 
 permissions:
@@ -19,11 +21,15 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout consumer project
+      - name: Checkout consumer project base
         uses: actions/checkout@v4
         with:
           ref: project-chat-handoff
           fetch-depth: 2
+
+      - name: Capture exact consumer base
+        id: base
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-python@v5
         with:
@@ -101,11 +107,13 @@ jobs:
           python .reasoning-distiller/admission/test_admission_transaction_v2.py
 
       - name: Commit exact installed snapshot to project branch
+        env:
+          BASE_SHA: ${{ steps.base.outputs.sha }}
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin project-chat-handoff
-          test "$(git rev-parse refs/remotes/origin/project-chat-handoff)" = "$GITHUB_SHA" || { echo 'branch moved before package install commit' >&2; exit 1; }
+          test "$(git rev-parse refs/remotes/origin/project-chat-handoff)" = "$BASE_SHA" || { echo 'branch moved before package install commit' >&2; exit 1; }
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f .reasoning-distiller
